@@ -46,7 +46,7 @@ function App() {
 
         {/* Private Routes - Redirect to login if not authenticated */}
         <Route element={<PrivateRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quality-control" element={<QualityControl />} />
           <Route path="/users" element={<Users />} />
           <Route path="/cases" element={<Cases />} />

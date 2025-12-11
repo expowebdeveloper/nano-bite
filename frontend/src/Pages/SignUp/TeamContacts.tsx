@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { useQueryState } from "nuqs";
 import { useEffect } from "react";
@@ -212,9 +213,6 @@ const TeamContacts = () => {
             label="Assistant Name"
             fieldName="assistantName"
             formConfig={formConfig}
-            rules={{
-              required: "Assistant name is required",
-            }}
             placeholder="Enter Assistant Name"
           />
 
@@ -225,15 +223,13 @@ const TeamContacts = () => {
             placeholder="Enter Phone Number"
             customClassInput="!input-field !w-full !h-[50px] !bg-[#f2f6f8] !rounded-2xl !border !border-solid !border-[#dde4ec]"
             disableCountryCode={false}
+            isRequired={false}
           />
 
           <Input
             label="Office Manager"
             fieldName="officeManager"
             formConfig={formConfig}
-            rules={{
-              required: "Office manager is required",
-            }}
             placeholder="Enter Office Manager"
           />
 
@@ -244,6 +240,7 @@ const TeamContacts = () => {
             placeholder="Enter Phone Number"
             customClassInput="!input-field !w-full !h-[50px] !bg-[#f2f6f8] !rounded-2xl !border !border-solid !border-[#dde4ec]"
             disableCountryCode={false}
+            isRequired={false}
           />
 
           <RadioButtonGroup
