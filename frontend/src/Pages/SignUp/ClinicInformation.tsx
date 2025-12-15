@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useQueryState } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Button from "../../components/common/Buttons/Button";
 import Input from "../../components/common/Input/Input";
 import PhoneNumberField from "../../components/common/PhoneNumberField/PhoneNumberField";
@@ -78,19 +78,28 @@ const ClinicInformation = () => {
   // Watch form changes and save to context in real-time
   const { watch } = formConfig;
   const watchedValues = watch();
+  const prevValuesRef = useRef<string>("");
 
   useEffect(() => {
-    // Save form data to context whenever values change
-    updateFormData({
-      clinicName: watchedValues.clinicName || "",
-      clinicPhone: watchedValues.phone || "",
-      clinicAddress: watchedValues.address || "",
-      clinicState: watchedValues.state || "",
-      clinicCity: watchedValues.city || "",
-      zipcode: watchedValues.zipcode || "",
-      scannerType: watchedValues.scannerType || "",
-      preferredFileTransfer: watchedValues.preferredFileTransfer || [],
-    });
+    // Serialize current values to compare
+    const currentValuesStr = JSON.stringify(watchedValues);
+    
+    // Only update if values actually changed
+    if (prevValuesRef.current !== currentValuesStr) {
+      prevValuesRef.current = currentValuesStr;
+      
+      // Save form data to context whenever values change
+      updateFormData({
+        clinicName: watchedValues.clinicName || "",
+        clinicPhone: watchedValues.phone || "",
+        clinicAddress: watchedValues.address || "",
+        clinicState: watchedValues.state || "",
+        clinicCity: watchedValues.city || "",
+        zipcode: watchedValues.zipcode || "",
+        scannerType: watchedValues.scannerType || "",
+        preferredFileTransfer: watchedValues.preferredFileTransfer || [],
+      });
+    }
   }, [watchedValues, updateFormData]);
 
   const { handleSubmit } = formConfig;

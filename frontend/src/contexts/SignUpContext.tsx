@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 
 interface SignUpFormData {
   // Step 1: Basic Information
@@ -97,16 +97,16 @@ export const SignUpProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);
 
-  const updateFormData = (data: Partial<SignUpFormData>) => {
+  const updateFormData = useCallback((data: Partial<SignUpFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
-  const resetFormData = () => {
+  const resetFormData = useCallback(() => {
     setFormData(defaultFormData);
     localStorage.removeItem(STORAGE_KEY);
-  };
+  }, []);
 
-  const getStepData = (step: number): Partial<SignUpFormData> => {
+  const getStepData = useCallback((step: number): Partial<SignUpFormData> => {
     switch (step) {
       case 1:
         return {
@@ -148,7 +148,7 @@ export const SignUpProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       default:
         return {};
     }
-  };
+  }, [formData]);
 
   return (
     <SignUpContext.Provider

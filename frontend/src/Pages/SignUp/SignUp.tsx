@@ -15,7 +15,7 @@ import CheckboxGroup from "../../components/common/CheckboxGroup/CheckboxGroup";
 import PasswordField from "../../components/common/PasswordField/PasswordField";
 import AuthLink from "../../components/common/AuthLink/AuthLink";
 import { useSignUp } from "../../contexts/SignUpContext";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface FormValues {
   fullName: string;
@@ -75,25 +75,34 @@ export const Signup = () => {
 
   // Watch form changes and save to context in real-time
   const watchedValues = watch();
+  const prevValuesRef = useRef<string>("");
 
   useEffect(() => {
-    // Save form data to context whenever values change
-    const phone_number = watchedValues.phone || "";
-    updateFormData({
-      fullName: watchedValues.fullName || "",
-      email: watchedValues.email || "",
-      phone: phone_number,
-      licenseNumber: watchedValues.licenseNumber || "",
-      role: watchedValues.role || "Dentist",
-      preferredContactMethod: watchedValues.preferredContactMethod || [],
-      specialty: watchedValues.specialty || [],
-      address: watchedValues.address || "",
-      state: watchedValues.state || "",
-      city: watchedValues.city || "",
-      country: watchedValues.country || "",
-      password: watchedValues.password || "",
-    });
-  }, [watchedValues, updateFormData, formConfig]);
+    // Serialize current values to compare
+    const currentValuesStr = JSON.stringify(watchedValues);
+    
+    // Only update if values actually changed
+    if (prevValuesRef.current !== currentValuesStr) {
+      prevValuesRef.current = currentValuesStr;
+      
+      // Save form data to context whenever values change
+      const phone_number = watchedValues.phone || "";
+      updateFormData({
+        fullName: watchedValues.fullName || "",
+        email: watchedValues.email || "",
+        phone: phone_number,
+        licenseNumber: watchedValues.licenseNumber || "",
+        role: watchedValues.role || "Dentist",
+        preferredContactMethod: watchedValues.preferredContactMethod || [],
+        specialty: watchedValues.specialty || [],
+        address: watchedValues.address || "",
+        state: watchedValues.state || "",
+        city: watchedValues.city || "",
+        country: watchedValues.country || "",
+        password: watchedValues.password || "",
+      });
+    }
+  }, [watchedValues, updateFormData]);
 
   const watchRole = watch("role");
 

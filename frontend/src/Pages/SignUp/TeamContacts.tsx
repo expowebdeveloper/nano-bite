@@ -1,7 +1,8 @@
 
 import { useForm } from "react-hook-form";
 import { useQueryState } from "nuqs";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/common/Buttons/Button";
 import Input from "../../components/common/Input/Input";
 import PhoneNumberField from "../../components/common/PhoneNumberField/PhoneNumberField";
@@ -26,9 +27,10 @@ interface TeamContactsFormValues {
 
 const TeamContacts = () => {
   const [, setStep] = useQueryState("step");
+  const navigate = useNavigate();
   const { formData, updateFormData, getStepData, resetFormData } = useSignUp();
   const { signup } = useUser();
-  
+
   // Load saved data into form
   const savedStepData = getStepData(3);
   const formConfig = useForm<TeamContactsFormValues>({
@@ -59,19 +61,28 @@ const TeamContacts = () => {
   // Watch form changes and save to context in real-time
   const { watch } = formConfig;
   const watchedValues = watch();
+  const prevValuesRef = useRef<string>("");
 
   useEffect(() => {
-    // Save form data to context whenever values change
-    updateFormData({
-      assistantName: watchedValues.assistantName || "",
-      assistantPhone: watchedValues.assistantPhone || "",
-      officeManager: watchedValues.officeManager || "",
-      officeManagerPhone: watchedValues.officeManagerPhone || "",
-      whoApprovesDesigns: watchedValues.whoApprovesDesigns || "",
-      contactTimeWindow: watchedValues.contactTimeWindow || "",
-      standardOcclusalPreference: watchedValues.standardOcclusalPreference || "",
-      standardShadesUsed: watchedValues.standardShadesUsed || "",
-    });
+    // Serialize current values to compare
+    const currentValuesStr = JSON.stringify(watchedValues);
+    
+    // Only update if values actually changed
+    if (prevValuesRef.current !== currentValuesStr) {
+      prevValuesRef.current = currentValuesStr;
+      
+      // Save form data to context whenever values change
+      updateFormData({
+        assistantName: watchedValues.assistantName || "",
+        assistantPhone: watchedValues.assistantPhone || "",
+        officeManager: watchedValues.officeManager || "",
+        officeManagerPhone: watchedValues.officeManagerPhone || "",
+        whoApprovesDesigns: watchedValues.whoApprovesDesigns || "",
+        contactTimeWindow: watchedValues.contactTimeWindow || "",
+        standardOcclusalPreference: watchedValues.standardOcclusalPreference || "",
+        standardShadesUsed: watchedValues.standardShadesUsed || "",
+      });
+    }
   }, [watchedValues, updateFormData]);
 
   const { handleSubmit } = formConfig;
@@ -126,7 +137,7 @@ const TeamContacts = () => {
     console.log("═══════════════════════════════════════════════════════════");
     console.log("📋 COMPLETE SIGNUP DATA - ALL THREE STEPS COMBINED");
     console.log("═══════════════════════════════════════════════════════════");
-    
+
     console.log("\n📝 STEP 1: Basic Information");
     console.log("─────────────────────────────────────────────────────────");
     console.log({
@@ -182,6 +193,8 @@ const TeamContacts = () => {
       onSuccess: () => {
         // Clear form data on success
         resetFormData();
+        // Redirect to login page after successful signup
+        navigate("/login", { replace: true });
       },
     });
   };
@@ -197,112 +210,112 @@ const TeamContacts = () => {
         <SignUpLeftSection />
 
         <div className="md:w-1/2 m-6 pr-5">
-        <SignUpHeader
-          title="Dentist: Team Contacts"
-          subtitle="Enter your team contact"
-        />
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <h3 className="text-2xl font-semibold mb-4 text-[#0B75C9]">
-              Team Contacts
-            </h3>
-          </div>
-
-          <Input
-            label="Assistant Name"
-            fieldName="assistantName"
-            formConfig={formConfig}
-            placeholder="Enter Assistant Name"
+          <SignUpHeader
+            title="Dentist: Team Contacts"
+            subtitle="Enter your team contact"
           />
 
-          <PhoneNumberField
-            fieldName="assistantPhone"
-            label="Assistant Phone Number"
-            formConfig={formConfig}
-            placeholder="Enter Phone Number"
-            customClassInput="!input-field !w-full !h-[50px] !bg-[#f2f6f8] !rounded-2xl !border !border-solid !border-[#dde4ec]"
-            disableCountryCode={false}
-            isRequired={false}
-          />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-[#0B75C9]">
+                Team Contacts
+              </h3>
+            </div>
 
-          <Input
-            label="Office Manager"
-            fieldName="officeManager"
-            formConfig={formConfig}
-            placeholder="Enter Office Manager"
-          />
-
-          <PhoneNumberField
-            fieldName="officeManagerPhone"
-            label="Office Manager Phone Number"
-            formConfig={formConfig}
-            placeholder="Enter Phone Number"
-            customClassInput="!input-field !w-full !h-[50px] !bg-[#f2f6f8] !rounded-2xl !border !border-solid !border-[#dde4ec]"
-            disableCountryCode={false}
-            isRequired={false}
-          />
-
-          <RadioButtonGroup
-            label="Who Approves Designs?"
-            fieldName="whoApprovesDesigns"
-            formConfig={formConfig}
-            options={["Dentist", "Designer", "Both"]}
-            className="flex flex-wrap gap-4"
-          />
-
-          <div>
-            <h3 className="text-2xl font-semibold mb-4 text-[#0B75C9]">
-              Preference Information
-            </h3>
-          </div>
-
-          <Input
-            label="Contact Time Window"
-            fieldName="contactTimeWindow"
-            formConfig={formConfig}
-            rules={{
-              required: "Contact time window is required",
-            }}
-            placeholder="Enter Contact Time Window"
-          />
-
-          <RadioButtonGroup
-            label="Standard Occlusal Preference"
-            fieldName="standardOcclusalPreference"
-            formConfig={formConfig}
-            options={["Maintain Existing", "Light Occlusion"]}
-            className="flex flex-wrap gap-4"
-          />
-
-          <Input
-            label="Standard Shades Used"
-            fieldName="standardShadesUsed"
-            formConfig={formConfig}
-            rules={{
-              required: "Standard shades used is required",
-            }}
-            placeholder="Enter Standard Shades Used"
-          />
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              btnType="button"
-              btnClick={handlePrevious}
-              btnText="Previous"
-              customClass="flex-1 h-[52px] rounded-[10px] border border-solid border-[#0B75C9] bg-white text-[#0B75C9] [font-family:'Inter_Tight',Helvetica] font-medium text-base hover:bg-[#f2f6f8] transition-colors"
+            <Input
+              label="Assistant Name"
+              fieldName="assistantName"
+              formConfig={formConfig}
+              placeholder="Enter Assistant Name"
             />
-            <Button
-              btnType="submit"
-              btnText="Create Dentist Account"
-              customClass="flex-1 h-[52px] rounded-[10px] shadow-[0px_6px_18px_#006bc933] bg-[linear-gradient(90deg,rgba(59,166,229,1)_0%,rgba(11,117,201,1)_100%)] [font-family:'Inter_Tight',Helvetica] font-medium text-white text-base hover:opacity-90 transition-opacity"
-            />
-          </div>
 
-          <p className="text-left text-[14px] text-[#797979] mt-4">
-            © 2025 NanoBite, All right reserved
-          </p>
-        </form>
+            <PhoneNumberField
+              fieldName="assistantPhone"
+              label="Assistant Phone Number"
+              formConfig={formConfig}
+              placeholder="Enter Phone Number"
+              customClassInput="!input-field !w-full !h-[50px] !bg-[#f2f6f8] !rounded-2xl !border !border-solid !border-[#dde4ec]"
+              disableCountryCode={false}
+              isRequired={false}
+            />
+
+            <Input
+              label="Office Manager"
+              fieldName="officeManager"
+              formConfig={formConfig}
+              placeholder="Enter Office Manager"
+            />
+
+            <PhoneNumberField
+              fieldName="officeManagerPhone"
+              label="Office Manager Phone Number"
+              formConfig={formConfig}
+              placeholder="Enter Phone Number"
+              customClassInput="!input-field !w-full !h-[50px] !bg-[#f2f6f8] !rounded-2xl !border !border-solid !border-[#dde4ec]"
+              disableCountryCode={false}
+              isRequired={false}
+            />
+
+            <RadioButtonGroup
+              label="Who Approves Designs?"
+              fieldName="whoApprovesDesigns"
+              formConfig={formConfig}
+              options={["Dentist", "Assistant", "Both"]}
+              className="flex flex-wrap gap-4"
+            />
+
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-[#0B75C9]">
+                Preference Information
+              </h3>
+            </div>
+
+            <Input
+              label="Contact Time Window"
+              fieldName="contactTimeWindow"
+              formConfig={formConfig}
+              rules={{
+                required: "Contact time window is required",
+              }}
+              placeholder="Enter Contact Time Window"
+            />
+
+            <RadioButtonGroup
+              label="Standard Occlusal Preference"
+              fieldName="standardOcclusalPreference"
+              formConfig={formConfig}
+              options={["Maintain Existing", "Light Occlusion"]}
+              className="flex flex-wrap gap-4"
+            />
+
+            <Input
+              label="Standard Shades Used"
+              fieldName="standardShadesUsed"
+              formConfig={formConfig}
+              rules={{
+                required: "Standard shades used is required",
+              }}
+              placeholder="Enter Standard Shades Used"
+            />
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                btnType="button"
+                btnClick={handlePrevious}
+                btnText="Previous"
+                customClass="flex-1 h-[52px] rounded-[10px] border border-solid border-[#0B75C9] bg-white text-[#0B75C9] [font-family:'Inter_Tight',Helvetica] font-medium text-base hover:bg-[#f2f6f8] transition-colors"
+              />
+              <Button
+                btnType="submit"
+                btnText="Create Dentist Account"
+                customClass="flex-1 h-[52px] rounded-[10px] shadow-[0px_6px_18px_#006bc933] bg-[linear-gradient(90deg,rgba(59,166,229,1)_0%,rgba(11,117,201,1)_100%)] [font-family:'Inter_Tight',Helvetica] font-medium text-white text-base hover:opacity-90 transition-opacity"
+              />
+            </div>
+
+            <p className="text-left text-[14px] text-[#797979] mt-4">
+              © 2025 NanoBite, All right reserved
+            </p>
+          </form>
         </div>
       </div>
     </>
