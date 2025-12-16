@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.0",
     "@tanstack/react-query": "^5.90.11",
+    "@types/react-select": "^5.0.0",
     "axios": "^1.13.2",
     "google-libphonenumber": "^3.2.43",
     "libphonenumber-js": "^1.12.30",
@@ -25,6 +26,7 @@
     "react-phone-input-2": "^2.15.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.6",
+    "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
     "redux-persist": "^6.0.0"
   },
