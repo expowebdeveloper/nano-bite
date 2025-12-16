@@ -14,7 +14,7 @@ interface SignUpFormData {
   city: string;
   country: string;
   password: string;
-  
+
   // Step 2: Clinic Information
   clinicName: string;
   clinicPhone: string;
@@ -24,7 +24,7 @@ interface SignUpFormData {
   zipcode: string;
   scannerType: string;
   preferredFileTransfer: string[];
-  
+
   // Step 3: Team Contacts
   assistantName: string;
   assistantPhone: string;

@@ -34,7 +34,7 @@ const SelectField = <T extends FieldValues = FieldValues>({
 
   return (
     <div className="flex flex-col w-full">
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label className="block text-sm font-semibold text-gray-700 mb-1">{label}</label>}
       <select 
         {...register(fieldName, rules)} 
         className={selectClasses}
