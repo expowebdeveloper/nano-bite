@@ -4,6 +4,7 @@ const app = express();
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import qcRoutes from './routes/qc.js';
+import caseRoutes from './routes/cases.js';
 import cors from 'cors';
 import { createDefaultAdmin } from "./DefaultUser/DefaultUser.js";
 
@@ -21,6 +22,7 @@ createDefaultAdmin()
 // Routes
 app.use('/api/accounts', authRoutes);
 app.use('/api/qc', qcRoutes);
+app.use('/api/cases', caseRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

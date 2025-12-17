@@ -4,6 +4,46 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendEmail } from "../services/sendEmail.js";
 
+const sanitizeString = (value) =>
+  typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+
+const sanitizeArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => typeof item === "string")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    return [value.trim()];
+  }
+  return [];
+};
+
+const DENTIST_PROFILE_STRING_FIELDS = [
+  "licenseNumber",
+  "assistantName",
+  "assistantPhone",
+  "officeManager",
+  "officeManagerPhone",
+  "whoApprovesDesigns",
+  "contactTimeWindow",
+  "standardOcclusalPreference",
+  "standardShadesUsed",
+  "clinicName",
+  "clinicPhone",
+  "clinicAddress",
+  "clinicState",
+  "clinicCity",
+  "zipcode",
+  "scannerType",
+];
+
+const DENTIST_PROFILE_ARRAY_FIELDS = [
+  "preferredContactMethod",
+  "specialty",
+  "preferredFileTransfer",
+];
 // Signup route
 const signup = async (req, res) => {
   try {
@@ -76,6 +116,34 @@ const signup = async (req, res) => {
       },
     });
 
+    let dentistProfile = null;
+    if (role === "Dentist") {
+      const mergedDentistProfileInput = {
+        ...(req.body.dentistProfile || {}),
+        ...(req.body.teamDetails || {}),
+        ...(req.body.clinicInfo || {}),
+      };
+
+      const getFieldValue = (field) =>
+        mergedDentistProfileInput[field] ?? req.body[field];
+
+      const dentistProfileData = {
+        userId: user.id,
+      };
+
+      DENTIST_PROFILE_STRING_FIELDS.forEach((field) => {
+        dentistProfileData[field] = sanitizeString(getFieldValue(field));
+      });
+
+      DENTIST_PROFILE_ARRAY_FIELDS.forEach((field) => {
+        dentistProfileData[field] = sanitizeArray(getFieldValue(field));
+      });
+
+      dentistProfile = await prisma.dentistProfile.create({
+        data: dentistProfileData,
+      });
+    }
+
     const encodedEmail = encodeURIComponent(email);
     const verificationLink = `${process.env.FRONTEND_URL}/verify-email?email=${encodedEmail}&token=${emailVerificationToken}`;
 
@@ -100,7 +168,10 @@ This link will expire in 24 hours. If you did not create this account, you can s
     res.status(201).json({
       success: true,
       message: "User created successfully. Please verify your email to activate the account.",
-      user,
+      user: {
+        ...user,
+        dentistProfile,
+      },
     });
   } catch (error) {
     console.error("Signup error:", error);

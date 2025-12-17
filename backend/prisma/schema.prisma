@@ -29,6 +29,8 @@ model User {
   emailVerificationExpires DateTime?
   resetPasswordToken  String?
   resetPasswordExpires DateTime?
+  cases               CaseRecord[]
+  dentistProfile      DentistProfile?
 }
 
 enum Role {
@@ -37,3 +39,107 @@ enum Role {
   QC
   ADMIN
 }
+
+model CaseRecord {
+  id                     String   @id @default(uuid())
+  patientName            String?
+  age                    String?
+  sex                    String[] @default([])
+  dueDate                String?
+  bruxism                String[] @default([])
+  smileStyle             String[] @default([])
+  midline                String[] @default([])
+  estheticNotes          String?
+  photos                 String[] @default([])
+  scans                  String[] @default([])
+  additionalNotes        String?
+  caseType               String?
+  toothType              String?
+  finalShade             String?
+  stumpShade             String?
+  restorationTypes       String[] @default([])
+  materialOptions        String[] @default([])
+  restorationPrep        String[] @default([])
+  noted                  String?
+  contacts               String[] @default([])
+  occlusion              String[] @default([])
+  requiredScans          String[] @default([])
+  abutmentsLeft          String?
+  abutmentsRight         String?
+  ponticDesign           String[] @default([])
+  ponticContacts         String[] @default([])
+  ponticTeeth            String?
+  bridgeMaterial         String[] @default([])
+  bridgeRequiredScans    String[] @default([])
+  implantBrand           String?
+  implantPlatform        String?
+  implantConnection      String?
+  implantTooth           String?
+  implantRestoration     String[] @default([])
+  implantEmergence       String[] @default([])
+  implantRequiredScans   String[] @default([])
+  implantAbutment        String[] @default([])
+  implantOcclusion       String[] @default([])
+  implantAllowed         String[] @default([])
+  fullArchDesign         String[] @default([])
+  fullArchFramework      String[] @default([])
+  fullArchVdo            String[] @default([])
+  fullArchOcc            String[] @default([])
+  fullArchToothSize      String[] @default([])
+  fullArchGingiva        String[] @default([])
+  fullArchMidline        String[] @default([])
+  fullArchRequiredScansTop String[] @default([])
+  fullArchRequiredScans  String[] @default([])
+  digitalType            String[] @default([])
+  digitalArch            String[] @default([])
+  digitalVdo             String[] @default([])
+  digitalToothSetup      String[] @default([])
+  digitalShade           String?
+  digitalBase            String[] @default([])
+  digitalCopy            String[] @default([])
+  digitalRequiredScans   String[] @default([])
+  digitalNewRecord       String?
+  digitalChanges         String?
+  partialType            String[] @default([])
+  partialFramework       String[] @default([])
+  partialMajorConnector  String?
+  partialRests           String?
+  partialShade           String?
+  partialClasps          String?
+  partialBaseAreas       String?
+  partialAesthetics      String[] @default([])
+  partialRequiredScans   String[] @default([])
+  createdById            String?
+  createdBy              User?    @relation(fields: [createdById], references: [id])
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model DentistProfile {
+  id                       String   @id @default(uuid())
+  userId                   String   @unique
+  user                     User     @relation(fields: [userId], references: [id])
+  licenseNumber            String?
+  preferredContactMethod   String[] @default([])
+  specialty                String[] @default([])
+  assistantName            String?
+  assistantPhone           String?
+  officeManager            String?
+  officeManagerPhone       String?
+  whoApprovesDesigns       String?
+  contactTimeWindow        String?
+  standardOcclusalPreference String?
+  standardShadesUsed       String?
+  clinicName               String?
+  clinicPhone              String?
+  clinicAddress            String?
+  clinicState              String?
+  clinicCity               String?
+  zipcode                  String?
+  scannerType              String?
+  preferredFileTransfer    String[] @default([])
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+}
+
+
