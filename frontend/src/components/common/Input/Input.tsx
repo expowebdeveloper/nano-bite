@@ -33,7 +33,7 @@ interface InputFieldProps<T extends FieldValues> {
 
   return (
     <div>
-      {label && <label className="block text-sm font-medium text-[#6C6C6C] mb-1">{label}</label>}
+      {label && <label className="block text-sm font-semibold text-[#6C6C6C] mb-1">{label}</label>}
       <input
         {...register(fieldName, rules)}
         className={inputClasses}

@@ -19,7 +19,7 @@ const useUser = () => {
   // Placeholder for user-related logic
   // Mutations
   const signup = useMutation({
-    mutationFn: async (payload: User) => {
+    mutationFn: async (payload: User | any) => {
       const response = await request.post("/accounts/signup", payload);
       return response.data;
     },

@@ -165,6 +165,168 @@ export const PARTIAL_FRAMEWORK = ["Co", "Cr", "Titanium"] as const;
 export const PARTIAL_REQUIRED_SCANS = ["Arch scan", "Opposing", "Bite", "Existing partial (if rework)"] as const;
 export const PARTIAL_AESTHETICS = ["Min metal display"] as const;
 
+// Case Form Types
+export type CaseFormValues = {
+  // Header
+  caseType: string;
+  doctorSignature: string;
+  date: string;
+  // Patient Information
+  patientName: string;
+  age: string;
+  sex: string[];
+  dueDate: string;
+  bruxism: string[];
+  smileStyle: string[];
+  midline: string[];
+  estheticNotes: string;
+  photos: string[];
+  scans: string[];
+  additionalNotes: string;
+  // Single Crown / Onlay / Veneer
+  toothType: string;
+  finalShade: string;
+  stumpShade: string;
+  restorationTypes: string[];
+  materialOptions: string[];
+  restorationPrep: string[];
+  noted: string;
+  contacts: string[];
+  occlusion: string[];
+  requiredScans: string[];
+  // Short-span bridge
+  abutmentsLeft: string;
+  abutmentsRight: string;
+  ponticDesign: string[];
+  ponticContacts: string[];
+  ponticTeeth: string;
+  bridgeMaterial: string[];
+  bridgeRequiredScans: string[];
+  // Implant crown/bridge
+  implantBrand: string;
+  implantPlatform: string;
+  implantConnection: string;
+  implantTooth: string;
+  implantRestoration: string[];
+  implantEmergence: string[];
+  implantRequiredScans: string[];
+  implantAbutment: string[];
+  implantOcclusion: string[];
+  implantAllowed: string[];
+  // Full Arch Implant Fixed
+  fullArchDesign: string[];
+  fullArchFramework: string[];
+  fullArchVdo: string[];
+  fullArchOcc: string[];
+  fullArchToothSize: string[];
+  fullArchGingiva: string[];
+  fullArchMidline: string[];
+  fullArchRequiredScansTop: string[];
+  fullArchRequiredScans: string[];
+  // Digital Complete Denture
+  digitalType: string[];
+  digitalArch: string[];
+  digitalVdo: string[];
+  digitalToothSetup: string[];
+  digitalShade: string;
+  digitalBase: string[];
+  digitalCopy: string[];
+  digitalRequiredScans: string[];
+  digitalNewRecord: string;
+  digitalChanges: string;
+  // Partial denture
+  partialType: string[];
+  partialFramework: string[];
+  partialMajorConnector: string;
+  partialRests: string;
+  partialShade: string;
+  partialClasps: string;
+  partialBaseAreas: string;
+  partialAesthetics: string[];
+  partialRequiredScans: string[];
+};
+
+// Case Form Default Values
+export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
+  // Header
+  caseType: "Single Crown / Onlay / Veneer",
+  doctorSignature: "",
+  date: "",
+  // Patient Information
+  patientName: "",
+  age: "",
+  sex: [],
+  dueDate: "",
+  bruxism: [],
+  smileStyle: [],
+  midline: [],
+  estheticNotes: "",
+  photos: [],
+  scans: [],
+  additionalNotes: "",
+  // Single Crown / Onlay / Veneer
+  toothType: "",
+  finalShade: "",
+  stumpShade: "",
+  restorationTypes: [],
+  materialOptions: [],
+  restorationPrep: [],
+  noted: "",
+  contacts: [],
+  occlusion: [],
+  requiredScans: [],
+  // Short-span bridge
+  abutmentsLeft: "",
+  abutmentsRight: "",
+  ponticDesign: [],
+  ponticContacts: [],
+  ponticTeeth: "",
+  bridgeMaterial: [],
+  bridgeRequiredScans: [],
+  // Implant crown/bridge
+  implantBrand: "",
+  implantPlatform: "",
+  implantConnection: "",
+  implantTooth: "",
+  implantRestoration: [],
+  implantEmergence: [],
+  implantRequiredScans: [],
+  implantAbutment: [],
+  implantOcclusion: [],
+  implantAllowed: [],
+  // Full Arch Implant Fixed
+  fullArchDesign: [],
+  fullArchFramework: [],
+  fullArchVdo: [],
+  fullArchOcc: [],
+  fullArchToothSize: [],
+  fullArchGingiva: [],
+  fullArchMidline: [],
+  fullArchRequiredScansTop: [],
+  fullArchRequiredScans: [],
+  // Digital Complete Denture
+  digitalType: [],
+  digitalArch: [],
+  digitalVdo: [],
+  digitalToothSetup: [],
+  digitalShade: "",
+  digitalBase: [],
+  digitalCopy: [],
+  digitalRequiredScans: [],
+  digitalNewRecord: "",
+  digitalChanges: "",
+  // Partial denture
+  partialType: [],
+  partialFramework: [],
+  partialMajorConnector: "",
+  partialRests: "",
+  partialShade: "",
+  partialClasps: "",
+  partialBaseAreas: "",
+  partialAesthetics: [],
+  partialRequiredScans: [],
+};
+
 
 
 // Export the typed array

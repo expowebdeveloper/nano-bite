@@ -34,7 +34,7 @@ interface FormValues {
 }
 export const Signup = () => {
   const [, setStep] = useQueryState("step");
-  const { updateFormData, getStepData } = useSignUp();
+  const { updateFormData, getStepData, resetFormData } = useSignUp();
   const { signup } = useUser();
 
   // Step 1: Basic Information Form ONLY
@@ -167,7 +167,12 @@ export const Signup = () => {
       setStep("2");
     } else {
       // For Designer, submit directly
-      signup.mutate(userPayload as unknown as User);
+      signup.mutate(userPayload as unknown as User, {
+        onSuccess: () => {
+          // Clear form data from localStorage on success
+          resetFormData();
+        },
+      });
     }
   };
 

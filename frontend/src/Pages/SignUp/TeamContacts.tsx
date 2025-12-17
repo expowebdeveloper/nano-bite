@@ -11,19 +11,8 @@ import SignUpHeader from "./SignUpHeader";
 import SignUpLeftSection from "./SignUpLeftSection";
 import { useSignUp } from "../../contexts/SignUpContext";
 import useUser from "../../hooks/useUser";
-import { User } from "../../interfaces/interfaces";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
-
-interface TeamContactsFormValues {
-  assistantName: string;
-  assistantPhone: string;
-  officeManager: string;
-  officeManagerPhone: string;
-  whoApprovesDesigns: string;
-  contactTimeWindow: string;
-  standardOcclusalPreference: string;
-  standardShadesUsed: string;
-}
+import { DentistSignupPayload, TeamContactsFormValues } from "../../interfaces/types";
 
 const TeamContacts = () => {
   const [, setStep] = useQueryState("step");
@@ -66,11 +55,11 @@ const TeamContacts = () => {
   useEffect(() => {
     // Serialize current values to compare
     const currentValuesStr = JSON.stringify(watchedValues);
-    
+
     // Only update if values actually changed
     if (prevValuesRef.current !== currentValuesStr) {
       prevValuesRef.current = currentValuesStr;
-      
+
       // Save form data to context whenever values change
       updateFormData({
         assistantName: watchedValues.assistantName || "",
@@ -116,21 +105,47 @@ const TeamContacts = () => {
 
     const phone_number = updatedFormData.phone || "";
 
+    // Structure payload according to API requirements
     const userPayload = {
       fullName: updatedFormData.fullName,
       email: updatedFormData.email,
       phone_number,
-      address: "",
-      state: "",
-      city: "",
+      // Use clinic address information for top-level address fields
+      address: updatedFormData.clinicAddress || "",
+      state: updatedFormData.clinicState || "",
+      city: updatedFormData.clinicCity || "",
       country: updatedFormData.country || "",
-      zipCode: "",
+      zipCode: updatedFormData.zipcode || "",
       password: updatedFormData.password,
       role: updatedFormData.role,
-      licenseNumber: updatedFormData.licenseNumber || "",
-      preferredContactMethod: updatedFormData.preferredContactMethod || [],
-      specialty: updatedFormData.specialty || [],
-      // Clinic and team data will be saved separately or added to user model later
+      // Dentist profile information
+      dentistProfile: {
+        licenseNumber: updatedFormData.licenseNumber || "",
+        preferredContactMethod: updatedFormData.preferredContactMethod || [],
+        specialty: updatedFormData.specialty || [],
+      },
+      // Team details
+      teamDetails: {
+        assistantName: updatedFormData.assistantName || "",
+        assistantPhone: updatedFormData.assistantPhone || "",
+        officeManager: updatedFormData.officeManager || "",
+        officeManagerPhone: updatedFormData.officeManagerPhone || "",
+        whoApprovesDesigns: updatedFormData.whoApprovesDesigns || "",
+        contactTimeWindow: updatedFormData.contactTimeWindow || "",
+        standardOcclusalPreference: updatedFormData.standardOcclusalPreference || "",
+        standardShadesUsed: updatedFormData.standardShadesUsed || "",
+      },
+      // Clinic information
+      clinicInfo: {
+        clinicName: updatedFormData.clinicName || "",
+        clinicPhone: updatedFormData.clinicPhone || "",
+        clinicAddress: updatedFormData.clinicAddress || "",
+        clinicState: updatedFormData.clinicState || "",
+        clinicCity: updatedFormData.clinicCity || "",
+        zipcode: updatedFormData.zipcode || "",
+        scannerType: updatedFormData.scannerType || "",
+        preferredFileTransfer: updatedFormData.preferredFileTransfer || [],
+      },
     };
 
     // Console log ALL combined data from all three steps
@@ -188,8 +203,8 @@ const TeamContacts = () => {
 
     console.log("\n═══════════════════════════════════════════════════════════");
 
-    // Submit to API
-    signup.mutate(userPayload as unknown as User, {
+    // Submit to API with proper payload structure
+    signup.mutate(userPayload as unknown as DentistSignupPayload, {
       onSuccess: () => {
         // Clear form data on success
         resetFormData();

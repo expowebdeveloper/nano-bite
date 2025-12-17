@@ -25,7 +25,7 @@ const CheckboxGroup = <T extends FieldValues>({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
         {label}
       </label>
       <Controller
