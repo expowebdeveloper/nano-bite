@@ -1,20 +1,24 @@
-import { useDispatch } from "react-redux";
-import { logoutUser } from "../../redux/user/userSlice";
-import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Banknote, CheckCircle, Clock4, FileText, Palette, Pen, Receipt, ShieldCheck, Users } from "lucide-react";
+import { CheckCircle, Clock4, FileText, Palette, Pen, Receipt, ShieldCheck, Users } from "lucide-react";
 import RecentCasesTable from "./RecentCasesTable";
 import CaseDueDates from "./CaseDueDates";
 import TreatmentCard from "./TreatmentCard";
 import dashboard from "../../assets/images/dashboard.png";
+import useCases from "../../hooks/useCases";
 
 /**
  * Dashboard component - Main page for authenticated users
  */
 const Dashboard = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { user } = useSelector((state: any) => state.user);
+  const { casesListQuery } = useCases();
+  const cases = casesListQuery.data ?? [];
+  const loading = casesListQuery.isLoading;
+
+  const totalCases = cases.length;
+  const submittedCount = cases.filter((c: any) => c.status === "Submitted").length;
+  const inDesignCount = cases.filter((c: any) => c.status === "In Design").length;
+  const completedCount = cases.filter((c: any) => c.status === "Completed").length;
 
   type CardConfig = {
     label: string;
@@ -26,36 +30,32 @@ const Dashboard = () => {
 
   const cardsByRole: Record<string, CardConfig[]> = {
     designer: [
-      { label: "Assigned", value: 8, Icon: FileText },
-      { label: "In Design", value: 12, Icon: Pen },
-      { label: "Delivered", value: 30, Icon: CheckCircle },
+      { label: "Assigned", value: totalCases || 0, Icon: FileText },
+      { label: "In Design", value: inDesignCount || 0, Icon: Pen },
+      { label: "Delivered", value: completedCount || 0, Icon: CheckCircle },
     ],
     admin: [
-      { label: "Total Case", value: 320, Icon: FileText },
-      { label: "Total Pending", value: 42, Icon: Clock4 },
-      { label: "Total Delivered", value: 210, Icon: CheckCircle },
-      { label: "Total Doctors", value: 87, Icon: Users },
-      { label: "Total Designer", value: 34, Icon: Palette },
-      { label: "Total Payments", value: "$12.3k", Icon: Receipt  },
+      { label: "Total Case", value: totalCases || 0, Icon: FileText },
+      { label: "Total Pending", value: submittedCount || 0, Icon: Clock4 },
+      { label: "Total Delivered", value: completedCount || 0, Icon: CheckCircle },
+      { label: "Total Doctors", value: 0, Icon: Users },
+      { label: "Total Designer", value: 0, Icon: Palette },
+      { label: "Total Payments", value: "$0", Icon: Receipt  },
     ],
     qc: [
-      { label: "Assigned", value: 14, Icon: FileText },
-      { label: "In Review", value: 6, Icon: ShieldCheck },
-      { label: "Approved", value: 120, Icon: CheckCircle },
+      { label: "Assigned", value: totalCases || 0, Icon: FileText },
+      { label: "In Review", value: inDesignCount || 0, Icon: ShieldCheck },
+      { label: "Approved", value: completedCount || 0, Icon: CheckCircle },
     ],
     dentist: [
-      { label: "Submitted", value: 3, Icon: FileText },
-      { label: "In Design", value: 5, Icon: Pen },
-      { label: "Completed", value: 50, Icon: CheckCircle },
+      { label: "Submitted", value: submittedCount || 0, Icon: FileText },
+      { label: "In Design", value: inDesignCount || 0, Icon: Pen },
+      { label: "Completed", value: completedCount || 0, Icon: CheckCircle },
     ],
   };
 
   const cards = cardsByRole[role] || cardsByRole.dentist;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLogout = () => {
-    dispatch(logoutUser());
-    navigate("/login");
-  };
+  // add logout handler when wiring a sign-out control
 
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6">
@@ -112,7 +112,9 @@ const Dashboard = () => {
       </div>
       <div>
         <p className="text-gray-500 text-sm font-medium mb-1">{card.label}</p>
-        <p className="text-3xl font-bold text-gray-900">0</p>
+        <p className="text-3xl font-bold text-gray-900">
+          {loading ? "…" : card.value}
+        </p>
       </div>
     </div>
   ))}

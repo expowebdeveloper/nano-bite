@@ -42,6 +42,11 @@ enum Role {
 
 model CaseRecord {
   id                     String   @id @default(uuid())
+  caseId                 String   @unique
+  status                 String   @default("Submitted")
+  caseType               String?
+  doctorSignature        String?
+  date                   String?
   patientName            String?
   age                    String?
   sex                    String[] @default([])
@@ -53,7 +58,7 @@ model CaseRecord {
   photos                 String[] @default([])
   scans                  String[] @default([])
   additionalNotes        String?
-  caseType               String?
+  attachments            Json?
   toothType              String?
   finalShade             String?
   stumpShade             String?

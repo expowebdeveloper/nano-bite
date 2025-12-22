@@ -1,5 +1,6 @@
 import { Banknote, Calendar, Edit, LayoutDashboard, MessageSquareMore, Settings, ShieldCheck, Users } from "lucide-react";
 import { ValidationRule } from "../interfaces/interfaces";
+import type { CaseAttachment } from "../interfaces/types";
 
 export const BUTTON_TYPE = {
   button: "button",
@@ -244,6 +245,8 @@ export type CaseFormValues = {
   partialBaseAreas: string;
   partialAesthetics: string[];
   partialRequiredScans: string[];
+  // Uploads
+  attachments: CaseAttachment[];
 };
 
 // Case Form Default Values
@@ -325,6 +328,8 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   partialBaseAreas: "",
   partialAesthetics: [],
   partialRequiredScans: [],
+  // Uploads
+  attachments: [],
 };
 
 

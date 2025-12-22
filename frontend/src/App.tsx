@@ -16,6 +16,7 @@ import VerifyEmail from "./Pages/VerifyEmail/VerifyEmail";
 import QualityControl from "./Pages/QualityControl/QualityControl";
 import Users from "./Pages/Users/Users";
 import Payments from "./Pages/Payments/Payments";
+import CaseDetails from "./Pages/Cases/CaseDetails";
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <Route path="/quality-control" element={<QualityControl />} />
           <Route path="/users" element={<Users />} />
           <Route path="/cases" element={<Cases />} />
+          <Route path="/cases/:caseId" element={<CaseDetails />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/payments" element={<Payments />} />

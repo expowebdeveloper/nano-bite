@@ -5,6 +5,7 @@ import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import qcRoutes from './routes/qc.js';
 import caseRoutes from './routes/cases.js';
+import uploadRoutes from './routes/uploads.js';
 import cors from 'cors';
 import { createDefaultAdmin } from "./DefaultUser/DefaultUser.js";
 
@@ -23,6 +24,7 @@ createDefaultAdmin()
 app.use('/api/accounts', authRoutes);
 app.use('/api/qc', qcRoutes);
 app.use('/api/cases', caseRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

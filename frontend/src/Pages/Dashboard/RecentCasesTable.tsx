@@ -1,24 +1,20 @@
-import React from 'react';
-import { Edit, Pen, Trash2 } from 'lucide-react';
+import { Edit, EyeIcon, Pen, Trash2 } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import useCases from '../../hooks/useCases';
 
 const RecentCasesTable = () => {
+  const navigate = useNavigate()
   const { user } = useSelector((state: any) => state.user);
-
-  const cases = [
-    { id: 'CASE-004', patient: 'Emily Davis', updated: 'Today', status: 'In Design', statusColor: 'bg-[#2B89D2] text-white' },
-    { id: 'CASE-006', patient: 'Olivia Brown', updated: 'Yesterday', status: 'Submitted', statusColor: 'bg-green-100 text-green-600' },
-    { id: 'CASE-007', patient: 'Michael Johns', updated: '15/06/2025', status: 'Submitted', statusColor: 'bg-green-100 text-green-600' },
-    { id: 'CASE-008', patient: 'Olivia Brown', updated: '06/09/2025', status: 'Submitted', statusColor: 'bg-green-100 text-green-600' },
-    { id: 'CASE-009', patient: 'Michael Johns', updated: '25/09/2025', status: 'Submitted', statusColor: 'bg-green-100 text-green-600' },
-  ];
+  const { casesListQuery } = useCases();
+  const cases = casesListQuery.data ?? [];
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="flex justify-between items-center p-6 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-900">Recent Cases</h2>
        {user?.role === "Dentist" &&
-        <button className="bg-[#2B89D2] hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button className="bg-[#2B89D2] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" onClick={()=>navigate("/cases")}>
           + New Cases
         </button>}
       </div>
@@ -36,18 +32,26 @@ const RecentCasesTable = () => {
         </tr>
       </thead>
           <tbody className="divide-y divide-gray-100">
-            {cases.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.id}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">{item.patient}</td>
-                <td className="px-6 py-4 text-sm text-gray-700">{item.updated}</td>
+            {cases?.length > 0 ? cases.map((item) => (
+              <tr key={item.caseId} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.caseId}</td>
+                <td className="px-6 py-4 text-sm text-gray-700">{item.patientName || "—"}</td>
+                <td className="px-6 py-4 text-sm text-gray-700">
+                  {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "—"}
+                </td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.statusColor}`}>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
                     {item.status}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
+                    <Link
+                      to={`/cases/${item.caseId}`}
+                      className="text-sm text-[#0B75C9] hover:underline"
+                    >
+                      <EyeIcon/>
+                    </Link>
                     <button className="p-1 text-purple-600 hover:bg-purple-50 rounded transition-colors">
                       <Edit size={18} />
                     </button>
@@ -57,18 +61,18 @@ const RecentCasesTable = () => {
                   </div>
                 </td>
               </tr>
-            ))}
+            )): <tr><td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No cases found</td></tr>}
           </tbody>
         </table>
       </div>
       </div>
-      <div className="p-4 flex justify-center gap-2">
+      {cases?.length > 0 && <div className="p-4 flex justify-center gap-2">
          <span className="text-gray-400 text-sm mt-1">Previous</span>
          <button className="w-8 h-8 bg-[#2B89D2] text-white rounded flex items-center justify-center text-sm">1</button>
          <button className="w-8 h-8 bg-gray-200 text-gray-600 rounded flex items-center justify-center text-sm hover:bg-gray-300">2</button>
          <button className="w-8 h-8 bg-gray-200 text-gray-600 rounded flex items-center justify-center text-sm hover:bg-gray-300">3</button>
          <span className="text-gray-400 text-sm mt-1">Next</span>
-      </div>
+      </div>}
     </div>
   );
 };

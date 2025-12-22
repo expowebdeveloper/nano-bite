@@ -16,11 +16,15 @@ import {
 interface PatientInformationProps {
   formConfig: UseFormReturn<CaseFormValues>;
   onUploadClick: () => void;
+  doctorSignatureValue?: string;
+  dateValue?: string;
 }
 
 const PatientInformation = ({
   formConfig,
   onUploadClick,
+  doctorSignatureValue,
+  dateValue,
 }: PatientInformationProps) => {
   return (
     <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
@@ -171,7 +175,10 @@ const PatientInformation = ({
 
         {/* Doctor Signature and Date - At the end of Patient Information, on the right */}
         <div className="flex justify-end gap-8 md:gap-10 pt-4">
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center relative">
+            <span className="absolute -top-6 text-sm text-gray-700 font-semibold">
+              {doctorSignatureValue || "Signature"}
+            </span>
             <div className="w-32 border-b-2 border-dashed border-gray-300 mb-2"></div>
             <label className="block text-sm font-semibold text-gray-900 mb-1">Doctor Signature</label>
             <Input
@@ -181,7 +188,10 @@ const PatientInformation = ({
               customClass="!h-auto !border-none !bg-transparent !px-0 !text-center !w-32 !shadow-none !rounded-none"
             />
           </div>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center relative">
+            <span className="absolute -top-6 text-sm text-gray-700 font-semibold">
+              {dateValue || "Date"}
+            </span>
             <div className="w-24 border-b-2 border-dashed border-gray-300 mb-2"></div>
             <label className="block text-sm font-semibold text-gray-900 mb-1">Date</label>
             <Input
