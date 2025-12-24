@@ -151,6 +151,7 @@ const Cases = () => {
       await createCase.mutateAsync({ ...values, attachments });
       setAttachments([]);
       reset(CASE_FORM_DEFAULT_VALUES);
+      navigate("/cases");
     } catch (error) {
       // Errors are handled in the mutation onError
     }
@@ -182,7 +183,7 @@ const Cases = () => {
        backGround
        icon={<ArrowLeft/>}
        customClass="!h-11 !px-6 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
-       btnClick={()=>navigate("/dashboard")}
+       btnClick={()=>navigate("/cases")}
 
         />
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

@@ -39,7 +39,7 @@ const useUser = () => {
 
   const login = useMutation({
     mutationFn: async (payload: Login) => {
-      const response = await request.post("/accounts/login", payload);
+      const response = await request.post("/accounts/login/", payload);
       return response.data as LoginResponse;
     },
     onSuccess: (data: LoginResponse) => {

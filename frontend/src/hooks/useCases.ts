@@ -11,7 +11,7 @@ const useCases = () => {
 
   const createCase = useMutation({
     mutationFn: async (payload: Partial<CaseRecord> & { attachments?: CaseRecord["attachments"] }) => {
-      const response = await request.post("/cases", payload);
+      const response = await request.post("/cases/", payload);
       return response.data?.data ?? response.data;
     },
     onSuccess: () => {
@@ -28,7 +28,7 @@ const useCases = () => {
   const casesListQuery = useQuery({
     queryKey: ["cases"],
     queryFn: async (): Promise<CaseRecord[]> => {
-      const response = await request.get("/cases");
+      const response = await request.get("/cases/");
       return response.data?.data ?? [];
     },
     refetchOnWindowFocus: false,

@@ -14,7 +14,7 @@ const RecentCasesTable = () => {
       <div className="flex justify-between items-center p-6 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-900">Recent Cases</h2>
        {user?.role === "Dentist" &&
-        <button className="bg-[#2B89D2] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" onClick={()=>navigate("/cases")}>
+        <button className="bg-[#2B89D2] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors" onClick={()=>navigate("/cases/create")}>
           + New Cases
         </button>}
       </div>

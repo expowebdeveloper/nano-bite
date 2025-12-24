@@ -9,6 +9,7 @@ import { ResetPassword } from "./Pages/ResetPassword/ResetPassword";
 import { SetPassword } from "./Pages/ResetPassword/SetPassword";
 import Dashboard from "./Pages/Dashboard/Dashboard";
 import Cases from "./Pages/Cases/Cases";
+import CasesList from "./Pages/Cases/CasesList";
 import Messages from "./Pages/Messages/Messages";
 import Calendar from "./Pages/Calendar/Calendar";
 import Settings from "./Pages/Settings/Settings";
@@ -50,7 +51,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/quality-control" element={<QualityControl />} />
           <Route path="/users" element={<Users />} />
-          <Route path="/cases" element={<Cases />} />
+          <Route path="/cases" element={<CasesList />} />
+          <Route path="/cases/create" element={<Cases />} />
           <Route path="/cases/:caseId" element={<CaseDetails />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/calendar" element={<Calendar />} />
