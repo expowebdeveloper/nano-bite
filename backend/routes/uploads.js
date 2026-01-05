@@ -9,5 +9,3 @@ router.post("/presign", authenticate, uploadController.presign);
 router.post("/presign/get", authenticate, uploadController.presignGet);
 
 export default router;
-
-

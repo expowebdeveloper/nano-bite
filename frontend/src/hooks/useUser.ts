@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import useAuth from "./useAuth";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../redux/user/userSlice";
 import type { User } from "../interfaces/interfaces";
@@ -14,7 +14,7 @@ const useUser = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const showErrorMessage = useShowErrorMessage();
-
+ const { user } = useSelector((state: any) => state.user);
 
   // Placeholder for user-related logic
   // Mutations
@@ -116,12 +116,60 @@ const useUser = () => {
     },
   });
 
+  const designersQuery = useQuery({
+  queryKey: ["users", "designers"],
+  queryFn: async () => {
+    console.log("User Role in designersQuery:", user?.role);
+    if(user.role== 'ADMIN' || user.role== 'QC'){
+    const response = await request.get("/users/designers");
+    return response.data?.data ?? [];
+    } else {
+      return
+    }
+  },
+  onError: (error: any) => {
+    showErrorMessage(
+      error?.response?.data?.message || "Failed to fetch designers"
+    );
+  },
+  refetchOnWindowFocus: false,
+  // staleTime: 5 * 60 * 1000, // cache designers
+});
+
+
+
+const assignCase = useMutation({
+
+  mutationFn: async (payload: {
+    caseId: string;
+    designerId?: string;
+    qcId?: string;
+  }) => {
+    console.log("User Role in assignCase Mutation:",payload.caseId);
+    const response = await request.post(`/cases/${payload.caseId}/assign`, payload);
+    
+    return response.data;
+  },
+  onSuccess: () => {
+    confirmationMessage("Case assigned successfully", "success");
+  },
+  onError: (error: any) => {
+    showErrorMessage(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Failed to assign case"
+    );
+  },
+});
+
   return {
     signup,
     login,
     resetPassword,
     setPassword,
     verifyEmail,
+    designersQuery,
+    assignCase
   };
 };
 

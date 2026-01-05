@@ -1,14 +1,96 @@
 import { Link, useParams } from "react-router-dom";
 import useCases from "../../hooks/useCases";
 import useUploads from "../../hooks/useUploads";
-import { useMemo, useState } from "react";
+import {  useMemo, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import Button from "../../components/common/Buttons/Button";
+import Modal from "../../components/common/Modal/Modal";
+import { confirmationMessage } from "../../components/common/ToastMessage";
+import { useSelector } from "react-redux";
+import { ChangeEvent } from "react";
+import { CaseAttachment } from "../../interfaces/types";
+
 
 const CaseDetails = () => {
+    const { user } = useSelector((state: any) => state.user);
+
   const { caseId } = useParams();
-  const { caseDetailsQuery } = useCases();
+      const {
+  caseDetailsQuery,
+  updateCaseStatus,
+  designerAttachmentsQuery,
+} = useCases();
+
+const {
+  uploadFile,
+  uploading,
+  getDownloadUrl,
+} = useUploads();
+const { data: designerAttachmentsData } =
+  designerAttachmentsQuery(caseId);
+
   const { data, isLoading, error } = caseDetailsQuery(caseId);
-  const { getDownloadUrl } = useUploads();
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+    const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
+
+  
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    
+
+    if (!file) return;
+
+    setUploadError(null);
+
+    try {
+      const uploaded = await uploadFile(file);
+      setAttachments((prev) => [...prev, uploaded]);
+      confirmationMessage("File uploaded successfully", "success");
+      setShowUploadModal(false);
+    } catch (error: any) {
+      const message = error?.message || "Unable to upload file.";
+      setUploadError(message);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      event.target.value = "";
+    }
+  };
+
+const getNextStatus = (currentStatus?: string) => {
+  switch (currentStatus) {
+    case "Assigned":
+      return "In Design";
+    case "In Design":
+      return "QC";
+    case "QC":
+      return "Ready";
+      // case "In Design":
+      // return "Assigned";
+    default:
+      return null;
+  }
+};
+
+const handleUpdateStatus = () => {
+  console.log("c>>>>>>>>>>>>>>>>>>>>>>>>alled")
+  if (!record?.caseId) return;
+
+  const nextStatus = getNextStatus(record.status);
+  if (!nextStatus) return;
+
+  updateCaseStatus.mutate({
+    caseId: record.caseId,
+    status: nextStatus,
+  });
+};
+
+
 
   const record = data;
 
@@ -183,20 +265,61 @@ const CaseDetails = () => {
       setDownloadingKey(null);
     }
   };
+const getStatusButtonText = (status?: string) => {
+  switch (status) {
+    case "Assigned":
+      return "Start In Design";
+    case "In Design":
+      return "Design Complete?";
+    case "QC":
+      return "Assign To QC";
+      
+   
+  }
+};
+
+const filesToShow =
+  attachments.length > 0
+    ? attachments
+    : designerAttachmentsData?.designersAttachments || [];
+
 
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6 space-y-6">
       <div className="flex items-center justify-between">
+         <div className="flex items-center gap-4 ">
+           <Link
+          to="/dashboard"
+          className="text-sm text-[#0B75C9] bg-blue-100 rounded-full p-3"
+        >
+                                   <ArrowLeft className="w-5 h-5 text-[#2B89D2]" />
+
+        </Link>
+        
+       
         <div>
+          
           <h1 className="text-2xl font-bold text-gray-900">Case Details</h1>
           <p className="text-sm text-gray-600">Case ID: {caseId}</p>
         </div>
-        <Link
-          to="/dashboard"
-          className="text-sm text-[#0B75C9] hover:underline"
-        >
-          Back to dashboard
-        </Link>
+        </div>
+        <div className="flex justify-center items-center gap-6">
+         <span className="px-3 py-1 rounded-full bg-[#e8f4ff] text-[#0B75C9] font-semibold">
+                {record?.status}
+          </span>
+          
+                            {user?.role === "Designer" &&   (record?.status === "Assigned" ||
+   record?.status === "In Design" ||
+   record?.status === "QC") && <button className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100"
+                            onClick={handleUpdateStatus}
+                            >
+  {getStatusButtonText(record?.status)}
+</button>}
+
+              
+       
+        </div>
+        
       </div>
 
       <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
@@ -209,9 +332,7 @@ const CaseDetails = () => {
         {!isLoading && record && (
           <>
             <div className="flex flex-wrap gap-4 text-sm text-gray-700">
-              <span className="px-3 py-1 rounded-full bg-[#e8f4ff] text-[#0B75C9] font-semibold">
-                {record.status || "Submitted"}
-              </span>
+             
               <span>Type: {record.caseType || "—"}</span>
               <span>Due: {record.dueDate || "—"}</span>
               <span>Created: {record.createdAt ? new Date(record.createdAt).toLocaleString() : "—"}</span>
@@ -267,9 +388,95 @@ const CaseDetails = () => {
                 STL preview: browsers need a 3D viewer (e.g., three.js + STLLoader). For now, download the STL and open in your preferred viewer.
               </p>
             </div>
+         {(record.status === "In Design"||record.status === "QC" )&& <button
+className="px-14 py-3 rounded-md border border-[#2B89D2] 
+        text-[#2B89D2] bg-transparent opacity-100
+        hover:bg-[#2B89D2] hover:text-white transition"
+        onClick={() => setShowUploadModal(true)}
+>
+Upload File
+</button>}
           </>
         )}
       </div>
+      <Modal
+        open={showUploadModal}
+        onClose={() => {
+          setShowUploadModal(false);
+          setUploadError(null);
+        }}
+        widthClass="max-w-md"
+        showHeader={false}
+      >
+        <div className="mx-auto text-center space-y-6">
+          <div className="border-2 border-dashed border-[#d6dde6] rounded-2xl p-8 bg-white flex flex-col items-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Upload files to S3
+            </h3>
+            <p className="text-sm text-gray-600 mb-2">
+              Supported: Images (JPG, PNG, GIF), PDF, STL
+            </p>
+            <p className="text-sm text-gray-700 font-semibold mb-4">
+              We will request a signed URL and upload directly to S3.
+            </p>
+            <div className="flex justify-center">
+              <Button
+                btnType="button"
+                btnText={uploading ? "Uploading..." : "Browse Files"}
+                customClass="!py-3 !px-6 rounded-lg bg-transparent text-[#0B75C9] border border-[#0B75C9] hover:bg-[#0B75C9] hover:text-white disabled:opacity-60"
+                backGround={false}
+                border={false}
+                btnClick={() => {
+                  if (!uploading) {
+                    fileInputRef.current?.click();
+                  }
+                }}
+                disable={uploading}
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl"
+                onChange={handleFileChange}
+              />
+            </div>
+            {uploadError && (
+              <p className="text-sm text-red-600 mt-4">{uploadError}</p>
+            )}
+            {!uploadError && uploading && (
+              <p className="text-sm text-gray-600 mt-4">Uploading...</p>
+            )}
+            <p className="text-xs text-gray-500 mt-4">Maximum Size: 25 MB</p>
+          </div>
+        </div>
+      </Modal>
+      {/* {filesToShow && */}
+      {user.role === "Designer" && attachments.length > 0 && (
+        <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Uploaded files
+          </h3>
+          <ul className="space-y-3">
+            {attachments.map((item) => (
+              <li
+                key={item.key}
+                className="flex items-center justify-between text-sm text-gray-800"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <span className="inline-flex items-center rounded-full bg-[#e8f4ff] px-2 py-1 text-[11px] font-semibold uppercase text-[#0B75C9]">
+                    {item.type}
+                  </span>
+                  <span className="truncate">{item.name}</span>
+                </div>
+                <span className="text-gray-500">
+                  {(item.size / (1024 * 1024)).toFixed(1)} MB
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

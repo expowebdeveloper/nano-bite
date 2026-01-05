@@ -10,13 +10,17 @@ import ImplantCrownBridge from "./components/ImplantCrownBridge";
 import FullArchImplantFixed from "./components/FullArchImplantFixed";
 import DigitalCompleteDenture from "./components/DigitalCompleteDenture";
 import PartialDenture from "./components/PartialDenture";
-import { CaseFormValues, CASE_FORM_DEFAULT_VALUES } from "../../Constants/Constants";
+import {
+  CaseFormValues,
+  CASE_FORM_DEFAULT_VALUES,
+} from "../../Constants/Constants";
 import { confirmationMessage } from "../../components/common/ToastMessage";
 import useUploads from "../../hooks/useUploads";
 import type { CaseAttachment } from "../../interfaces/types";
 import useCases from "../../hooks/useCases";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Cases = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -25,7 +29,11 @@ const Cases = () => {
   const { uploadFile, uploading } = useUploads();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { createCase } = useCases();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  
+
+  // const { casesListQuery} = useCases();
+  // const { data, isLoading, error } = casesListQuery();
 
   const formConfig = useForm<CaseFormValues>({
     defaultValues: CASE_FORM_DEFAULT_VALUES,
@@ -44,7 +52,7 @@ const Cases = () => {
     if (prevCaseTypeRef.current && prevCaseTypeRef.current !== caseType) {
       // Get current form values
       const currentValues = formConfig.getValues();
-      
+
       // Reset all case-specific fields to default values
       const resetValues: Partial<CaseFormValues> = {
         // Single Crown / Onlay / Veneer
@@ -178,18 +186,17 @@ const Cases = () => {
 
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6 space-y-6">
-      <Button 
-       btnText="Back"
-       backGround
-       icon={<ArrowLeft/>}
-       customClass="!h-11 !px-6 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
-       btnClick={()=>navigate("/cases")}
-
-        />
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Button
+        btnText="Back"
+        backGround
+        icon={<ArrowLeft />}
+        customClass="!h-11 !px-6 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
+        btnClick={() => navigate("/cases")}
+      />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Patient Information - FIRST */}
         <PatientInformation
-                formConfig={formConfig}
+          formConfig={formConfig}
           doctorSignatureValue={doctorSignature}
           dateValue={signatureDate}
           onUploadClick={() => setShowUploadModal(true)}
@@ -199,16 +206,12 @@ const Cases = () => {
         <CaseHeader formConfig={formConfig} />
 
         {/* Case Type Specific Sections - Show based on selection */}
-        {caseType && (
-            <div>
-            {renderCaseTypeSection()}
-              </div>
-        )}
+        {caseType && <div>{renderCaseTypeSection()}</div>}
 
         {/* Submit Button */}
         {caseType && (
           <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
-              <div className="flex justify-end">
+            <div className="flex justify-end">
               <Button
                 btnType="submit"
                 btnText={createCase.isPending ? "Submitting..." : "Submit"}

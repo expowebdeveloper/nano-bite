@@ -17,6 +17,13 @@ model User {
   zipCode             String
   password            String
   role                Role     @default(Dentist)
+createdCases CaseRecord[] @relation("CreatedBy")
+
+
+  designerCases CaseRecord[] @relation("AssignedDesigner")
+  qcCases       CaseRecord[] @relation("AssignedQc")
+  assignedByMe  CaseRecord[] @relation("AssignedBy")
+
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   fullName            String
@@ -29,7 +36,6 @@ model User {
   emailVerificationExpires DateTime?
   resetPasswordToken  String?
   resetPasswordExpires DateTime?
-  cases               CaseRecord[]
   dentistProfile      DentistProfile?
 }
 
@@ -44,6 +50,19 @@ model CaseRecord {
   id                     String   @id @default(uuid())
   caseId                 String   @unique
   status                 String   @default("Submitted")
+
+  // 🔹 Assignment
+  assignedToDesignerId   String?
+    assignedToQcId   String?
+
+  assignedToDesigner     User?    @relation("AssignedDesigner", fields: [assignedToDesignerId], references: [id])
+    assignedToQc     User?    @relation("AssignedQc", fields: [assignedToQcId], references: [id])
+
+  assignedById   String?
+  assignedBy     User?    @relation("AssignedBy", fields: [assignedById], references: [id])
+  assignedAt     DateTime?
+
+  
   caseType               String?
   doctorSignature        String?
   date                   String?
@@ -59,6 +78,7 @@ model CaseRecord {
   scans                  String[] @default([])
   additionalNotes        String?
   attachments            Json?
+  designersAttachments   Json?
   toothType              String?
   finalShade             String?
   stumpShade             String?
@@ -114,8 +134,14 @@ model CaseRecord {
   partialBaseAreas       String?
   partialAesthetics      String[] @default([])
   partialRequiredScans   String[] @default([])
-  createdById            String?
-  createdBy              User?    @relation(fields: [createdById], references: [id])
+
+  createdById String?
+createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])
+
+
+  
+
+
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
