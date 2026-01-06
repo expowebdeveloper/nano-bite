@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useAuth from "./useAuth";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const useUser = () => {
   const navigate = useNavigate();
   const showErrorMessage = useShowErrorMessage();
  const { user } = useSelector((state: any) => state.user);
+  const queryClient = useQueryClient();
 
   // Placeholder for user-related logic
   // Mutations
@@ -116,25 +117,24 @@ const useUser = () => {
     },
   });
 
-  const designersQuery = useQuery({
-  queryKey: ["users", "designers"],
-  queryFn: async () => {
-    console.log("User Role in designersQuery:", user?.role);
-    if(user.role== 'ADMIN' || user.role== 'QC'){
-    const response = await request.get("/users/designers");
-    return response.data?.data ?? [];
-    } else {
-      return
-    }
-  },
-  onError: (error: any) => {
-    showErrorMessage(
-      error?.response?.data?.message || "Failed to fetch designers"
-    );
-  },
-  refetchOnWindowFocus: false,
-  // staleTime: 5 * 60 * 1000, // cache designers
-});
+  const designersQuery = useQuery<any>({
+    queryKey: ["users", "designers", user?.role],
+    enabled: !!user?.token && (user?.role === "ADMIN" || user?.role === "QC"),
+    queryFn: async () => {
+      try {
+        const response = await request.get("/users/designers");
+        return response.data?.data ?? [];
+      } catch (error: any) {
+        showErrorMessage(
+          error?.response?.data?.message || "Failed to fetch designers"
+        );
+        throw error;
+      }
+    },
+    initialData: [],
+    refetchOnWindowFocus: false,
+    // staleTime: 5 * 60 * 1000, // cache designers
+  });
 
 
 
@@ -152,6 +152,7 @@ const assignCase = useMutation({
   },
   onSuccess: () => {
     confirmationMessage("Case assigned successfully", "success");
+    queryClient.invalidateQueries({ queryKey: ["cases"] });
   },
   onError: (error: any) => {
     showErrorMessage(

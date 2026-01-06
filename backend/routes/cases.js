@@ -10,6 +10,11 @@ const router = express.Router();
 
 
 router.post("/", authenticate, casesController.createCase);
+router.post(
+  "/designer-attachments",
+  authenticate,
+  casesController.uploadDesignerAttachments
+);
 router.get(
   "/:caseId/designer-attachments",
   authenticate,casesController.

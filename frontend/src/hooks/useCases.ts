@@ -116,26 +116,22 @@ const uploadDesignerAttachments = useMutation({
     caseId: string;
     attachments: any[];
   }) => {
-    const response = await request.post(
-      "/cases/designer-attachments",
-      {
-        caseId,
-        designerId: user.id,
-        attachments,
-      }
-    );
+    const response = await request.post("/cases/designer-attachments", {
+      caseId,
+      designerId: user.id,
+      attachments,
+    });
     return response.data;
   },
-  onSuccess: () => {
+  onSuccess: (_data, variables) => {
     confirmationMessage("Files saved successfully", "success");
     queryClient.invalidateQueries({
-      queryKey: ["cases", caseId, "designer-attachments"],
+      queryKey: ["cases", variables.caseId, "designer-attachments"],
     });
+    queryClient.invalidateQueries({ queryKey: ["cases"] });
   },
   onError: (error: any) => {
-    showErrorMessage(
-      error?.response?.data?.message || "Upload failed"
-    );
+    showErrorMessage(error?.response?.data?.message || "Upload failed");
   },
 });
 

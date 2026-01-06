@@ -8,6 +8,7 @@ export const listDesigners = async (req, res) => {
         role: "Designer",
         isActive: true,
         isDeleted: false,
+        isEmailVerified: true,
       },
       select: {
         id: true,
@@ -20,6 +21,8 @@ export const listDesigners = async (req, res) => {
         role: "QC",
         isActive: true,
         isDeleted: false,
+        isEmailVerified: true,
+        resetPasswordToken: null,
       },
       select: {
         id: true,

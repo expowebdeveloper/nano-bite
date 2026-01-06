@@ -8,9 +8,7 @@ import {
   import PhoneInput from "react-phone-input-2";
   import "react-phone-input-2/lib/style.css";
   import parsePhoneNumberFromString, { CountryCode } from "libphonenumber-js";
-  import { useEffect, useState } from "react";
-  import { useSelector } from "react-redux";
-import { getCountryFromNumber } from "../../../utils/helper";
+  import { useState } from "react";
 import ErrorMessage from "../ErrorMessage";
   
   interface InputFieldProps<T extends FieldValues> {

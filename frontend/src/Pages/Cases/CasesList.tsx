@@ -1,4 +1,4 @@
-import { use, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TableWrapper from "../../components/common/Table/TableWrapper";
@@ -11,9 +11,9 @@ import type { CaseRecord } from "../../interfaces/types";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
 import { useSelector } from "react-redux";
 import useUser from "../../hooks/useUser";
+import { useShowErrorMessage } from "../../components/common/ShowErrorMessage";
 import Button from "../../components/common/Buttons/Button";
 import Modal from "../../components/common/Modal/Modal";
-import { set } from "react-hook-form";
 
 const TABLE_HEADER = [
   "Case ID",
@@ -37,9 +37,16 @@ const CasesList = () => {
   const { assignCase } = useUser();
   const [selectedDesignerId, setSelectedDesignerId] = useState<string>("");
   const [selectedQcId, setSelectedQcId] = useState<string>("");
+  const showErrorMessage = useShowErrorMessage();
+  const designersData = (designersQuery.data as any) ?? {};
+  const designers = designersData.designers ?? [];
+  const qcs = designersData.qcs ?? [];
 
   const handleAssign = () => {
-    console.log(showAddModal.caseID, ",>>>>>>>>>>>>");
+    if (!selectedDesignerId || !selectedQcId) {
+      showErrorMessage("Please select both designer and QC before assigning.");
+      return;
+    }
     assignCase.mutate({
       caseId: showAddModal.caseID,
       designerId: selectedDesignerId,
@@ -225,11 +232,10 @@ const CasesList = () => {
                               <ActionButton
                                 icon={<Edit size={16} />}
                                 btnText="Edit"
-                                btnClick={() =>
-                                  navigate(
-                                    `/cases/${caseItem.caseId || caseItem.id}`
-                                  )
-                                }
+                                btnClick={(event) => {
+                                  event?.preventDefault();
+                                  navigate(`/cases/${caseItem.caseId || caseItem.id}`);
+                                }}
                                 customClass="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
                               />
                             )}
@@ -237,7 +243,8 @@ const CasesList = () => {
                               <ActionButton
                                 icon={<Trash2 size={16} />}
                                 btnText="Delete"
-                                btnClick={() => {
+                                btnClick={(event) => {
+                                  event?.preventDefault();
                                   // TODO: Implement delete functionality
                                   console.log("Delete case:", caseItem.caseId);
                                 }}
@@ -295,7 +302,7 @@ const CasesList = () => {
               onChange={(e) => setSelectedDesignerId(e.target.value)}
             >
               <option value="">Select Designer</option>
-              {designersQuery.data?.designers.map((designer: any) => (
+              {designers.map((designer: any) => (
                 <option key={designer.id} value={designer.id}>
                   {designer.fullName}
                 </option>
@@ -313,7 +320,7 @@ const CasesList = () => {
               onChange={(e) => setSelectedQcId(e.target.value)}
             >
               <option value="">Select QC </option>
-              {designersQuery.data?.qcs.map((qc: any) => (
+              {qcs.map((qc: any) => (
                 <option key={qc.id} value={qc.id}>
                   {qc.fullName}
                 </option>
@@ -327,7 +334,8 @@ const CasesList = () => {
               btnText="Assign"
               customClass="px-14 py-3 bg-blue-600 text-white bg-[#C9C9C9] rounded-md "
               btnClick={handleAssign}
-              hasLoading={assignCase.isLoading}
+              btnLoader={assignCase.isPending}
+              disable={!selectedDesignerId || !selectedQcId || assignCase.isPending}
             />
           </div>
         </div>

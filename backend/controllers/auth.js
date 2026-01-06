@@ -408,7 +408,7 @@ const verifyEmail = async (req, res) => {
 
 const userProfile = async (req, res) => {
   try {
-    const userId = req.user.data.id;
+    const userId = "8cd2229e-3c87-44d7-adb1-5a2d0f32c9a4"
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -426,6 +426,7 @@ const userProfile = async (req, res) => {
       },
     });
 
+    console.log("Fetched user profile:", user);
     if (!user) {
       return res.status(404).json({
         success: false,

@@ -294,22 +294,6 @@ const uploadDesignerAttachments = async (req, res) => {
       where: { caseId },
       data: {
         designersAttachments: updatedDesignerAttachments,
-        lastUpdatedAt: new Date(),
-        lastUpdatedBy: designerId,
-      },
-    });
-
-    // Create activity log (optional but recommended)
-    await prisma.activityLog.create({
-      data: {
-        caseId: caseId,
-        action: "DESIGNER_UPLOAD",
-        description: `Designer uploaded ${normalizedAttachments.length} attachment(s)`,
-        performedBy: designerId,
-        metadata: {
-          attachmentCount: normalizedAttachments.length,
-          attachmentNames: normalizedAttachments.map((a) => a.name),
-        },
       },
     });
 
@@ -405,7 +389,7 @@ export const casesController = {
       res.status(200).json({
         success: true,
         data: cases,
-      });designerAttachmentsQuery
+      });
     } catch (error) {
       console.error("Admin list cases error:", error);
       res.status(500).json({
@@ -455,7 +439,7 @@ assignCaseToDesigner: async (req, res) => {
       return res.status(400).json({ message: "Designer ID is required" });
     }
     if (!qcId ) {
-      return res.status(400).json({ message: "Designer ID is required" });
+      return res.status(400).json({ message: "QC ID is required" });
     }
 
     // 1️ Validate case

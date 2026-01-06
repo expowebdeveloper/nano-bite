@@ -19,6 +19,7 @@ const CaseDetails = () => {
   caseDetailsQuery,
   updateCaseStatus,
   designerAttachmentsQuery,
+  uploadDesignerAttachments,
 } = useCases();
 
 const {
@@ -48,7 +49,20 @@ const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
 
     try {
       const uploaded = await uploadFile(file);
-      setAttachments((prev) => [...prev, uploaded]);
+      const base =
+        attachments.length > 0
+          ? attachments
+          : designerAttachmentsData?.designersAttachments || [];
+      const nextAttachments = [...base, uploaded];
+
+      if (caseId) {
+        await uploadDesignerAttachments.mutateAsync({
+          caseId,
+          attachments: nextAttachments,
+        });
+      }
+
+      setAttachments(nextAttachments);
       confirmationMessage("File uploaded successfully", "success");
       setShowUploadModal(false);
     } catch (error: any) {
@@ -278,12 +292,6 @@ const getStatusButtonText = (status?: string) => {
   }
 };
 
-const filesToShow =
-  attachments.length > 0
-    ? attachments
-    : designerAttachmentsData?.designersAttachments || [];
-
-
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -422,16 +430,20 @@ Upload File
             <div className="flex justify-center">
               <Button
                 btnType="button"
-                btnText={uploading ? "Uploading..." : "Browse Files"}
+                btnText={
+                  uploading || uploadDesignerAttachments.isPending
+                    ? "Uploading..."
+                    : "Browse Files"
+                }
                 customClass="!py-3 !px-6 rounded-lg bg-transparent text-[#0B75C9] border border-[#0B75C9] hover:bg-[#0B75C9] hover:text-white disabled:opacity-60"
                 backGround={false}
                 border={false}
                 btnClick={() => {
-                  if (!uploading) {
+                  if (!uploading && !uploadDesignerAttachments.isPending) {
                     fileInputRef.current?.click();
                   }
                 }}
-                disable={uploading}
+                disable={uploading || uploadDesignerAttachments.isPending}
               />
               <input
                 ref={fileInputRef}
