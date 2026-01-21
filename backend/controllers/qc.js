@@ -35,6 +35,7 @@ const createQcAccount = async (req, res) => {
     const {
       first_name,
       last_name,
+      fullName,
       email,
       phone_number = "",
       address = "",
@@ -45,12 +46,24 @@ const createQcAccount = async (req, res) => {
       isActive,
     } = req.body;
 
-    if (!first_name || !email) {
+    if ((!first_name && !fullName) || !email) {
       return res.status(400).json({
         success: false,
-        message: "first_name and email are required.",
+        message: "first_name/fullName and email are required.",
       });
     }
+
+    const providedFullName = sanitizeString(fullName);
+    const [splitFirst, splitLast] =
+      providedFullName?.split(" ").length
+        ? [
+            providedFullName.split(" ")[0],
+            providedFullName.split(" ").slice(1).join(" ").trim(),
+          ]
+        : [null, null];
+
+    const resolvedFirst = sanitizeString(first_name, splitFirst || "");
+    const resolvedLast = sanitizeString(last_name, splitLast || "");
 
     const placeholderPassword = crypto.randomBytes(12).toString("hex");
     const hashedPassword = await bcrypt.hash(placeholderPassword, 10);
@@ -59,9 +72,9 @@ const createQcAccount = async (req, res) => {
 
     const qcAccount = await prisma.user.create({
       data: {
-        first_name,
-        last_name,
-        fullName: buildFullName(first_name, last_name, email),
+        first_name: resolvedFirst,
+        last_name: resolvedLast,
+        fullName: buildFullName(resolvedFirst, resolvedLast, email),
         email,
         phone_number: sanitizeString(phone_number),
         address: sanitizeString(address),
@@ -208,6 +221,7 @@ const updateQcAccount = async (req, res) => {
     const {
       first_name,
       last_name,
+      fullName,
       email,
       phone_number,
       address,
@@ -225,6 +239,7 @@ const updateQcAccount = async (req, res) => {
     if (first_name !== undefined) updateData.first_name = first_name;
     if (last_name !== undefined) updateData.last_name = last_name;
     if (email !== undefined) updateData.email = email;
+    if (fullName !== undefined) updateData.fullName = sanitizeString(fullName);
     if (phone_number !== undefined) updateData.phone_number = sanitizeString(phone_number);
     if (address !== undefined) updateData.address = sanitizeString(address);
     if (state !== undefined) updateData.state = sanitizeString(state);
@@ -232,12 +247,21 @@ const updateQcAccount = async (req, res) => {
     if (zipCode !== undefined) updateData.zipCode = sanitizeString(zipCode);
     if (country !== undefined) updateData.country = sanitizeString(country);
 
-    if (first_name !== undefined || last_name !== undefined) {
+    if (fullName !== undefined || first_name !== undefined || last_name !== undefined) {
       const nextFirst = first_name ?? existingQc.first_name ?? "";
       const nextLast = last_name ?? existingQc.last_name ?? "";
+      const fromFull = fullName ?? existingQc.fullName ?? "";
+      const [splitFirst, splitLast] =
+        fromFull && fromFull.includes(" ")
+          ? [fromFull.split(" ")[0], fromFull.split(" ").slice(1).join(" ").trim()]
+          : [fromFull || nextFirst, nextLast];
+      const resolvedFirst = sanitizeString(splitFirst || nextFirst);
+      const resolvedLast = sanitizeString(splitLast || nextLast);
+      updateData.first_name = resolvedFirst;
+      updateData.last_name = resolvedLast;
       updateData.fullName = buildFullName(
-        nextFirst,
-        nextLast,
+        resolvedFirst,
+        resolvedLast,
         existingQc.fullName || existingQc.email
       );
     }

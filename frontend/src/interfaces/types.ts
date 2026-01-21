@@ -80,6 +80,20 @@ export type Login = {
     url?: string;
   }
 
+  export interface UserProfile {
+    id: string;
+    email: string;
+    fullName: string;
+    phone_number?: string;
+    address?: string;
+    state?: string;
+    city?: string;
+    zipCode?: string;
+    country?: string;
+    role?: string;
+    createdAt?: string;
+  }
+
   export interface CaseRecord {
     id: string;
     caseId: string;
@@ -154,7 +168,13 @@ export type Login = {
     partialBaseAreas?: string;
     partialAesthetics?: string[];
     partialRequiredScans?: string[];
+    qcComment?: string;
     createdAt?: string;
     updatedAt?: string;
     createdById?: string | null;
+    createdBy?: {
+      id: string;
+      fullName?: string;
+      email?: string;
+    } | null;
   }

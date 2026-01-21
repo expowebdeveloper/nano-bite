@@ -21,6 +21,7 @@ const TABLE_HEADER = [
   "Case Type",
   "Status",
   "Due Date",
+  "Dentist",
   "Last Updated",
   "Action",
 ];
@@ -196,6 +197,9 @@ const CasesList = () => {
                       {formatDate(caseItem.dueDate)}
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
+                      {caseItem.createdBy?.fullName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-[15px] text-gray-800">
                       {formatDate(caseItem.updatedAt)}
                     </td>
                     <td className="px-4 py-3">
@@ -219,7 +223,7 @@ const CasesList = () => {
                               Assign Designer & QC
                             </button>
                           )}
-                        {caseItem.status == "Assigned" && (
+                        {user.role === "Dentist" && caseItem.status === "Assigned" && (
                           <>
                             <Link
                               to={`/cases/${caseItem.caseId || caseItem.id}`}
@@ -228,29 +232,25 @@ const CasesList = () => {
                             >
                               <Eye size={16} />
                             </Link>
-                            {user.role === "Dentist" && (
-                              <ActionButton
-                                icon={<Edit size={16} />}
-                                btnText="Edit"
-                                btnClick={(event) => {
-                                  event?.preventDefault();
-                                  navigate(`/cases/${caseItem.caseId || caseItem.id}`);
-                                }}
-                                customClass="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
-                              />
-                            )}
-                            {user.role === "Dentist" && (
-                              <ActionButton
-                                icon={<Trash2 size={16} />}
-                                btnText="Delete"
-                                btnClick={(event) => {
-                                  event?.preventDefault();
-                                  // TODO: Implement delete functionality
-                                  console.log("Delete case:", caseItem.caseId);
-                                }}
-                                customClass="p-2 rounded-lg text-[#dc2626] hover:bg-[#ffdcdc] transition-colors"
-                              />
-                            )}
+                            <ActionButton
+                              icon={<Edit size={16} />}
+                              btnText="Edit"
+                              btnClick={(event) => {
+                                event?.preventDefault();
+                                navigate(`/cases/${caseItem.caseId || caseItem.id}`);
+                              }}
+                              customClass="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
+                            />
+                            <ActionButton
+                              icon={<Trash2 size={16} />}
+                              btnText="Delete"
+                              btnClick={(event) => {
+                                event?.preventDefault();
+                                // TODO: Implement delete functionality
+                                console.log("Delete case:", caseItem.caseId);
+                              }}
+                              customClass="p-2 rounded-lg text-[#dc2626] hover:bg-[#ffdcdc] transition-colors"
+                            />
                           </>
                         )}
                       </div>
@@ -302,11 +302,17 @@ const CasesList = () => {
               onChange={(e) => setSelectedDesignerId(e.target.value)}
             >
               <option value="">Select Designer</option>
-              {designers.map((designer: any) => (
-                <option key={designer.id} value={designer.id}>
-                  {designer.fullName}
-                </option>
-              ))}
+              {designers.map((designer: any) => {
+                const name =
+                  [designer.first_name, designer.last_name].filter(Boolean).join(" ").trim() ||
+                  designer.fullName ||
+                  designer.email;
+                return (
+                  <option key={designer.id} value={designer.id}>
+                    {name}
+                  </option>
+                );
+              })}
             </select>
           </div>
           <div className="mt-4">
@@ -320,11 +326,17 @@ const CasesList = () => {
               onChange={(e) => setSelectedQcId(e.target.value)}
             >
               <option value="">Select QC </option>
-              {qcs.map((qc: any) => (
-                <option key={qc.id} value={qc.id}>
-                  {qc.fullName}
-                </option>
-              ))}
+              {qcs.map((qc: any) => {
+                const name =
+                  [qc.first_name, qc.last_name].filter(Boolean).join(" ").trim() ||
+                  qc.fullName ||
+                  qc.email;
+                return (
+                  <option key={qc.id} value={qc.id}>
+                    {name}
+                  </option>
+                );
+              })}
             </select>
           </div>
 

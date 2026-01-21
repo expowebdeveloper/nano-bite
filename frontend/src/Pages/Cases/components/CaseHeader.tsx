@@ -15,7 +15,7 @@ const CaseHeader = ({ formConfig }: CaseHeaderProps) => {
         formConfig={formConfig}
         selectedOption={CASE_TYPE_OPTIONS as unknown as string[]}
         isDefault="Case Type"
-        customClass="!h-11 !bg-[#0b75c9] !border-[#0b75c9] !text-white [&>option]:!text-gray-900"
+        customClass="!h-11 !bg-white !border-[#0b75c9] !text-[#0b75c9] [&>option]:!text-gray-900"
       />
     </div>
   );

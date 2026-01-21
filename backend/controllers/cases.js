@@ -502,7 +502,7 @@ assignCaseToDesigner: async (req, res) => {
 updateCaseStatus:async(req,res)=>{
   try{
  const { caseId } = req.params;
- const { status } = req.body;
+const { status, qcComment } = req.body;
       if (!caseId) {
         return res.status(400).json({
           success: false,
@@ -513,6 +513,7 @@ const updatedCase = await prisma.caseRecord.update({
       where: { caseId },
       data: {
         status,
+        qcComment: typeof qcComment === "string" ? qcComment : undefined,
       },})
        if (!updatedCase) {
         return res.status(404).json({

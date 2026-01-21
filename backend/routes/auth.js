@@ -13,6 +13,6 @@ router.post("/set-password", auth.setPassword);
 router.get("/verify-email", auth.verifyEmail);
 
 router.get('/userProfile', authenticate, auth.userProfile);
-router.put('/updateProfile', auth.updateProfile);
+router.put('/updateProfile', authenticate, auth.updateProfile);
 
 export default router;

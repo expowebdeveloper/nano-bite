@@ -12,6 +12,8 @@ export const listDesigners = async (req, res) => {
       },
       select: {
         id: true,
+        first_name: true,
+        last_name: true,
         fullName: true,
         email: true,
       },
@@ -26,6 +28,8 @@ export const listDesigners = async (req, res) => {
       },
       select: {
         id: true,
+        first_name: true,
+        last_name: true,
         fullName: true,
         email: true,
       },

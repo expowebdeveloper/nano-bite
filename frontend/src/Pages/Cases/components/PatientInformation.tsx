@@ -76,7 +76,17 @@ const PatientInformation = ({
             formConfig={formConfig}
             placeholder="Due Date"
             type="date"
-            rules={{ required: "Due date is required" }}
+            rules={{
+              required: "Due date is required",
+              validate: (value: string) => {
+                if (!value) return "Due date is required";
+                const selected = new Date(value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (selected <= today) return "Due date must be in the future";
+                return true;
+              },
+            }}
           />
           <div className="w-full">
             <CheckboxGroup

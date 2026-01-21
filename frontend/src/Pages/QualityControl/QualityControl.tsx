@@ -13,14 +13,14 @@ type QcUser = {
   id?: string | number;
   first_name?: string;
   last_name?: string;
+  fullName?: string;
   email?: string;
   phone_number?: string;
   isActive?: boolean;
 };
 
 const TABLE_HEADER = [
-  "First name",
-  "Last name",
+  "Full name",
   "Email",
   "Phone no.",
   "Status",
@@ -55,7 +55,10 @@ const QualityControl = () => {
   const filteredUsers = useMemo(() => {
     if (!search.trim()) return qcUsers;
     return qcUsers.filter((user) => {
-      const haystack = `${user.first_name || ""} ${user.last_name || ""} ${user.email || ""}`.toLowerCase();
+      const displayName =
+        user.fullName ||
+        [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+      const haystack = `${displayName} ${user.email || ""}`.toLowerCase();
       return haystack.includes(search.toLowerCase());
     });
   }, [search, qcUsers]);
@@ -71,7 +74,15 @@ const QualityControl = () => {
     console.log(values);
     if (editUser?.id) {
       updateQc.mutate(
-        { id: editUser.id, payload: values },
+        {
+          id: editUser.id,
+          payload: {
+            ...values,
+            // ensure legacy fields for API compatibility
+            first_name: values.fullName?.split(" ")[0] || "",
+            last_name: values.fullName?.split(" ").slice(1).join(" ").trim() || "",
+          },
+        },
         {
           onSuccess: () => {
             setShowAddModal(false);
@@ -82,13 +93,20 @@ const QualityControl = () => {
         }
       );
     } else {
-      addQc.mutate(values, {
+      addQc.mutate(
+        {
+          ...values,
+          first_name: values.fullName?.split(" ")[0] || "",
+          last_name: values.fullName?.split(" ").slice(1).join(" ").trim() || "",
+        },
+        {
         onSuccess: () => {
           setShowAddModal(false);
           setPage(1);
           setSearch("");
-        },
-      });
+          },
+        }
+      );
     }
   };
 
@@ -146,18 +164,19 @@ const QualityControl = () => {
             ) : paginatedUsers.length ? (
               paginatedUsers.map((user, index) => {
                 const isStriped = index % 2 === 0;
-                const firstName = user.first_name || "-";
-                const lastName = user.last_name || "-";
+                const displayName =
+                  user.fullName ||
+                  [user.first_name, user.last_name].filter(Boolean).join(" ").trim() ||
+                  "-";
                 const email = user.email || "-";
                 const phone = user.phone_number || "-";
                 const active = user.isActive ?? false;
                 return (
                   <tr
-                    key={`${user.id ?? `${firstName}-${lastName}-${index}`}`}
+                    key={`${user.id ?? `${displayName}-${index}`}`}
                     className={`${isStriped ? "bg-[#F6FDFF]" : "bg-[#fafafa]"} hover:bg-[#eef7ff] transition-colors`}
                   >
-                    <td className="px-4 py-3 text-[15px] text-gray-800">{firstName}</td>
-                    <td className="px-4 py-3 text-[15px] text-gray-800">{lastName}</td>
+                    <td className="px-4 py-3 text-[15px] text-gray-800">{displayName}</td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">{email}</td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">{phone}</td>
                     <td className="px-4 py-3">
@@ -224,8 +243,12 @@ const QualityControl = () => {
           initialValues={
             editUser
               ? {
-                  first_name: editUser.first_name || "",
-                  last_name: editUser.last_name || "",
+                  fullName:
+                    editUser.fullName ||
+                    [editUser.first_name, editUser.last_name]
+                      .filter(Boolean)
+                      .join(" ")
+                      .trim(),
                   email: editUser.email || "",
                   phone_number: editUser.phone_number || "",
                   isActive: editUser.isActive ?? true,

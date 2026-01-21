@@ -10,6 +10,7 @@ interface InputFieldProps<T extends FieldValues> {
     customClass?: string;
     placeholder?: string;
     type?: string;
+    disabled?: boolean;
   }
   
   const Input = <T extends FieldValues>({
@@ -20,6 +21,7 @@ interface InputFieldProps<T extends FieldValues> {
   customClass = "",
   placeholder,
   type,
+  disabled,
   ...props 
 }: InputFieldProps<T>) => {
   const {

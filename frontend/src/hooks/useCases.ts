@@ -69,31 +69,38 @@ const useCases = () => {
     });
 
 
-    const updateCaseStatus = useMutation({
-  mutationFn: async ({
-    caseId,
-    status,
-  }: {
-    caseId: string;
-    status: string;
-  }) => {
-    const response = await request.patch(
-      `/cases/${caseId}/status`,
-      { status }
-    );
-    return response.data;
-  },
-  onSuccess: () => {
-    confirmationMessage("Case status updated successfully", "success");
-    queryClient.invalidateQueries({ queryKey: ["cases"] });
-  },
-  onError: (error: any) => {
-    showErrorMessage(
-      error?.response?.data?.message ||
-        "Failed to update case status"
-    );
-  },
-});
+  const updateCaseStatus = useMutation({
+    mutationFn: async ({
+      caseId,
+      status,
+      qcComment,
+    }: {
+      caseId: string;
+      status: string;
+      qcComment?: string;
+    }) => {
+      const response = await request.patch(`/cases/${caseId}/status`, {
+        status,
+        qcComment,
+      });
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      confirmationMessage("Case status updated successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      if (variables.caseId) {
+        queryClient.invalidateQueries({ queryKey: ["cases", variables.caseId] });
+        queryClient.invalidateQueries({
+          queryKey: ["cases", variables.caseId, "designer-attachments"],
+        });
+      }
+    },
+    onError: (error: any) => {
+      showErrorMessage(
+        error?.response?.data?.message || "Failed to update case status"
+      );
+    },
+  });
 
   const designerAttachmentsQuery = (caseId?: string) =>
     useQuery({

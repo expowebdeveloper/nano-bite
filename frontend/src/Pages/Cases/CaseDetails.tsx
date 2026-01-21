@@ -35,6 +35,7 @@ const { data: designerAttachmentsData } =
   const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
+    const [qcComment, setQcComment] = useState("");
 
   
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -102,6 +103,21 @@ const handleUpdateStatus = () => {
     caseId: record.caseId,
     status: nextStatus,
   });
+};
+
+const handleQcDecision = async (decision: "approve" | "reject") => {
+  if (!record?.caseId) return;
+  const targetStatus = decision === "approve" ? "Ready" : "In Design";
+  try {
+    await updateCaseStatus.mutateAsync({
+      caseId: record.caseId,
+      status: targetStatus,
+      qcComment: qcComment.trim(),
+    });
+    setQcComment("");
+  } catch {
+    // errors handled in mutation
+  }
 };
 
 
@@ -343,6 +359,9 @@ const getStatusButtonText = (status?: string) => {
              
               <span>Type: {record.caseType || "—"}</span>
               <span>Due: {record.dueDate || "—"}</span>
+              {record.createdBy?.fullName && (
+                <span>Dentist: {record.createdBy.fullName}</span>
+              )}
               <span>Created: {record.createdAt ? new Date(record.createdAt).toLocaleString() : "—"}</span>
             </div>
 
@@ -396,6 +415,68 @@ const getStatusButtonText = (status?: string) => {
                 STL preview: browsers need a 3D viewer (e.g., three.js + STLLoader). For now, download the STL and open in your preferred viewer.
               </p>
             </div>
+            {record.qcComment && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">QC Comment</h3>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {record.qcComment}
+                </p>
+              </div>
+            )}
+            {user.role === "QC" && record.status !== "Ready" && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  QC Review
+                </h3>
+                <textarea
+                  value={qcComment}
+                  onChange={(e) => setQcComment(e.target.value)}
+                  placeholder="Add review comment (required for reject, optional for approve)"
+                  className="w-full min-h-[120px] rounded-xl border border-[#d6dde6] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B75C9]/40"
+                />
+                <div className="flex gap-3">
+                  <button
+                    className="px-6 py-2 rounded-lg bg-green-600 text-white disabled:opacity-60"
+                    onClick={() => handleQcDecision("approve")}
+                    disabled={updateCaseStatus.isPending}
+                  >
+                    {updateCaseStatus.isPending ? "Saving..." : "Approve"}
+                  </button>
+                  <button
+                    className="px-6 py-2 rounded-lg bg-red-600 text-white disabled:opacity-60"
+                    onClick={() => handleQcDecision("reject")}
+                    disabled={updateCaseStatus.isPending || qcComment.trim().length === 0}
+                  >
+                    {updateCaseStatus.isPending ? "Saving..." : "Reject"}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Reject moves status back to "In Design". Approve moves status to "Ready".
+                </p>
+              </div>
+            )}
+            {user.role === "Dentist" && record.status === "Ready" && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Finalize Case
+                </h3>
+                <p className="text-sm text-gray-700">
+                  Confirm you have received the final files to mark this case complete.
+                </p>
+                <button
+                  className="px-6 py-2 rounded-lg bg-[#0B75C9] text-white disabled:opacity-60"
+                  onClick={() =>
+                    updateCaseStatus.mutate({
+                      caseId: record.caseId,
+                      status: "Completed",
+                    })
+                  }
+                  disabled={updateCaseStatus.isPending}
+                >
+                  {updateCaseStatus.isPending ? "Saving..." : "Mark as Completed"}
+                </button>
+              </div>
+            )}
          {(record.status === "In Design"||record.status === "QC" )&& <button
 className="px-14 py-3 rounded-md border border-[#2B89D2] 
         text-[#2B89D2] bg-transparent opacity-100

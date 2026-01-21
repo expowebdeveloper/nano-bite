@@ -145,7 +145,7 @@ const signup = async (req, res) => {
     }
 
     const encodedEmail = encodeURIComponent(email);
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?email=${encodedEmail}&token=${emailVerificationToken}`;
+    const verificationLink = `${process.env.FRONTEND_URL}verify-email?email=${encodedEmail}&token=${emailVerificationToken}`;
 
     await sendEmail({
       to: email,
@@ -408,7 +408,14 @@ const verifyEmail = async (req, res) => {
 
 const userProfile = async (req, res) => {
   try {
-    const userId = "8cd2229e-3c87-44d7-adb1-5a2d0f32c9a4"
+    const userId = req.user?.data?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -421,6 +428,7 @@ const userProfile = async (req, res) => {
         address: true,
         state: true,
         city: true,
+        country: true,
         zipCode: true,
         createdAt: true,
       },
@@ -451,11 +459,11 @@ const userProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.data.id;
-    const { fullName, phone_number, address, state, city, zipCode } = req.body;
+    const { fullName, phone_number, address, state, city, zipCode, country } = req.body;
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { fullName, phone_number, address, state, city, zipCode },
+      data: { fullName, phone_number, address, state, city, zipCode, country },
       select: {
         id: true,
         email: true,
@@ -464,6 +472,7 @@ const updateProfile = async (req, res) => {
         address: true,
         state: true,
         city: true,
+        country: true,
         zipCode: true,
         createdAt: true,
       },

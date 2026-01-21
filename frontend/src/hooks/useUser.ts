@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../redux/user/userSlice";
 import type { User } from "../interfaces/interfaces";
-import type { Login, LoginResponse } from "../interfaces/types";
+import type { Login, LoginResponse, UserProfile } from "../interfaces/types";
 import { confirmationMessage } from "../components/common/ToastMessage";
 import { useShowErrorMessage } from "../components/common/ShowErrorMessage";
 
@@ -136,7 +136,33 @@ const useUser = () => {
     // staleTime: 5 * 60 * 1000, // cache designers
   });
 
+  const profileQuery = useQuery({
+    queryKey: ["user", "profile"],
+    enabled: !!user?.token,
+    queryFn: async () => {
+      const response = await request.get("/accounts/userProfile");
+      return response.data?.user as any;
+    },
+    refetchOnWindowFocus: false,
+  });
 
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const response = await request.put("/accounts/updateProfile", payload);
+      return response.data?.user;
+    },
+    onSuccess: () => {
+      confirmationMessage("Profile updated successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+    },
+    onError: (error: any) => {
+      showErrorMessage(
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          "Failed to update profile"
+      );
+    },
+  });
 
 const assignCase = useMutation({
 
@@ -170,7 +196,9 @@ const assignCase = useMutation({
     setPassword,
     verifyEmail,
     designersQuery,
-    assignCase
+    assignCase,
+    profileQuery,
+    updateProfileMutation,
   };
 };
 
