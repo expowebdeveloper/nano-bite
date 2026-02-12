@@ -4,11 +4,12 @@ import { CASE_TYPE_OPTIONS, CaseFormValues } from "../../../Constants/Constants"
 
 interface CaseHeaderProps {
   formConfig: UseFormReturn<CaseFormValues>;
+  className?: string;
 }
 
-const CaseHeader = ({ formConfig }: CaseHeaderProps) => {
+const CaseHeader = ({ formConfig, className }: CaseHeaderProps) => {
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
+    <div className={`bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 ${className}`}>
       <SelectField
         label="Case Type"
         fieldName="caseType"

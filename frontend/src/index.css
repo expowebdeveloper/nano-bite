@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 * {
-  font-family: "Poppins", sans-serif;
+  /* font-family: "Poppins", sans-serif; */
+  font-family: "Inter", sans-serif;
 }
 :root {
   --font-secondary-color: #666;

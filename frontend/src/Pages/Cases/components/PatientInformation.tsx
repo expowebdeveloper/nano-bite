@@ -16,6 +16,7 @@ import {
 interface PatientInformationProps {
   formConfig: UseFormReturn<CaseFormValues>;
   onUploadClick: () => void;
+  onNext?: () => void;
   doctorSignatureValue?: string;
   dateValue?: string;
 }
@@ -23,11 +24,12 @@ interface PatientInformationProps {
 const PatientInformation = ({
   formConfig,
   onUploadClick,
+  onNext,
   doctorSignatureValue,
   dateValue,
 }: PatientInformationProps) => {
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
+    <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 ddd">
       <h2 className="text-2xl font-bold text-gray-900">Patient Information</h2>
 
       <div className="space-y-6">
@@ -183,8 +185,18 @@ const PatientInformation = ({
           rows={6}
         />
 
+        {/* Next Button */}
+        {/* <div className="flex justify-center pt-6">
+          <Button
+            btnType="button"
+            btnText="Next"
+            btnClick={onNext}
+            customClass="w-[180px] h-[48px] rounded-lg bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white font-semibold hover:shadow-lg transition-shadow"
+          />
+        </div> */}
+
         {/* Doctor Signature and Date - At the end of Patient Information, on the right */}
-        <div className="flex justify-end gap-8 md:gap-10 pt-4">
+        {/* <div className="flex justify-end gap-8 md:gap-10 pt-4">
           <div className="flex flex-col items-center relative">
             <span className="absolute -top-6 text-sm text-gray-700 font-semibold">
               {doctorSignatureValue || "Signature"}
@@ -212,7 +224,7 @@ const PatientInformation = ({
               customClass="!h-auto !border-none !bg-transparent !px-0 !text-center !w-24 !shadow-none !rounded-none"
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

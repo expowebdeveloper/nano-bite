@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { useState, useRef, useEffect, type ChangeEvent } from "react";
 import Button from "../../components/common/Buttons/Button";
 import Modal from "../../components/common/Modal/Modal";
-import CaseHeader from "./components/CaseHeader";
+// import CaseHeader from "./components/CaseHeader";
 import PatientInformation from "./components/PatientInformation";
 import SingleCrownOnlayVeneer from "./components/SingleCrownOnlayVeneer";
 import ShortSpanBridge from "./components/ShortSpanBridge";
@@ -18,9 +18,49 @@ import { confirmationMessage } from "../../components/common/ToastMessage";
 import useUploads from "../../hooks/useUploads";
 import type { CaseAttachment } from "../../interfaces/types";
 import useCases from "../../hooks/useCases";
-import { ArrowLeft } from "lucide-react";
+// import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
+// import { CommanHeading } from "./CommanHeading";
+import ServicesPage from "./ServicesCard";
+// import FixRestorationPage from "./components/Cases/FixRestoration/FixRestorationPage";
+import NavigationButtons from "./components/NavigationButtons";
+import { VerticalStepper } from "./components/Cases/FixRestoration/StepsBlock";
+import TeethSelectionPage from "./components/Cases/FixRestoration/ToothBlock";
+import ImplantSystemForm from "./components/Cases/ImplantsSolutions/ImplantSystemForm";
+import AbutmentSelection from "./components/Cases/AbutmentSelection/AbutmentSelection";
+import OptionalPhotos from "./components/Cases/ImplantsSolutions/OriginalPhoto";
+import ShadeSelection from "./components/Cases/ImplantsSolutions/Shades";
+import ImplantConfirmation from "./components/Cases/ImplantsSolutions/ImplantConfirmation";
+
+// Import servicesData
+const servicesData = [
+  {
+    id: "fixed-restoration",
+    title: "Fixed Restoration",
+    description: "Crowns, Bridges, Inlays, Onlays and Veneers",
+  },
+  {
+    id: "implants-solutions",
+    title: "Implants Solutions",
+    description: "Implant Crowns, Bridges and Surgical Guides",
+  },
+  {
+    id: "splints-guards",
+    title: "Splints, Guards & TMJ",
+    description: "Night Guards, Sports Guards TMD/TMJ",
+  },
+  {
+    id: "dentures",
+    title: "Dentures",
+    description: "Full Dentures, Partial Dentures and Overdentures",
+  },
+  {
+    id: "wax-ups",
+    title: "Wax-ups & Matrix",
+    description: "Physical Wax-up, Digital Wax-Up and Study Model",
+  },
+];
 
 const Cases = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -30,7 +70,6 @@ const Cases = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { createCase } = useCases();
   const navigate = useNavigate();
-  
 
   // const { casesListQuery} = useCases();
   // const { data, isLoading, error } = casesListQuery();
@@ -41,7 +80,7 @@ const Cases = () => {
     reValidateMode: "onChange", // Re-validate on change
   });
 
-  const { handleSubmit, watch, reset } = formConfig;
+  const { handleSubmit, watch, reset, trigger } = formConfig;
   const caseType = watch("caseType");
   const doctorSignature = watch("doctorSignature");
   const signatureDate = watch("date");
@@ -183,46 +222,114 @@ const Cases = () => {
         return null;
     }
   };
+  const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    const isValid = await trigger();
+    if (isValid) setCurrentStep((p) => p + 1);
+  };
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <PatientInformation
+            formConfig={formConfig}
+            doctorSignatureValue={doctorSignature}
+            dateValue={signatureDate}
+            onUploadClick={() => setShowUploadModal(true)}
+            onNext={() => setCurrentStep(2)}
+          />
+        );
+      case 2:
+        return (
+          <>
+            {/* <VerticalStepper activeStep={2} selectedTeeth={[]} /> */}
+            <ServicesPage
+              onOptionSelect={(label) => setSelectedOption(label)}
+            />
+          </>
+        );
+      case 3:
+        return (
+          <>
+            <TeethSelectionPage
+              selectedTeeth={selectedTeeth}
+              setSelectedTeeth={setSelectedTeeth}
+            />
+          </>
+        );
+      case 4:
+        return (
+          <>
+            <ImplantSystemForm selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 5:
+        return (
+          <>
+            <AbutmentSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 6:
+        return (
+          <>
+            <OptionalPhotos />
+          </>
+        );
+      case 7:
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+
+      case 8:
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+            <ImplantConfirmation selectedTeeth={selectedTeeth} />
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const TOTAL_STEPS = 8; // Update this if you add more steps
+  const [currentStep, setCurrentStep] = useState(1);
 
   return (
-    <div className="min-h-screen bg-[#fbfeff] p-6 space-y-6">
-      <Button
+    <div className="min-h-screen bg-[#fff] p-6 space-y-6">
+      {/* <Button
         btnText="Back"
         backGround
         icon={<ArrowLeft />}
         customClass="!h-11 !px-6 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
         btnClick={() => navigate("/cases")}
-      />
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Patient Information - FIRST */}
-        <PatientInformation
-          formConfig={formConfig}
-          doctorSignatureValue={doctorSignature}
-          dateValue={signatureDate}
-          onUploadClick={() => setShowUploadModal(true)}
-        />
-
-        {/* Case Header with Case Type and Doctor Signature/Date - AFTER Patient Information */}
-        <CaseHeader formConfig={formConfig} />
-
-        {/* Case Type Specific Sections - Show based on selection */}
-        {caseType && <div>{renderCaseTypeSection()}</div>}
-
-        {/* Submit Button */}
-        {caseType && (
-          <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
-            <div className="flex justify-end">
-              <Button
-                btnType="submit"
-                btnText={createCase.isPending ? "Submitting..." : "Submit"}
-                customClass="!h-11 !px-6 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
-                backGround={false}
-                border={false}
-                disable={createCase.isPending}
+      /> */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+        <div className="flex items-start gap-4">
+          {currentStep !== 1 && currentStep >= 2 && (
+            <div className="sticky top-6 hidden lg:block">
+              <VerticalStepper
+                activeStep={currentStep - 1}
+                selectedTeeth={selectedTeeth}
+                selectedOption={selectedOption}
               />
             </div>
-          </div>
-        )}
+          )}
+
+          <div className="flex-1">{renderStep()}</div>
+        </div>
+
+        <NavigationButtons
+          currentStep={currentStep}
+          totalSteps={TOTAL_STEPS}
+          onPrevious={() => setCurrentStep((p) => p - 1)}
+          onNext={handleNext}
+          isSubmitting={createCase.isPending}
+        />
       </form>
 
       {attachments.length > 0 && (
