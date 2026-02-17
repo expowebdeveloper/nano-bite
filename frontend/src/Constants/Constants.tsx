@@ -235,6 +235,10 @@ export type CaseFormValues = {
   digitalRequiredScans: string[];
   digitalNewRecord: string;
   digitalChanges: string;
+  hasExistingDenture?: boolean;
+  isExactCopy?: boolean;
+  isImplantSupported?: boolean;
+  dentureArch?: string; // "Dual arch" | "Single arch: upper" | "Single arch: lower"
   // Partial denture
   partialType: string[];
   partialFramework: string[];

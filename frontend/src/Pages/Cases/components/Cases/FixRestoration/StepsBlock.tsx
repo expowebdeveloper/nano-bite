@@ -18,6 +18,20 @@ export const STEPS: Step[] = [
   { id: 5, label: "Material", icon: <Activity size={16} /> },
   { id: 6, label: "Photos", icon: <Camera size={16} /> },
   { id: 7, label: "Shades", icon: <Camera size={16} /> },
+  { id: 8, label: "Confirm", icon: <Check size={16} /> },
+];
+
+const CROWN_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Teeth", icon: <Activity size={16} /> },
+  { id: 3, label: "Photos", icon: <Camera size={16} /> }, // Map step 4 to id 3 visually or handle mapping
+];
+
+const DENTURE_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Type", icon: <Activity size={16} /> },
+  { id: 3, label: "Arch", icon: <Activity size={16} /> },
+  { id: 4, label: "Photos", icon: <Camera size={16} /> },
 ];
 
 /* =======================
@@ -25,19 +39,39 @@ export const STEPS: Step[] = [
 ======================= */
 export const VerticalStepper: React.FC<{
 
-  
+
   activeStep: number;
   selectedTeeth: number[];
   selectedOption?: any;
 }> = ({ activeStep, selectedTeeth, selectedOption }) => {
-  
 
 
 
+
+
+  const isFixedRestoration = [
+    "Crown",
+    "Inlay",
+    "Onlay",
+    "Veneer",
+    "Bridge",
+  ].includes(selectedOption || "");
+
+  const isDenture = [
+    "Full Denture",
+    "Overdenture",
+    "Partial Denture",
+  ].includes(selectedOption || "");
+
+  const stepsToRender = isFixedRestoration
+    ? CROWN_STEPS
+    : isDenture
+      ? DENTURE_STEPS
+      : STEPS;
 
   return (
     <div className="bg-[#F8F8F8] rounded-[32px] p-3 min-w-[200px]  max-w-[200px] h-fit sticky top-6 border border-gray-100 shadow-sm">
-      {STEPS.map((step, index) => {
+      {stepsToRender.map((step, index) => {
         const isCompleted = step.id < activeStep;
         const isActive = step.id === activeStep;
 
@@ -54,7 +88,7 @@ export const VerticalStepper: React.FC<{
               >
                 {isCompleted ? <Check className="h-5 w-5" /> : step.id}
               </div>
-              {index < STEPS.length - 0 && (
+              {index < stepsToRender.length - 1 && (
                 <div
                   className={`h-12 w-[2px] my-1 transition-colors duration-300 ${isCompleted ? "bg-green-500" : "bg-gray-100"}`}
                 />

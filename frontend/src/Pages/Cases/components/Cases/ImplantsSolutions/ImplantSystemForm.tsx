@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { Control, Controller, UseFormReturn } from "react-hook-form";
 import { ChevronDown } from "lucide-react";
 import { CommanHeading } from "../../../CommanHeading";
-import ManufacturerSelect from "./SelectSearch";
+import { CaseFormValues } from "../../../../../Constants/Constants";
 
 type Option = {
   label: string;
@@ -25,15 +25,16 @@ const platformSizes: Option[] = [
   { label: "Wide", value: "wide" },
 ];
 
+interface ImplantSystemFormProps {
+  selectedTeeth?: number[];
+  formConfig: UseFormReturn<CaseFormValues>;
+}
+
 export default function ImplantSystemForm({
   selectedTeeth = [],
-}: {
-  selectedTeeth?: number[];
-}) {
-  const [ manufacturer, setManufacturer] = useState("");
-  const [system, setSystem] = useState("");
-  const [platformSize, setPlatformSize] = useState("");
-  
+  formConfig,
+}: ImplantSystemFormProps) {
+  const { control } = formConfig;
 
   return (
     <div className=" space-y-6 bg-white">
@@ -63,43 +64,58 @@ export default function ImplantSystemForm({
 
       <div className="w-full max-w-[522px] flex flex-col gap-6">
         {/* Manufacture */}
+        <p className="mt-4 text-sm hidden">
+          Selected: <strong>{formConfig.watch("implantBrand")}</strong>
+        </p>
 
-
-           {/* <ManufacturerSelect
-              value={manufacturer}
-              onChange={setManufacturer}
-            /> */}
-
-            <p className="mt-4 text-sm">
-              Selected: <strong>{manufacturer}</strong>
-            </p>
-           
-      
-
-        <SelectField
-          label="Manufacture"
-          placeholder="Select Manufacture"
-          value={manufacturer}
-          options={manufactures}
-          onChange={setManufacturer}
+        <Controller
+          name="implantBrand"
+          control={control}
+          rules={{ required: "Manufacturer is required" }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <SelectField
+              label="Manufacture"
+              placeholder="Select Manufacture"
+              value={value || ""}
+              options={manufactures}
+              onChange={onChange}
+              error={error?.message}
+            />
+          )}
         />
 
         {/* System */}
-        <SelectField
-          label="System"
-          placeholder="Select System"
-          value={system}
-          options={systems}
-          onChange={setSystem}
+        <Controller
+          name="implantConnection"
+          control={control}
+          rules={{ required: "System is required" }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <SelectField
+              label="System"
+              placeholder="Select System"
+              value={value || ""}
+              options={systems}
+              onChange={onChange}
+              error={error?.message}
+            />
+          )}
         />
 
         {/* Platform Size */}
-        <SelectField
-          label="Platform Size"
-          placeholder="Select Platform Size"
-          value={platformSize}
-          options={platformSizes}
-          onChange={setPlatformSize}
+        <Controller
+          name="implantPlatform"
+          control={control}
+          rules={{ required: "Platform Size is required" }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <SelectField
+              label="Platform Size"
+              placeholder="Select Platform Size"
+              value={value || ""}
+              options={platformSizes}
+              onChange={onChange}
+              error={error?.message}
+            />
+          )}
         />
       </div>
     </div>
@@ -116,6 +132,7 @@ type SelectProps = {
   value: string;
   options: Option[];
   onChange: (value: string) => void;
+  error?: string;
 };
 
 function SelectField({
@@ -124,6 +141,7 @@ function SelectField({
   value,
   options,
   onChange,
+  error,
 }: SelectProps) {
   return (
     <div className="space-y-2">
@@ -133,7 +151,7 @@ function SelectField({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-lg cursor-pointer bg-[#F8F8F8] px-4 py-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none"
+          className={`w-full appearance-none rounded-lg cursor-pointer bg-[#F8F8F8] px-4 py-3 text-sm text-gray-700 focus:border-blue-500 focus:outline-none ${error ? "border border-red-500" : ""}`}
         >
           <option value="">{placeholder}</option>
           {options.map((opt) => (
@@ -145,6 +163,7 @@ function SelectField({
 
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
       </div>
+      {error && <span className="text-xs text-red-500">{error}</span>}
     </div>
   );
 }

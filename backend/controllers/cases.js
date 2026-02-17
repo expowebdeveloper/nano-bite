@@ -121,6 +121,30 @@ const validatePayload = (body) => {
     requireArray("contacts", "contacts");
     requireArray("occlusion", "occlusion");
     requireArray("requiredScans", "requiredScans");
+  } else if (body.caseType === "Short-span Bridge") {
+    requireText("abutmentsLeft", "abutmentsLeft");
+    requireText("abutmentsRight", "abutmentsRight");
+    requireText("ponticTeeth", "ponticTeeth");
+    requireArray("ponticDesign", "ponticDesign");
+    requireArray("ponticContacts", "ponticContacts");
+    requireArray("bridgeMaterial", "bridgeMaterial");
+    requireArray("bridgeRequiredScans", "bridgeRequiredScans");
+  } else if (body.caseType === "Implant Crown / Implant Bridge") {
+    requireText("implantBrand", "implantBrand");
+    requireText("implantPlatform", "implantPlatform");
+    requireText("implantConnection", "implantConnection");
+    // requireText("implantTooth", "implantTooth");
+    // requireArray("implantRestoration", "implantRestoration"); // optional or handle logic
+    // requireArray("implantEmergence", "implantEmergence");
+    // requireArray("implantRequiredScans", "implantRequiredScans");
+    // requireArray("implantAbutment", "implantAbutment");
+    // requireArray("implantOcclusion", "implantOcclusion");
+  } else if (body.caseType === "Full Arch Implant Fixed") {
+    // Add validations for Full Arch Implant Fixed if needed
+  } else if (body.caseType === "Digital Complete Denture") {
+    // Add validations for Digital Complete Denture if needed
+  } else if (body.caseType === "Partial Denture") {
+    // Add validations for Partial Denture if needed
   }
 
   const { errors: attachmentErrors } = normalizeAttachments(body.attachments);
@@ -227,22 +251,22 @@ const getDesignerAttachments = async (req, res) => {
 const uploadDesignerAttachments = async (req, res) => {
   try {
     const { caseId, attachments, designerId } = req.body;
-    
+
     // Validation
     const errors = [];
-    
+
     if (!caseId) {
       errors.push("caseId is required");
     }
-    
+
     if (!designerId) {
       errors.push("designerId is required");
     }
-    
+
     if (!attachments || !Array.isArray(attachments) || attachments.length === 0) {
       errors.push("At least one attachment is required");
     }
-    
+
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
@@ -344,44 +368,44 @@ export const casesController = {
   },
 
 
-    listAllCasesForAdmin: async (req, res) => {
+  listAllCasesForAdmin: async (req, res) => {
     try {
       const cases = await prisma.caseRecord.findMany({
         orderBy: { createdAt: "desc" },
-            include: {
-        assignedToDesigner: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
+        include: {
+          assignedToDesigner: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              role: true,
+            },
+          },
+          assignedToQc: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              role: true,
+            },
+          },
+          assignedBy: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              role: true,
+            },
+          },
+          createdBy: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              role: true,
+            },
           },
         },
-        assignedToQc: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-        assignedBy: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
 
 
       });
@@ -399,137 +423,139 @@ export const casesController = {
       });
     }
   },
-listCasesForDesigner: async (req, res) => {
-  console.log("Fetching cases for designer:", req.user);
-  try {
-    const designerId = req.user.data.id; // from JWT
-    
-    // console.log("Designer ID:", req.user.data.id);
+  listCasesForDesigner: async (req, res) => {
+    console.log("Fetching cases for designer:", req.user);
+    try {
+      const designerId = req.user.data.id; // from JWT
 
-    const cases = await prisma.caseRecord.findMany({
-      where: {
-        assignedToDesignerId: designerId,
-      },
-      orderBy: {
-        assignedAt: "desc",
-      },
-    });
+      // console.log("Designer ID:", req.user.data.id);
 
-    return res.json({
-      success: true,
-      data: cases,
-    });
-  } catch (error) {
-    console.error("Get designer cases error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch designer cases",
-    });
-  }}
+      const cases = await prisma.caseRecord.findMany({
+        where: {
+          assignedToDesignerId: designerId,
+        },
+        orderBy: {
+          assignedAt: "desc",
+        },
+      });
+
+      return res.json({
+        success: true,
+        data: cases,
+      });
+    } catch (error) {
+      console.error("Get designer cases error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch designer cases",
+      });
+    }
+  }
 
   ,
-assignCaseToDesigner: async (req, res) => {
-  try {
-    const { caseId } = req.params;
-    const { designerId,qcId} = req.body;
+  assignCaseToDesigner: async (req, res) => {
+    try {
+      const { caseId } = req.params;
+      const { designerId, qcId } = req.body;
 
-    const assignedById = req.user.data.id; // ADMIN / QC
+      const assignedById = req.user.data.id; // ADMIN / QC
 
-    if (!designerId ) {
-      return res.status(400).json({ message: "Designer ID is required" });
-    }
-    if (!qcId ) {
-      return res.status(400).json({ message: "QC ID is required" });
-    }
+      if (!designerId) {
+        return res.status(400).json({ message: "Designer ID is required" });
+      }
+      if (!qcId) {
+        return res.status(400).json({ message: "QC ID is required" });
+      }
 
-    // 1️ Validate case
-    const caseRecord = await prisma.caseRecord.findUnique({
-      where: { caseId },
-    });
+      // 1️ Validate case
+      const caseRecord = await prisma.caseRecord.findUnique({
+        where: { caseId },
+      });
 
-    if (!caseRecord) {
-      return res.status(404).json({ message: "Case not found" });
-    }
+      if (!caseRecord) {
+        return res.status(404).json({ message: "Case not found" });
+      }
 
-    // 2️ Validate designer
-    const designer = await prisma.user.findFirst({
-      where: {
-        id: designerId,
-        role: "Designer",
-        isActive: true,
-        isDeleted: false,
-      },
-    });
+      // 2️ Validate designer
+      const designer = await prisma.user.findFirst({
+        where: {
+          id: designerId,
+          role: "Designer",
+          isActive: true,
+          isDeleted: false,
+        },
+      });
 
-    if (!designer) {
-      return res.status(400).json({ message: "Invalid designer" });
-    }
+      if (!designer) {
+        return res.status(400).json({ message: "Invalid designer" });
+      }
       const qc = await prisma.user.findFirst({
-      where: {
-        id: qcId,
-        role: "QC",
-        isActive: true,
-        isDeleted: false,
-      },
-    });
+        where: {
+          id: qcId,
+          role: "QC",
+          isActive: true,
+          isDeleted: false,
+        },
+      });
 
-    if (!qc) {
-      return res.status(400).json({ message: "Invalid QC" });
+      if (!qc) {
+        return res.status(400).json({ message: "Invalid QC" });
+      }
+
+      // 3️⃣ Assign case
+      const updatedCase = await prisma.caseRecord.update({
+        where: { caseId },
+        data: {
+          assignedToDesignerId: designerId,
+          assignedToQcId: qcId,
+          assignedById,
+          assignedAt: new Date(),
+          status: "Assigned",
+        },
+      });
+
+      return res.json({
+        message: "Case assigned to designer successfully",
+        data: updatedCase,
+      });
+    } catch (error) {
+      console.error("Assign case error:", error);
+      return res.status(500).json({ message: "Failed to assign case" });
     }
+  },
 
-    // 3️⃣ Assign case
-    const updatedCase = await prisma.caseRecord.update({
-      where: { caseId },
-      data: {
-        assignedToDesignerId: designerId,
-        assignedToQcId: qcId,
-        assignedById,
-        assignedAt: new Date(),
-        status: "Assigned",
-      },
-    });
-
-    return res.json({
-      message: "Case assigned to designer successfully",
-      data: updatedCase,
-    });
-  } catch (error) {
-    console.error("Assign case error:", error);
-    return res.status(500).json({ message: "Failed to assign case" });
-  }
-},
-
-updateCaseStatus:async(req,res)=>{
-  try{
- const { caseId } = req.params;
-const { status, qcComment } = req.body;
+  updateCaseStatus: async (req, res) => {
+    try {
+      const { caseId } = req.params;
+      const { status, qcComment } = req.body;
       if (!caseId) {
         return res.status(400).json({
           success: false,
           message: "caseId is required",
         })
       }
-const updatedCase = await prisma.caseRecord.update({
-      where: { caseId },
-      data: {
-        status,
-        qcComment: typeof qcComment === "string" ? qcComment : undefined,
-      },})
-       if (!updatedCase) {
+      const updatedCase = await prisma.caseRecord.update({
+        where: { caseId },
+        data: {
+          status,
+          qcComment: typeof qcComment === "string" ? qcComment : undefined,
+        },
+      })
+      if (!updatedCase) {
         return res.status(404).json({
           success: false,
           message: "Case not found."
         })
       }
-        return res.json({
-      success: true,
-      message: "Case status updated successfully",
-      data: updatedCase,
-    })
+      return res.json({
+        success: true,
+        message: "Case status updated successfully",
+        data: updatedCase,
+      })
 
-  }catch(error){ }
+    } catch (error) { }
 
-},
+  },
 
   getCase: async (req, res) => {
     try {

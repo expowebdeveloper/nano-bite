@@ -6,6 +6,7 @@ import { VerticalStepper } from "./StepsBlock";
 // import Checkbox from "../../../../../components/common/Checkbox/Checkbox";
 // import CheckboxGroup from "../../../../../components/common/CheckboxGroup/CheckboxGroup";
 import AddingCrown from "./AddingCrown";
+import OptionalPhotos from "../ImplantsSolutions/OriginalPhoto";
 // import toothImage from "../../../../assets/images/";
 /* =======================
    Types & Constants
@@ -111,6 +112,9 @@ const OrderItemPage: React.FC = () => {
   const handleNext = () => {
     if (currentStep === 1 && innerStep === 1 && selectedItem) {
       setInnerStep(2);
+    } else if (currentStep === 2 && selectedItem === "crown") {
+      // Handle Submit Logic here
+      console.log("Submitting Case...");
     } else {
       setCurrentStep((prev) => Math.min(prev + 1, 5));
     }
@@ -150,7 +154,7 @@ const OrderItemPage: React.FC = () => {
               </div>
             </div>
           );
-        }  else {
+        } else {
           return (
             <div className="mt-[35px] animate-in fade-in slide-in-from-right-4 duration-500">
               <CommanHeading
@@ -168,6 +172,17 @@ const OrderItemPage: React.FC = () => {
           );
         }
       case 2:
+        if (selectedItem === "crown") {
+          return (
+            <>
+              <CommanHeading
+                caseName="New Case - Fixed Restoration"
+                titleName="Adding an Implant Restoration"
+              />
+              <OptionalPhotos />
+            </>
+          );
+        }
         return (
           <>
             <CommanHeading
@@ -216,10 +231,9 @@ const OrderItemPage: React.FC = () => {
             <button
               onClick={handleBack}
               className={`w-[180px] h-[48px] rounded-lg border border-gray-300 text-gray-700 font-semibold bg-white hover:bg-gray-50 transition-colors 
-                ${
-                  currentStep === 1 && innerStep === 1
-                    ? "hidden pointer-events-none"
-                    : "block"
+                ${currentStep === 1 && innerStep === 1
+                  ? "hidden pointer-events-none"
+                  : "block"
                 }`}
             >
               Back
@@ -231,20 +245,18 @@ const OrderItemPage: React.FC = () => {
                 (currentStep === 1 && innerStep === 1 && !selectedItem) ||
                 (currentStep === 1 && innerStep === 2 && !selectedTeeth.length)
               }
-              className={`w-[180px] h-[48px] rounded-lg font-semibold transition-all ${
-                (currentStep === 1 && innerStep === 1 && !selectedItem) ||
+              className={`w-[180px] h-[48px] rounded-lg font-semibold transition-all ${(currentStep === 1 && innerStep === 1 && !selectedItem) ||
                 (currentStep === 1 && innerStep === 2 && !selectedTeeth.length)
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white hover:shadow-lg"
-              }
-               ${
-                 currentStep === 1 && innerStep === 1
-                   ? "hidden pointer-events-none"
-                   : "block"
-               }
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white hover:shadow-lg"
+                }
+               ${currentStep === 1 && innerStep === 1
+                  ? "hidden pointer-events-none"
+                  : "block"
+                }
               `}
             >
-              {currentStep === 3 ? "Finish Case" : "Next"}
+              {currentStep === 3 || (currentStep === 2 && selectedItem === "crown") ? "Submit" : "Next"}
             </button>
           </div>
 

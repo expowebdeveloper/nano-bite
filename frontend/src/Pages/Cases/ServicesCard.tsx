@@ -69,31 +69,31 @@ const serviceStepData: Record<string, { title: string; options: ServiceOption[] 
    Dynamic Data
 ======================= */
 const servicesData: ServiceItem[] = [
-  {
-    id: "fixed-restoration",
-    title: "Fixed Restoration",
-    description: "Crowns, Bridges, Inlays, Onlays and Veneers",
-  },
-  {
-    id: "implants-solutions",
-    title: "Implants Solutions",
-    description: "Implant Crowns, Bridges and Surgical Guides",
-  },
-  {
-    id: "splints-guards",
-    title: "Splints, Guards & TMJ",
-    description: "Night Guards, Sports Guards TMD/TMJ",
-  },
+  // {
+  //   id: "fixed-restoration",
+  //   title: "Fixed Restoration",
+  //   description: "Crowns, Bridges, Inlays, Onlays and Veneers",
+  // },
+  // {
+  //   id: "implants-solutions",
+  //   title: "Implants Solutions",
+  //   description: "Implant Crowns, Bridges and Surgical Guides",
+  // },
+  // {
+  //   id: "splints-guards",
+  //   title: "Splints, Guards & TMJ",
+  //   description: "Night Guards, Sports Guards TMD/TMJ",
+  // },
   {
     id: "dentures",
     title: "Dentures",
     description: "Full Dentures, Partial Dentures and Overdentures",
   },
-  {
-    id: "wax-ups",
-    title: "Wax-ups & Matrix",
-    description: "Physical Wax-up, Digital Wax-Up and Study Model",
-  },
+  // {
+  //   id: "wax-ups",
+  //   title: "Wax-ups & Matrix",
+  //   description: "Physical Wax-up, Digital Wax-Up and Study Model",
+  // },
 ];
 
 /* =======================

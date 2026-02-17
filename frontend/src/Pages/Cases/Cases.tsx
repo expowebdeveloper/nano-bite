@@ -32,6 +32,12 @@ import AbutmentSelection from "./components/Cases/AbutmentSelection/AbutmentSele
 import OptionalPhotos from "./components/Cases/ImplantsSolutions/OriginalPhoto";
 import ShadeSelection from "./components/Cases/ImplantsSolutions/Shades";
 import ImplantConfirmation from "./components/Cases/ImplantsSolutions/ImplantConfirmation";
+import AddingCrown from "./components/Cases/FixRestoration/AddingCrown";
+// import AddingImplantRestoration from "./components/Cases/FixRestoration/AddingImplantRestoration";
+import { DentureTypeSelection } from "./components/Cases/Denture/DentureTypeSelection";
+import { ExistingDentureCheck } from "./components/Cases/Denture/ExistingDentureCheck";
+import { ImplantSupportedCheck } from "./components/Cases/Denture/ImplantSupportedCheck";
+import { DentureArchSelection } from "./components/Cases/Denture/DentureArchSelection";
 
 // Import servicesData
 const servicesData = [
@@ -193,16 +199,12 @@ const Cases = () => {
     }
   };
 
-  const onSubmit = async (values: CaseFormValues) => {
-    try {
-      await createCase.mutateAsync({ ...values, attachments });
-      setAttachments([]);
-      reset(CASE_FORM_DEFAULT_VALUES);
-      navigate("/cases");
-    } catch (error) {
-      // Errors are handled in the mutation onError
-    }
+
+  const handleNext = async () => {
+    const isValid = await trigger();
+    if (isValid) setCurrentStep((p) => p + 1);
   };
+
 
   const renderCaseTypeSection = () => {
     switch (caseType) {
@@ -225,9 +227,89 @@ const Cases = () => {
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  const handleNext = async () => {
-    const isValid = await trigger();
-    if (isValid) setCurrentStep((p) => p + 1);
+  /*
+  useEffect(() => {
+    if (!selectedOption) return;
+
+    let newCaseType = "";
+    switch (selectedOption) {
+      case "Crown":
+      case "Inlay":
+      case "Onlay":
+      case "Veneer":
+        newCaseType = "Single Crown / Onlay / Veneer";
+        break;
+      case "Bridge":
+        newCaseType = "Short-span Bridge";
+        break;
+      case "Implant Crown":
+      case "Implant Bridge":
+      case "Surgical Guide":
+        newCaseType = "Implant Crown / Implant Bridge";
+        break;
+      case "Full Denture":
+      case "Overdenture":
+        newCaseType = "Digital Complete Denture";
+        break;
+      case "Partial Denture":
+        newCaseType = "Partial Denture";
+        break;
+      // Add more mappings as necessary
+    }
+
+    if (newCaseType) {
+      formConfig.setValue("caseType", newCaseType);
+    }
+  }, [selectedOption, formConfig]);
+  */
+
+  const getCaseTypeFromOption = (option: string | null) => {
+    if (!option) return "Single Crown / Onlay / Veneer"; // Default fallback
+    switch (option) {
+      case "Crown":
+      case "Inlay":
+      case "Onlay":
+      case "Veneer":
+        return "Single Crown / Onlay / Veneer";
+      case "Bridge":
+        return "Short-span Bridge";
+      case "Implant Crown":
+      case "Implant Bridge":
+      case "Surgical Guide":
+        return "Implant Crown / Implant Bridge";
+      case "Full Denture":
+      case "Overdenture":
+        return "Digital Complete Denture";
+      case "Partial Denture":
+        return "Partial Denture";
+      default:
+        // Handle other cases or return default
+        return "Single Crown / Onlay / Veneer";
+    }
+  };
+
+  const onSubmit = async (values: CaseFormValues) => {
+    try {
+      // Force caseType based on selectedOption ensures we are sending the correct type
+      // regardless of form state which might be lagging or reset.
+      const finalCaseType = getCaseTypeFromOption(selectedOption);
+
+      const payload = {
+        ...values,
+        caseType: finalCaseType,
+        attachments,
+      };
+
+      await createCase.mutateAsync(payload);
+      // confirmationMessage("Case submitted successfully", "success");
+      setAttachments([]);
+      reset(CASE_FORM_DEFAULT_VALUES);
+      setSelectedOption(null); // Reset option
+      setCurrentStep(1); // Reset steps
+      navigate("/cases");
+    } catch (error) {
+      // Errors are handled in the mutation onError
+    }
   };
   const renderStep = () => {
     switch (currentStep) {
@@ -251,6 +333,13 @@ const Cases = () => {
           </>
         );
       case 3:
+        if (
+          ["Full Denture", "Overdenture", "Partial Denture"].includes(
+            selectedOption || ""
+          )
+        ) {
+          return <DentureTypeSelection formConfig={formConfig} />;
+        }
         return (
           <>
             <TeethSelectionPage
@@ -259,32 +348,136 @@ const Cases = () => {
             />
           </>
         );
+
       case 4:
+        if (
+          ["Crown", "Inlay", "Onlay", "Veneer", "Bridge"].includes(
+            selectedOption || ""
+          )
+        ) {
+          return (
+            <OptionalPhotos
+              attachments={attachments}
+              setAttachments={setAttachments}
+            />
+          );
+        }
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          // If "New Denture" (Conventional) is selected, ask about existing denture
+          // digitalType is an array, but we are treating it as single select now
+          const dentureType = watch("digitalType")?.[0];
+          if (dentureType === "Conventional") {
+            return <ExistingDentureCheck formConfig={formConfig} />;
+          }
+          // If Immediate or Reline, maybe go to scans or next steps.
+          // For now, let's assume we proceed to the main form or photos?
+          // User said "i will share the others once these are done".
+          // Let's fallback to the DigitalCompleteDenture form for now if not "New Denture"
+          // Or just placeholder.
+          return <DigitalCompleteDenture formConfig={formConfig} />;
+        }
+        if (["Partial Denture"].includes(selectedOption || "")) {
+          // Partial Denture might have similar flow or different.
+          // For now, keep as form.
+          return <PartialDenture formConfig={formConfig} />;
+        }
         return (
           <>
-            <ImplantSystemForm selectedTeeth={selectedTeeth} />
+            <ImplantSystemForm
+              selectedTeeth={selectedTeeth}
+              formConfig={formConfig}
+            />
           </>
         );
       case 5:
+        if (
+          ["Full Denture", "Overdenture"].includes(selectedOption || "")
+        ) {
+          // Step 5: Implant Support Check
+          // Only if we came from Existing Denture Check (Step 4)
+          // If "New Denture" was selected in Step 3
+          const dentureType = watch("digitalType")?.[0];
+          if (dentureType === "Conventional") {
+            return <ImplantSupportedCheck formConfig={formConfig} />;
+          }
+
+          return <DigitalCompleteDenture formConfig={formConfig} />;
+        }
+        if (["Partial Denture"].includes(selectedOption || "")) {
+          return (
+            <OptionalPhotos
+              attachments={attachments}
+              setAttachments={setAttachments}
+            />
+          );
+        }
+
         return (
           <>
             <AbutmentSelection selectedTeeth={selectedTeeth} />
           </>
         );
       case 6:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          // Step 6: Arch Selection
+          // Only if coming from step 5 (Implant Check or otherwise if skipping)
+          // Check if we are in the "New Denture" flow
+          const dentureType = watch("digitalType")?.[0];
+          if (dentureType === "Conventional") {
+            return <DentureArchSelection formConfig={formConfig} onNext={handleNext} />;
+          }
+          // If not conventional, we skip this step and go to photos (which is step 7)
+          // But renderStep is called based on currentStep. 
+          // We shouldn't be here if we skipped? 
+          // Actually, if we are at step 6 and not conventional, we should have skipped 3->4->...
+          // Wait, if not conventional, flow is: 
+          // 1. Item -> 2. Teeth -> 3. Type (Immediate/Reline) -> 4. DigitalCompleteDenture (as placeholder)
+          // So for Immediate/Reline, step 4 is the form. Step 5 is Photos?
+          // Current TOTAL_STEPS=7 implies we expect 7 steps.
+          // If Immediate, we might have fewer steps.
+          // For now, let's just render the form again or photos if we end up here to be safe.
+          return (
+            <OptionalPhotos
+              attachments={attachments}
+              setAttachments={setAttachments}
+            />
+          );
+        }
         return (
           <>
-            <OptionalPhotos />
+            <AddingCrown />
           </>
         );
       case 7:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return (
+            <OptionalPhotos
+              attachments={attachments}
+              setAttachments={setAttachments}
+            />
+          );
+        }
+        return (
+          <>
+            <OptionalPhotos
+              attachments={attachments}
+              setAttachments={setAttachments}
+            />
+          </>
+        );
+      case 8:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          // Fallback if we have extra steps defined
+          return null;
+        }
+        // ... rest of case 8
         return (
           <>
             <ShadeSelection selectedTeeth={selectedTeeth} />
           </>
         );
 
-      case 8:
+      case 9:
         return (
           <>
             <ShadeSelection selectedTeeth={selectedTeeth} />
@@ -296,7 +489,21 @@ const Cases = () => {
     }
   };
 
-  const TOTAL_STEPS = 8; // Update this if you add more steps
+  const isFixedRestoration = [
+    "Crown",
+    "Inlay",
+    "Onlay",
+    "Veneer",
+    "Bridge",
+  ].includes(selectedOption || "");
+
+  const isDenture = [
+    "Full Denture",
+    "Overdenture",
+    "Partial Denture",
+  ].includes(selectedOption || "");
+
+  const TOTAL_STEPS = isFixedRestoration ? 4 : isDenture ? 7 : 9;
   const [currentStep, setCurrentStep] = useState(1);
 
   return (
