@@ -19,7 +19,7 @@ const NavigationButtons = ({
   const showPrevious = currentStep > 1 && currentStep < totalSteps;
 
   // Show next button: on all steps except the last one
-  const showNext = currentStep < totalSteps && currentStep < 10;
+  const showNext = currentStep < totalSteps;
 
   // Show submit button: only on final step
   const showSubmit = currentStep === totalSteps;

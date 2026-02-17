@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Camera, Layers, Activity } from "lucide-react";
+import { Check, Camera, Layers, Activity, Palette } from "lucide-react";
 
 /* =======================
    Types & Constants
@@ -31,7 +31,15 @@ const DENTURE_STEPS: Step[] = [
   { id: 1, label: "Item", icon: <Layers size={16} /> },
   { id: 2, label: "Type", icon: <Activity size={16} /> },
   { id: 3, label: "Arch", icon: <Activity size={16} /> },
-  { id: 4, label: "Photos", icon: <Camera size={16} /> },
+  { id: 4, label: "Shade", icon: <Palette size={16} /> },
+  { id: 5, label: "Denture Type", icon: <Layers size={16} /> },
+  { id: 6, label: "Smile Style", icon: <Activity size={16} /> },
+  { id: 7, label: "Festooning", icon: <Activity size={16} /> },
+  { id: 8, label: "Settings", icon: <Activity size={16} /> },
+  { id: 9, label: "Functional Preferences", icon: <Activity size={16} /> },
+  { id: 10, label: "Design Preview", icon: <Activity size={16} /> },
+  { id: 11, label: "Photos", icon: <Camera size={16} /> },
+  { id: 12, label: "Review", icon: <Check size={16} /> },
 ];
 
 /* =======================

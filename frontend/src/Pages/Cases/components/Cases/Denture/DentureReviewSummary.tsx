@@ -1,0 +1,314 @@
+import { UseFormReturn } from "react-hook-form";
+import { CaseFormValues } from "../../../../../Constants/Constants";
+import { CommanHeading } from "../../../CommanHeading";
+import { Edit, Plus } from "lucide-react";
+import { useState } from "react";
+
+interface DentureReviewSummaryProps {
+    formConfig: UseFormReturn<CaseFormValues>;
+    onEditStep: (step: number) => void;
+}
+
+interface SummaryItem {
+    label: string;
+    value: string | string[] | boolean | undefined;
+    step: number;
+}
+
+export const DentureReviewSummary = ({
+    formConfig,
+    onEditStep,
+}: DentureReviewSummaryProps) => {
+    const { watch, setValue } = formConfig;
+    const rxInstructions = watch("dentureRxInstructions") || "";
+    const [showRxInstructions, setShowRxInstructions] = useState(!!rxInstructions);
+
+    // Get all form values
+    const formValues = watch();
+
+    // Format values for display
+    const formatValue = (value: string | string[] | boolean | undefined): string => {
+        if (value === undefined || value === null) return "Not selected";
+        if (typeof value === "boolean") return value ? "Yes" : "No";
+        if (Array.isArray(value)) {
+            if (value.length === 0) return "None";
+            return value.join(", ");
+        }
+        return value || "Not selected";
+    };
+
+    // Build summary items
+    const getSummaryItems = (): SummaryItem[] => {
+        const items: SummaryItem[] = [];
+
+        // Type
+        if (formValues.selectedOption) {
+            items.push({
+                label: "Type",
+                value: formValues.selectedOption,
+                step: 3,
+            });
+        }
+
+        // Denture Type
+        if (formValues.dentureKind) {
+            items.push({
+                label: "Denture Type",
+                value: formValues.dentureKind,
+                step: 8,
+            });
+        }
+
+        // Arch
+        if (formValues.dentureArch) {
+            items.push({
+                label: "Arch",
+                value: formValues.dentureArch,
+                step: 6,
+            });
+        }
+
+        // Shade
+        const shadeParts: string[] = [];
+        if (formValues.dentureBaseShade) {
+            shadeParts.push(`Base: ${formValues.dentureBaseShade}`);
+        }
+        if (formValues.dentureTissueShade) {
+            shadeParts.push(`Tissue: ${formValues.dentureTissueShade}`);
+        }
+        if (shadeParts.length > 0) {
+            items.push({
+                label: "Shade",
+                value: shadeParts.join(", "),
+                step: 7,
+            });
+        }
+
+        // Smile Style
+        if (formValues.dentureSmileStyle) {
+            items.push({
+                label: "Smile Style",
+                value: formValues.dentureSmileStyle,
+                step: 9,
+            });
+        }
+
+        // Festooning Level
+        if (formValues.dentureFestooningLevel) {
+            items.push({
+                label: "Festooning Level",
+                value: formValues.dentureFestooningLevel,
+                step: 10,
+            });
+        }
+
+        // Other settings/add-ons
+        const settingsParts: string[] = [];
+        if (formValues.dentureHasDiastema !== undefined) {
+            if (formValues.dentureHasDiastema) {
+                settingsParts.push(`Diastema: Yes`);
+                if (formValues.dentureDiastemaHandling) {
+                    settingsParts.push(`Diastema Handling: ${formValues.dentureDiastemaHandling}`);
+                }
+            } else {
+                settingsParts.push(`Diastema: No`);
+            }
+        }
+        if (formValues.dentureAddOns && formValues.dentureAddOns.length > 0) {
+            formValues.dentureAddOns.forEach((addOn) => {
+                settingsParts.push(`${addOn}: Yes`);
+            });
+        }
+        // Show "No" for unchecked add-ons
+        const allAddOns = ["Stippling", "Cu-sil gasket", "Metal framework", "Metal mesh", "Softliner"];
+        allAddOns.forEach((addOn) => {
+            if (!formValues.dentureAddOns?.includes(addOn)) {
+                settingsParts.push(`${addOn}: No`);
+            }
+        });
+        if (settingsParts.length > 0) {
+            items.push({
+                label: "Other settings/add-ons",
+                value: settingsParts.join(", "),
+                step: 11,
+            });
+        }
+
+        // Functional Preferences
+        const functionalParts: string[] = [];
+        if (formValues.dentureBiteAdjustment) {
+            functionalParts.push(`Bite Adjustment: ${formValues.dentureBiteAdjustment}`);
+        }
+        if (formValues.dentureMidlineCorrection) {
+            functionalParts.push(`Midline Correction: ${formValues.dentureMidlineCorrection}`);
+        }
+        if (formValues.dentureOtherDetails && formValues.dentureOtherDetails.length > 0) {
+            formValues.dentureOtherDetails.forEach((detail) => {
+                functionalParts.push(`${detail}: Yes`);
+            });
+        }
+        // Show "No" for unchecked other details
+        const allOtherDetails = ["Correct occlusal scheme to Class I", "Post-dam"];
+        allOtherDetails.forEach((detail) => {
+            if (!formValues.dentureOtherDetails?.includes(detail)) {
+                functionalParts.push(`${detail}: No`);
+            }
+        });
+        if (functionalParts.length > 0) {
+            items.push({
+                label: "Functional Preferences",
+                value: functionalParts.join(", "),
+                step: 12,
+            });
+        }
+
+        // Design Preview
+        if (formValues.dentureWantsDesignPreview !== undefined) {
+            const previewParts: string[] = [];
+            previewParts.push(`Design Preview: ${formValues.dentureWantsDesignPreview ? "Yes" : "No"}`);
+            if (formValues.dentureReviewOptions && formValues.dentureReviewOptions.length > 0) {
+                previewParts.push(`Review Options: ${formValues.dentureReviewOptions.join(", ")}`);
+            }
+            if (formValues.dentureDesignPreviewAddOns && formValues.dentureDesignPreviewAddOns.length > 0) {
+                previewParts.push(`Add-ons: ${formValues.dentureDesignPreviewAddOns.join(", ")}`);
+            }
+            items.push({
+                label: "Design Preview",
+                value: previewParts.join(", "),
+                step: 13,
+            });
+        }
+
+        // Photos
+        const photoCount = formValues.attachments?.length || 0;
+        items.push({
+            label: "Photos",
+            value: photoCount > 0 ? `${photoCount} photo(s)` : "None",
+            step: 14,
+        });
+
+        return items;
+    };
+
+    const summaryItems = getSummaryItems();
+
+    return (
+        <div className="bg-white p-6 md:p-8 space-y-6">
+            <CommanHeading
+                caseName="Wrapping up Denture"
+                titleName="Review your order"
+            />
+
+            <div className="mt-6 mb-4">
+                <p className="text-gray-600 text-sm">
+                    This is all the information that the lab tech will see. Please review and make any necessary edits.
+                </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                {/* Left Column */}
+                <div className="space-y-4">
+                    {summaryItems
+                        .filter((_, index) => index % 2 === 0)
+                        .map((item, index) => (
+                            <div key={index} className="border-b border-gray-200 pb-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">
+                                            {item.label}:
+                                        </p>
+                                        <p className="text-sm text-gray-900 break-words">
+                                            {formatValue(item.value)}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => onEditStep(item.step)}
+                                        className="flex-shrink-0 text-[#00a758] hover:text-[#008a4a] transition-colors"
+                                        title="Edit"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                    {summaryItems
+                        .filter((_, index) => index % 2 === 1)
+                        .map((item, index) => (
+                            <div key={index} className="border-b border-gray-200 pb-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-gray-700 mb-1">
+                                            {item.label}:
+                                        </p>
+                                        <p className="text-sm text-gray-900 break-words">
+                                            {formatValue(item.value)}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => onEditStep(item.step)}
+                                        className="flex-shrink-0 text-[#00a758] hover:text-[#008a4a] transition-colors"
+                                        title="Edit"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                </div>
+            </div>
+
+            {/* Rx-specific instructions */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+                {!showRxInstructions ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowRxInstructions(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#00a758] text-white rounded-lg hover:bg-[#008a4a] transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span className="font-medium">Add Rx-specific instructions</span>
+                    </button>
+                ) : (
+                    <div className="space-y-3">
+                        <label className="block text-sm font-semibold text-gray-700">
+                            Rx-specific instructions
+                        </label>
+                        <textarea
+                            value={rxInstructions}
+                            onChange={(e) => setValue("dentureRxInstructions", e.target.value)}
+                            placeholder="Enter any specific instructions for the lab tech..."
+                            className="w-full min-h-[120px] px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#00a758] focus:ring-2 focus:ring-[#00a758]/20 outline-none resize-y"
+                        />
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setValue("dentureRxInstructions", "");
+                                    setShowRxInstructions(false);
+                                }}
+                                className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowRxInstructions(false);
+                                }}
+                                className="px-4 py-2 bg-[#00a758] text-white rounded-lg hover:bg-[#008a4a] transition-colors"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};

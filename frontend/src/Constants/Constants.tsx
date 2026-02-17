@@ -166,6 +166,45 @@ export const PARTIAL_FRAMEWORK = ["Co", "Cr", "Titanium"] as const;
 export const PARTIAL_REQUIRED_SCANS = ["Arch scan", "Opposing", "Bite", "Existing partial (if rework)"] as const;
 export const PARTIAL_AESTHETICS = ["Min metal display"] as const;
 
+// Denture shade options
+export const VITA_CLASSICAL_SHADES = [
+  "A1", "A2", "A3", "A3.5", "A4",
+  "B1", "B2", "B3", "B4",
+  "C1", "C2", "C3", "C4",
+  "D2", "D3", "D4"
+] as const;
+
+// Denture type options
+export const DENTURE_KIND_OPTIONS = [
+  "Signature Acrylic Denture",
+  "Signature Printed Denture",
+  "Aesthetic Denture"
+] as const;
+
+// Smile style options
+export const DENTURE_SMILE_STYLE_OPTIONS = [
+  "Lab choice",
+  "Hollywood",
+  "Mature",
+  "Youthful"
+] as const;
+
+// Festooning level options
+export const DENTURE_FESTOONING_OPTIONS = [
+  "Soft",
+  "Medium",
+  "Heavy"
+] as const;
+
+// Add-ons options
+export const DENTURE_ADD_ONS_OPTIONS = [
+  "Stippling",
+  "Cu-sil gasket",
+  "Metal framework",
+  "Metal mesh",
+  "Softliner"
+] as const;
+
 // Case Form Types
 export type CaseFormValues = {
   // Header
@@ -239,6 +278,22 @@ export type CaseFormValues = {
   isExactCopy?: boolean;
   isImplantSupported?: boolean;
   dentureArch?: string; // "Dual arch" | "Single arch: upper" | "Single arch: lower"
+  dentureBaseShade?: string;
+  dentureTissueShade?: string; // "Light Pink" | "Original" | "Dark Pink"
+  dentureKind?: string; // "Signature Acrylic Denture" | "Signature Printed Denture" | "Aesthetic Denture"
+  dentureSmileStyle?: string; // "Lab choice" | "Hollywood" | "Mature" | "Youthful"
+  dentureFestooningLevel?: string; // "Soft" | "Medium" | "Heavy"
+  dentureWantsAddOns?: boolean; // Whether user wants to configure add-ons
+  dentureHasDiastema?: boolean;
+  dentureDiastemaHandling?: string; // "Keep it" | "Close it" - shown when diastema is Yes
+  dentureAddOns?: string[]; // ["Stippling", "Cu-sil gasket", "Metal framework", "Metal mesh", "Softliner"]
+  dentureBiteAdjustment?: string; // "Leave as is" | "Open" | "Close"
+  dentureMidlineCorrection?: string; // "Leave as is" | "Shift to patient's left" | "Shift to patient's right" | "Match upper midline" | "Match lower midline"
+  dentureOtherDetails?: string[]; // ["Correct occlusal scheme to Class I", "Post-dam"]
+  dentureWantsDesignPreview?: boolean; // Whether user wants Design Preview
+  dentureReviewOptions?: string[]; // ["self-review", "narrated-video", "video-call"]
+  dentureDesignPreviewAddOns?: string[]; // ["narrated-video-addon", "video-call-addon"]
+  dentureRxInstructions?: string; // Rx-specific instructions
   // Partial denture
   partialType: string[];
   partialFramework: string[];
@@ -322,6 +377,22 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   digitalRequiredScans: [],
   digitalNewRecord: "",
   digitalChanges: "",
+  dentureBaseShade: "",
+  dentureTissueShade: "",
+  dentureKind: "",
+  dentureSmileStyle: "",
+  dentureFestooningLevel: "",
+  dentureWantsAddOns: undefined,
+  dentureHasDiastema: false,
+  dentureDiastemaHandling: "",
+  dentureAddOns: [],
+  dentureBiteAdjustment: "Leave as is",
+  dentureMidlineCorrection: "Leave as is",
+  dentureOtherDetails: [],
+  dentureWantsDesignPreview: undefined,
+  dentureReviewOptions: [],
+  dentureDesignPreviewAddOns: [],
+  dentureRxInstructions: "",
   // Partial denture
   partialType: [],
   partialFramework: [],

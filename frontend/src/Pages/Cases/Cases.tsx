@@ -38,6 +38,14 @@ import { DentureTypeSelection } from "./components/Cases/Denture/DentureTypeSele
 import { ExistingDentureCheck } from "./components/Cases/Denture/ExistingDentureCheck";
 import { ImplantSupportedCheck } from "./components/Cases/Denture/ImplantSupportedCheck";
 import { DentureArchSelection } from "./components/Cases/Denture/DentureArchSelection";
+import { DentureShadeSelection } from "./components/Cases/Denture/DentureShadeSelection";
+import { DentureKindSelection } from "./components/Cases/Denture/DentureKindSelection";
+import { DentureSmileStyleSelection } from "./components/Cases/Denture/DentureSmileStyleSelection";
+import { DentureFestooningSelection } from "./components/Cases/Denture/DentureFestooningSelection";
+import { DentureSettingsSelection } from "./components/Cases/Denture/DentureSettingsSelection";
+import { DentureOtherDetailsSelection } from "./components/Cases/Denture/DentureOtherDetailsSelection";
+import { DentureDesignPreviewSelection } from "./components/Cases/Denture/DentureDesignPreviewSelection";
+import { DentureReviewSummary } from "./components/Cases/Denture/DentureReviewSummary";
 
 // Import servicesData
 const servicesData = [
@@ -450,12 +458,7 @@ const Cases = () => {
         );
       case 7:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          return (
-            <OptionalPhotos
-              attachments={attachments}
-              setAttachments={setAttachments}
-            />
-          );
+          return <DentureShadeSelection formConfig={formConfig} />;
         }
         return (
           <>
@@ -467,10 +470,82 @@ const Cases = () => {
         );
       case 8:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          // Fallback if we have extra steps defined
-          return null;
+          return <DentureKindSelection formConfig={formConfig} />;
         }
         // ... rest of case 8
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 9:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return <DentureSmileStyleSelection formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 10:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return <DentureFestooningSelection formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 11:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return <DentureSettingsSelection formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 12:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return <DentureOtherDetailsSelection formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 13:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return <DentureDesignPreviewSelection formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 14:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return (
+            <OptionalPhotos
+              attachments={attachments}
+              setAttachments={setAttachments}
+            />
+          );
+        }
+        return (
+          <>
+            <ShadeSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 15:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          return (
+            <DentureReviewSummary
+              formConfig={formConfig}
+              onEditStep={(step) => setCurrentStep(step)}
+            />
+          );
+        }
         return (
           <>
             <ShadeSelection selectedTeeth={selectedTeeth} />
@@ -503,8 +578,45 @@ const Cases = () => {
     "Partial Denture",
   ].includes(selectedOption || "");
 
-  const TOTAL_STEPS = isFixedRestoration ? 4 : isDenture ? 7 : 9;
+  const TOTAL_STEPS = isFixedRestoration ? 4 : isDenture ? 15 : 9;
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Map currentStep to stepper step ID for dentures (accounting for steps not in stepper)
+  const getStepperActiveStep = () => {
+    if (isDenture) {
+      // Denture flow mapping:
+      // Step 2 (Services) → stepper id: 1 (Item)
+      // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
+      // Step 4 (ExistingDentureCheck) → skip (not in stepper)
+      // Step 5 (ImplantSupportedCheck) → skip (not in stepper)
+      // Step 6 (DentureArchSelection) → stepper id: 3 (Arch)
+      // Step 7 (DentureShadeSelection) → stepper id: 4 (Shade)
+      // Step 8 (DentureKindSelection) → stepper id: 5 (Denture Type)
+      // Step 9 (DentureSmileStyleSelection) → stepper id: 6 (Smile Style)
+      // Step 10 (DentureFestooningSelection) → stepper id: 7 (Festooning)
+      // Step 11 (DentureSettingsSelection) → stepper id: 8 (Settings)
+      // Step 12 (DentureOtherDetailsSelection) → stepper id: 9 (Functional Preferences)
+      // Step 13 (DentureDesignPreviewSelection) → stepper id: 10 (Design Preview)
+      // Step 14 (OptionalPhotos) → stepper id: 11 (Photos)
+      // Step 15 (DentureReviewSummary) → stepper id: 12 (Review)
+      const stepMap: { [key: number]: number } = {
+        2: 1, // Item
+        3: 2, // Type
+        6: 3, // Arch
+        7: 4, // Shade
+        8: 5, // Denture Type
+        9: 6, // Smile Style
+        10: 7, // Festooning
+        11: 8, // Settings
+        12: 9, // Functional Preferences
+        13: 10, // Design Preview
+        14: 11, // Photos
+        15: 12, // Review
+      };
+      return stepMap[currentStep] || 1;
+    }
+    return currentStep - 1;
+  };
 
   return (
     <div className="min-h-screen bg-[#fff] p-6 space-y-6">
@@ -520,7 +632,7 @@ const Cases = () => {
           {currentStep !== 1 && currentStep >= 2 && (
             <div className="sticky top-6 hidden lg:block">
               <VerticalStepper
-                activeStep={currentStep - 1}
+                activeStep={getStepperActiveStep()}
                 selectedTeeth={selectedTeeth}
                 selectedOption={selectedOption}
               />
