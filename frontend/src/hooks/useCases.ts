@@ -52,8 +52,11 @@ const useCases = () => {
       const response = await request.post("/cases/", payload);
       return response.data?.data ?? response.data;
     },
-    onSuccess: () => {
-      confirmationMessage("Case submitted successfully", "success");
+    onSuccess: (_data, variables) => {
+      // Don't show toast for Partial Denture - modal will be shown instead
+      if (variables.caseType !== "Partial Denture") {
+        confirmationMessage("Case submitted successfully", "success");
+      }
       queryClient.invalidateQueries({ queryKey: ["cases"] });
     },
     onError: (error: any) => {

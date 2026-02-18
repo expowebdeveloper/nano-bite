@@ -42,6 +42,15 @@ const DENTURE_STEPS: Step[] = [
   { id: 12, label: "Review", icon: <Check size={16} /> },
 ];
 
+const PARTIAL_DENTURE_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Material", icon: <Activity size={16} /> },
+  { id: 3, label: "Shade", icon: <Palette size={16} /> },
+  { id: 4, label: "Replacement", icon: <Activity size={16} /> },
+  // Photos step commented out for Partial Denture
+  // { id: 5, label: "Photos", icon: <Camera size={16} /> },
+];
+
 /* =======================
    VerticalStepper Component
 ======================= */
@@ -71,11 +80,15 @@ export const VerticalStepper: React.FC<{
     "Partial Denture",
   ].includes(selectedOption || "");
 
+  const isPartialDenture = selectedOption === "Partial Denture";
+
   const stepsToRender = isFixedRestoration
     ? CROWN_STEPS
-    : isDenture
-      ? DENTURE_STEPS
-      : STEPS;
+    : isPartialDenture
+      ? PARTIAL_DENTURE_STEPS
+      : isDenture
+        ? DENTURE_STEPS
+        : STEPS;
 
   return (
     <div className="bg-[#F8F8F8] rounded-[32px] p-3 min-w-[200px]  max-w-[200px] h-fit sticky top-6 border border-gray-100 shadow-sm">

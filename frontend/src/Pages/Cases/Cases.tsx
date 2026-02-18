@@ -46,6 +46,10 @@ import { DentureSettingsSelection } from "./components/Cases/Denture/DentureSett
 import { DentureOtherDetailsSelection } from "./components/Cases/Denture/DentureOtherDetailsSelection";
 import { DentureDesignPreviewSelection } from "./components/Cases/Denture/DentureDesignPreviewSelection";
 import { DentureReviewSummary } from "./components/Cases/Denture/DentureReviewSummary";
+import { PartialDentureReplacementCheck } from "./components/Cases/Denture/PartialDentureReplacementCheck";
+import { PartialDentureMaterialSelection } from "./components/Cases/Denture/PartialDentureMaterialSelection";
+import { PartialDentureShadeSelection } from "./components/Cases/Denture/PartialDentureShadeSelection";
+import { AddedItemModal } from "./components/Cases/Denture/AddedItemModal";
 
 // Import servicesData
 const servicesData = [
@@ -80,6 +84,7 @@ const Cases = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showPartialAddedModal, setShowPartialAddedModal] = useState(false);
   const { uploadFile, uploading } = useUploads();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { createCase } = useCases();
@@ -210,7 +215,9 @@ const Cases = () => {
 
   const handleNext = async () => {
     const isValid = await trigger();
-    if (isValid) setCurrentStep((p) => p + 1);
+    if (isValid) {
+      setCurrentStep((p) => p + 1);
+    }
   };
 
 
@@ -309,6 +316,15 @@ const Cases = () => {
       };
 
       await createCase.mutateAsync(payload);
+      
+      // For Partial Denture, show the "Added Partial" modal after successful submission
+      if (selectedOption === "Partial Denture") {
+        setShowPartialAddedModal(true);
+        // Don't reset/navigate yet - let user interact with modal first
+        return;
+      }
+      
+      // For other case types, proceed with normal flow
       // confirmationMessage("Case submitted successfully", "success");
       setAttachments([]);
       reset(CASE_FORM_DEFAULT_VALUES);
@@ -341,8 +357,11 @@ const Cases = () => {
           </>
         );
       case 3:
+        if (["Partial Denture"].includes(selectedOption || "")) {
+          return <PartialDentureMaterialSelection formConfig={formConfig} />;
+        }
         if (
-          ["Full Denture", "Overdenture", "Partial Denture"].includes(
+          ["Full Denture", "Overdenture"].includes(
             selectedOption || ""
           )
         ) {
@@ -385,9 +404,7 @@ const Cases = () => {
           return <DigitalCompleteDenture formConfig={formConfig} />;
         }
         if (["Partial Denture"].includes(selectedOption || "")) {
-          // Partial Denture might have similar flow or different.
-          // For now, keep as form.
-          return <PartialDenture formConfig={formConfig} />;
+          return <PartialDentureShadeSelection formConfig={formConfig} />;
         }
         return (
           <>
@@ -412,12 +429,7 @@ const Cases = () => {
           return <DigitalCompleteDenture formConfig={formConfig} />;
         }
         if (["Partial Denture"].includes(selectedOption || "")) {
-          return (
-            <OptionalPhotos
-              attachments={attachments}
-              setAttachments={setAttachments}
-            />
-          );
+          return <PartialDentureReplacementCheck formConfig={formConfig} />;
         }
 
         return (
@@ -451,6 +463,15 @@ const Cases = () => {
             />
           );
         }
+        // Photos step commented out for Partial Denture
+        // if (["Partial Denture"].includes(selectedOption || "")) {
+        //   return (
+        //     <OptionalPhotos
+        //       attachments={attachments}
+        //       setAttachments={setAttachments}
+        //     />
+        //   );
+        // }
         return (
           <>
             <AddingCrown />
@@ -578,13 +599,29 @@ const Cases = () => {
     "Partial Denture",
   ].includes(selectedOption || "");
 
-  const TOTAL_STEPS = isFixedRestoration ? 4 : isDenture ? 15 : 9;
+  const TOTAL_STEPS = isFixedRestoration ? 4 : isDenture ? (selectedOption === "Partial Denture" ? 5 : 15) : 9;
   const [currentStep, setCurrentStep] = useState(1);
 
   // Map currentStep to stepper step ID for dentures (accounting for steps not in stepper)
   const getStepperActiveStep = () => {
     if (isDenture) {
-      // Denture flow mapping:
+      if (selectedOption === "Partial Denture") {
+        // Partial Denture flow mapping:
+        // Step 2 (Services) → stepper id: 1 (Item)
+        // Step 3 (PartialDentureMaterialSelection) → stepper id: 2 (Material)
+        // Step 4 (PartialDentureShadeSelection) → stepper id: 3 (Shade)
+        // Step 5 (PartialDentureReplacementCheck) → stepper id: 4 (Replacement)
+        // Photos step is commented out - flow ends at step 5
+        const partialStepMap: { [key: number]: number } = {
+          2: 1, // Item
+          3: 2, // Material
+          4: 3, // Shade
+          5: 4, // Replacement
+          // 6: 5, // Photos - commented out
+        };
+        return partialStepMap[currentStep] || 1;
+      }
+      // Full Denture/Overdenture flow mapping:
       // Step 2 (Services) → stepper id: 1 (Item)
       // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
       // Step 4 (ExistingDentureCheck) → skip (not in stepper)
@@ -650,6 +687,32 @@ const Cases = () => {
           isSubmitting={createCase.isPending}
         />
       </form>
+
+      {/* Partial Denture Added Modal */}
+      {showPartialAddedModal && selectedOption === "Partial Denture" && (
+        <AddedItemModal
+          isOpen={showPartialAddedModal}
+          itemName="Partial"
+          itemNameColor="text-red-600"
+          patientName={watch("patientName") || "Training"}
+          onStartScanning={() => {
+            setShowPartialAddedModal(false);
+            // Reset form and navigate to cases list after scanning
+            setAttachments([]);
+            reset(CASE_FORM_DEFAULT_VALUES);
+            setSelectedOption(null);
+            setCurrentStep(1);
+            navigate("/cases");
+          }}
+          onAddAnotherItem={() => {
+            setShowPartialAddedModal(false);
+            // Reset form and go back to item selection
+            reset(CASE_FORM_DEFAULT_VALUES);
+            setSelectedOption(null);
+            setCurrentStep(2);
+          }}
+        />
+      )}
 
       {attachments.length > 0 && (
         <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">

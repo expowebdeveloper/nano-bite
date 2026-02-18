@@ -394,6 +394,10 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   dentureDesignPreviewAddOns: [],
   dentureRxInstructions: "",
   // Partial denture
+  partialIsReplacement: undefined,
+  partialMaterial: "",
+  partialBaseShade: "",
+  partialTissueShade: "",
   partialType: [],
   partialFramework: [],
   partialMajorConnector: "",
