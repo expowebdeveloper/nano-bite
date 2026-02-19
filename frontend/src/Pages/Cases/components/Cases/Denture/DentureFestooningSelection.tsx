@@ -60,7 +60,7 @@ export const DentureFestooningSelection = ({
                                         transition-all duration-200
                                         min-h-[250px]
                                         ${isSelected
-                                            ? "border-[#00a758] bg-green-50 ring-2 ring-[#00a758]"
+                                            ? "border-[#0B75C9] bg-blue-50 ring-2 ring-[#0B75C9]"
                                             : "border-gray-200 hover:border-gray-300 bg-white"
                                         }
                                     `}
@@ -72,7 +72,7 @@ export const DentureFestooningSelection = ({
                                     )}
                                     <div className="absolute top-4 right-4">
                                         {isSelected ? (
-                                            <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                            <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                         ) : (
                                             <Circle className="w-5 h-5 text-gray-400" />
                                         )}

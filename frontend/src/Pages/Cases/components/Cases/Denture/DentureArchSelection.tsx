@@ -135,7 +135,7 @@ export const DentureArchSelection = ({
 
                             <button
                                 onClick={onNext} // Proceed to "Start scanning" -> typically next step in flow
-                                className="w-full bg-[#00a758] hover:bg-[#008f4b] text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                                className="w-full bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] hover:shadow-lg text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
                             >
                                 <span>Start scanning</span>
                                 <Check className="w-5 h-5" />
@@ -143,7 +143,7 @@ export const DentureArchSelection = ({
 
                             <button
                                 onClick={() => setShowPopup(false)} // allow editing selection
-                                className="text-[#00a758] font-medium flex items-center gap-2 hover:underline"
+                                className="text-[#0B75C9] font-medium flex items-center gap-2 hover:underline"
                             >
                                 <Edit className="w-4 h-4" />
                                 Edit Denture

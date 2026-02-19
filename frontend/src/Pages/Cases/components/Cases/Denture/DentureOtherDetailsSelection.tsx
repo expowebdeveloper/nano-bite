@@ -60,13 +60,13 @@ export const DentureOtherDetailsSelection = ({
                                                 flex items-center gap-3 cursor-pointer
                                                 px-6 py-4 rounded-lg border-2 transition-all
                                                 ${isSelected
-                                                    ? "border-[#00a758] bg-green-50"
+                                                    ? "border-[#0B75C9] bg-blue-50"
                                                     : "border-gray-200 hover:border-gray-300 bg-white"
                                                 }
                                             `}
                                         >
                                             {isSelected ? (
-                                                <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                                <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                             ) : (
                                                 <Circle className="w-5 h-5 text-gray-400" />
                                             )}
@@ -99,13 +99,13 @@ export const DentureOtherDetailsSelection = ({
                                                 flex items-center gap-3 cursor-pointer
                                                 px-6 py-4 rounded-lg border-2 transition-all
                                                 ${isSelected
-                                                    ? "border-[#00a758] bg-green-50"
+                                                    ? "border-[#0B75C9] bg-blue-50"
                                                     : "border-gray-200 hover:border-gray-300 bg-white"
                                                 }
                                             `}
                                         >
                                             {isSelected ? (
-                                                <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                                <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                             ) : (
                                                 <Circle className="w-5 h-5 text-gray-400" />
                                             )}
@@ -146,7 +146,7 @@ export const DentureOtherDetailsSelection = ({
                                             px-4 py-3 rounded-lg border-2 cursor-pointer
                                             transition-all
                                             ${isSelected
-                                                ? "border-[#00a758] bg-green-50"
+                                                ? "border-[#0B75C9] bg-blue-50"
                                                 : "border-gray-200 hover:border-gray-300 bg-white"
                                             }
                                         `}
@@ -154,7 +154,7 @@ export const DentureOtherDetailsSelection = ({
                                         <span className="font-medium text-gray-900">{detail}</span>
                                         <div className={`
                                             w-12 h-6 rounded-full relative transition-colors
-                                            ${isSelected ? "bg-[#00a758]" : "bg-gray-300"}
+                                            ${isSelected ? "bg-[#0B75C9]" : "bg-gray-300"}
                                         `}>
                                             <div className={`
                                                 absolute top-1 left-1 w-4 h-4 bg-white rounded-full

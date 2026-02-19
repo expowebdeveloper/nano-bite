@@ -224,7 +224,7 @@ export const DentureReviewSummary = ({
                                     <button
                                         type="button"
                                         onClick={() => onEditStep(item.step)}
-                                        className="flex-shrink-0 text-[#00a758] hover:text-[#008a4a] transition-colors"
+                                        className="flex-shrink-0 text-[#0B75C9] hover:text-[#0084c7] transition-colors"
                                         title="Edit"
                                     >
                                         <Edit className="w-4 h-4" />
@@ -252,7 +252,7 @@ export const DentureReviewSummary = ({
                                     <button
                                         type="button"
                                         onClick={() => onEditStep(item.step)}
-                                        className="flex-shrink-0 text-[#00a758] hover:text-[#008a4a] transition-colors"
+                                        className="flex-shrink-0 text-[#0B75C9] hover:text-[#0084c7] transition-colors"
                                         title="Edit"
                                     >
                                         <Edit className="w-4 h-4" />
@@ -269,7 +269,7 @@ export const DentureReviewSummary = ({
                     <button
                         type="button"
                         onClick={() => setShowRxInstructions(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#00a758] text-white rounded-lg hover:bg-[#008a4a] transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white rounded-lg hover:shadow-lg transition-colors"
                     >
                         <Plus className="w-4 h-4" />
                         <span className="font-medium">Add Rx-specific instructions</span>
@@ -283,7 +283,7 @@ export const DentureReviewSummary = ({
                             value={rxInstructions}
                             onChange={(e) => setValue("dentureRxInstructions", e.target.value)}
                             placeholder="Enter any specific instructions for the lab tech..."
-                            className="w-full min-h-[120px] px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#00a758] focus:ring-2 focus:ring-[#00a758]/20 outline-none resize-y"
+                            className="w-full min-h-[120px] px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0B75C9] focus:ring-2 focus:ring-[#0B75C9]/20 outline-none resize-y"
                         />
                         <div className="flex gap-3">
                             <button
@@ -301,7 +301,7 @@ export const DentureReviewSummary = ({
                                 onClick={() => {
                                     setShowRxInstructions(false);
                                 }}
-                                className="px-4 py-2 bg-[#00a758] text-white rounded-lg hover:bg-[#008a4a] transition-colors"
+                                className="px-4 py-2 bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white rounded-lg hover:shadow-lg transition-colors"
                             >
                                 Save
                             </button>

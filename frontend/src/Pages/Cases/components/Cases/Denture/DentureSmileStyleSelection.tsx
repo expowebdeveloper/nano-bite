@@ -14,7 +14,7 @@ const SMILE_STYLE_OPTIONS = [
         title: "Lab choice",
         description: "Our technicians will use Walter's age and facial features to determine which smile style will look best.",
         isRecommended: true,
-        icon: <Sparkles className="w-16 h-16 text-[#00a758]" />,
+        icon: <Sparkles className="w-16 h-16 text-[#0B75C9]" />,
     },
     {
         value: "Hollywood",
@@ -72,20 +72,20 @@ export const DentureSmileStyleSelection = ({
                                         transition-all duration-200
                                         min-h-[200px]
                                         ${isSelected
-                                            ? "border-[#00a758] bg-green-50 ring-2 ring-[#00a758]"
+                                            ? "border-[#0B75C9] bg-blue-50 ring-2 ring-[#0B75C9]"
                                             : "border-gray-200 hover:border-gray-300 bg-white"
                                         }
                                     `}
                                 >
                                     {option.isRecommended && (
-                                        <div className="absolute top-4 left-4 flex items-center gap-2 text-[#00a758] text-sm font-semibold">
+                                        <div className="absolute top-4 left-4 flex items-center gap-2 text-[#0B75C9] text-sm font-semibold">
                                             <Settings className="w-4 h-4" />
                                             <span>Recommended</span>
                                         </div>
                                     )}
                                     <div className="absolute top-4 right-4">
                                         {isSelected ? (
-                                            <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                            <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                         ) : (
                                             <Circle className="w-5 h-5 text-gray-400" />
                                         )}

@@ -102,7 +102,7 @@ export const VerticalStepper: React.FC<{
               <div
                 className={`
                   h-[27px] w-[27px] flex items-center justify-center rounded-full text-sm font-bold transition-all duration-300 flex-shrink-0
-                  ${isCompleted ? "bg-green-500 text-white" : ""}
+                  ${isCompleted ? "bg-blue-500 text-white" : ""}
                   ${isActive ? "bg-blue-600 text-white ring-4 ring-blue-50" : ""}
                   ${!isActive && !isCompleted ? "border-2 border-gray-100 text-gray-400 bg-white" : ""}
                 `}
@@ -111,7 +111,7 @@ export const VerticalStepper: React.FC<{
               </div>
               {index < stepsToRender.length - 1 && (
                 <div
-                  className={`h-12 w-[2px] my-1 transition-colors duration-300 ${isCompleted ? "bg-green-500" : "bg-gray-100"}`}
+                  className={`h-12 w-[2px] my-1 transition-colors duration-300 ${isCompleted ? "bg-blue-500" : "bg-gray-100"}`}
                 />
               )}
             </div>

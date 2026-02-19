@@ -67,7 +67,7 @@ export const DentureDesignPreviewSelection = ({
                                     type="checkbox"
                                     checked={value === true}
                                     onChange={() => onChange(!value)}
-                                    className="w-5 h-5 rounded border-gray-300 text-[#00a758] focus:ring-[#00a758] cursor-pointer mt-1"
+                                    className="w-5 h-5 rounded border-gray-300 text-[#0B75C9] focus:ring-[#0B75C9] cursor-pointer mt-1"
                                 />
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
@@ -118,7 +118,7 @@ export const DentureDesignPreviewSelection = ({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
                 {/* Left Column - Design Preview Checkbox and Review Options */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="p-6 border-2 border-[#00a758] rounded-lg bg-green-50">
+                    <div className="p-6 border-2 border-[#0B75C9] rounded-lg bg-blue-50">
                         <Controller
                             name="dentureWantsDesignPreview"
                             control={control}
@@ -131,7 +131,7 @@ export const DentureDesignPreviewSelection = ({
                                         type="checkbox"
                                         checked={value === true}
                                         onChange={() => onChange(!value)}
-                                        className="w-5 h-5 rounded border-gray-300 text-[#00a758] focus:ring-[#00a758] cursor-pointer mt-1"
+                                        className="w-5 h-5 rounded border-gray-300 text-[#0B75C9] focus:ring-[#0B75C9] cursor-pointer mt-1"
                                     />
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
@@ -173,7 +173,7 @@ export const DentureDesignPreviewSelection = ({
                                                     className={`
                                                         flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all
                                                         ${isSelected
-                                                            ? "border-[#00a758] bg-white text-[#00a758]"
+                                                            ? "border-[#0B75C9] bg-white text-[#0B75C9]"
                                                             : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
                                                         }
                                                     `}
@@ -214,7 +214,7 @@ export const DentureDesignPreviewSelection = ({
                                                 className={`
                                                     cursor-pointer border-2 rounded-lg p-4 transition-all
                                                     ${isSelected
-                                                        ? "border-[#00a758] bg-green-50"
+                                                        ? "border-[#0B75C9] bg-blue-50"
                                                         : "border-gray-200 hover:border-gray-300 bg-white"
                                                     }
                                                 `}
@@ -244,7 +244,7 @@ export const DentureDesignPreviewSelection = ({
                         </div>
                         <button
                             type="button"
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-[#00a758] text-[#00a758] rounded-lg hover:bg-green-50 transition-colors"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-[#0B75C9] text-[#0B75C9] rounded-lg hover:bg-blue-50 transition-colors"
                         >
                             <span className="font-medium">Expand</span>
                             <Expand className="w-4 h-4" />

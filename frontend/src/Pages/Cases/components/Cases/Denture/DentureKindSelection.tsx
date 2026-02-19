@@ -59,18 +59,18 @@ export const DentureKindSelection = ({
                                         flex items-start gap-4
                                         transition-all duration-200
                                         ${isSelected
-                                            ? "border-[#00a758] bg-green-50 ring-2 ring-[#00a758]"
+                                            ? "border-[#0B75C9] bg-blue-50 ring-2 ring-[#0B75C9]"
                                             : "border-gray-200 hover:border-gray-300"
                                         }
                                     `}
                                 >
                                     {option.isRecommended && (
-                                        <div className="absolute top-4 right-4 flex items-center gap-2 text-[#00a758] text-sm font-semibold">
+                                        <div className="absolute top-4 right-4 flex items-center gap-2 text-[#0B75C9] text-sm font-semibold">
                                             <Settings className="w-4 h-4" />
                                             <span>Recommended</span>
                                         </div>
                                     )}
-                                    <div className="mt-1 flex-shrink-0 text-[#00a758]">
+                                    <div className="mt-1 flex-shrink-0 text-[#0B75C9]">
                                         {isSelected ? (
                                             <Disc className="w-5 h-5 fill-current" />
                                         ) : (
@@ -105,7 +105,7 @@ export const DentureKindSelection = ({
                 <p className="text-sm text-gray-600 leading-relaxed mb-4">
                     The world's first digitally designed acrylic denture with lifelike aesthetics and high-impact durability (for the same price as Signature Printed)! Our new Signature Acrylic Denture improves fit, strengthens performance, and elevates standard of care.
                 </p>
-                <a href="#" className="text-[#00a758] text-sm font-medium hover:underline">
+                <a href="#" className="text-[#0B75C9] text-sm font-medium hover:underline">
                     Learn more &gt;
                 </a>
             </div>

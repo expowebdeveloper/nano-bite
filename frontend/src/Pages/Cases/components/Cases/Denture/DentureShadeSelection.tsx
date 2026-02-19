@@ -83,7 +83,7 @@ const SearchableShadeDropdown = ({
                     text-base
                     outline-none
                     focus:ring-2
-                    focus:ring-[#0b75c9]
+                    focus:ring-[#0B75C9]
                 "
             />
 

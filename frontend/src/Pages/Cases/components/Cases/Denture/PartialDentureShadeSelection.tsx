@@ -65,7 +65,7 @@ const SearchableShadeDropdown = ({
                         setOpen(true);
                     }}
                     onFocus={() => setOpen(true)}
-                    className="w-full h-[60px] rounded-2xl bg-[#f2f6f8] border-2 border-[#00a758] px-4 pr-10 text-base outline-none focus:ring-2 focus:ring-[#00a758]"
+                    className="w-full h-[60px] rounded-2xl bg-[#f2f6f8] border-2 border-[#0B75C9] px-4 pr-10 text-base outline-none focus:ring-2 focus:ring-[#0B75C9]"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
                     <svg
@@ -148,7 +148,7 @@ export const PartialDentureShadeSelection = ({
                                             key={option.id}
                                             onClick={() => onChange(option.id)}
                                             className={`
-                                                cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center justify-center transition-all duration-200 hover:border-blue-400
+                                                cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center justify-center transition-all duration-200                                                 hover:border-blue-400
                                                 ${isSelected
                                                     ? "border-[#0B75C9] ring-1 ring-[#0B75C9] bg-blue-50"
                                                     : "border-gray-200 hover:border-gray-300 bg-white"

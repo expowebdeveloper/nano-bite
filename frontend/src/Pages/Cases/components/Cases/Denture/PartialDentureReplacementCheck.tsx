@@ -31,13 +31,13 @@ export const PartialDentureReplacementCheck = ({
                                     flex items-center gap-3 cursor-pointer
                                     px-8 py-6 rounded-lg border-2 transition-all
                                     ${value === true
-                                        ? "border-[#00a758] bg-green-50"
+                                        ? "border-[#0B75C9] bg-blue-50"
                                         : "border-gray-200 hover:border-gray-300 bg-white"
                                     }
                                 `}
                             >
                                 {value === true ? (
-                                    <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                    <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                 ) : (
                                     <Circle className="w-5 h-5 text-gray-400" />
                                 )}
@@ -49,13 +49,13 @@ export const PartialDentureReplacementCheck = ({
                                     flex items-center gap-3 cursor-pointer
                                     px-8 py-6 rounded-lg border-2 transition-all
                                     ${value === false
-                                        ? "border-[#00a758] bg-green-50"
+                                        ? "border-[#0B75C9] bg-blue-50"
                                         : "border-gray-200 hover:border-gray-300 bg-white"
                                     }
                                 `}
                             >
                                 {value === false ? (
-                                    <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                    <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                 ) : (
                                     <Circle className="w-5 h-5 text-gray-400" />
                                 )}

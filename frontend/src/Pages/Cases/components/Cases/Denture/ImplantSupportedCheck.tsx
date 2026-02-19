@@ -96,7 +96,7 @@ export const ImplantSupportedCheck = ({
                             {/* Placeholder for the denture icon/image */}
                             <span className="text-2xl">🦷</span>
                         </div>
-                        <h3 className="text-xl font-bold text-[#004d40]">
+                        <h3 className="text-xl font-bold text-[#0B75C9]">
                             We've updated the ordering flow for Overdentures
                         </h3>
                         <p className="text-gray-600 text-sm">
@@ -105,7 +105,7 @@ export const ImplantSupportedCheck = ({
                         </p>
                         <button
                             type="button"
-                            className="text-[#004d40] font-semibold flex items-center gap-1 hover:underline mt-2"
+                            className="text-[#0B75C9] font-semibold flex items-center gap-1 hover:underline mt-2"
                         >
                             Switch to Overdentures &gt;
                         </button>

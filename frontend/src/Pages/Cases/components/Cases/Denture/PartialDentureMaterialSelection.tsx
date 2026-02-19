@@ -87,7 +87,7 @@ export const PartialDentureMaterialSelection = ({
                                 className={`
                                     cursor-pointer border-2 rounded-lg p-4 transition-all
                                     ${isSelected
-                                        ? "border-[#00a758] bg-green-50 ring-2 ring-[#00a758]"
+                                        ? "border-[#0B75C9] bg-blue-50 ring-2 ring-[#0B75C9]"
                                         : "border-gray-200 hover:border-gray-300 bg-white"
                                     }
                                 `}
@@ -95,7 +95,7 @@ export const PartialDentureMaterialSelection = ({
                                 <div className="flex items-start gap-3">
                                     <div className="mt-1 flex-shrink-0">
                                         {isSelected ? (
-                                            <Disc className="w-5 h-5 fill-[#00a758] text-[#00a758]" />
+                                            <Disc className="w-5 h-5 fill-[#0B75C9] text-[#0B75C9]" />
                                         ) : (
                                             <Circle className="w-5 h-5 text-gray-400" />
                                         )}
