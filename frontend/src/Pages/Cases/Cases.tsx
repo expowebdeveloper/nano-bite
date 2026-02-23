@@ -50,6 +50,14 @@ import { PartialDentureReplacementCheck } from "./components/Cases/Denture/Parti
 import { PartialDentureMaterialSelection } from "./components/Cases/Denture/PartialDentureMaterialSelection";
 import { PartialDentureShadeSelection } from "./components/Cases/Denture/PartialDentureShadeSelection";
 import { AddedItemModal } from "./components/Cases/Denture/AddedItemModal";
+import { OverdentureScanSelection } from "./components/Cases/Denture/OverdentureScanSelection";
+import { OverdentureRelineImplantCheck } from "./components/Cases/Denture/OverdentureRelineImplantCheck";
+import { SwitchToOverdentureModal } from "./components/Cases/Denture/SwitchToOverdentureModal";
+import { OverdentureSupportTypeSelection } from "./components/Cases/Denture/OverdentureSupportTypeSelection";
+import { OverdentureImplantLocationSelection } from "./components/Cases/Denture/OverdentureImplantLocationSelection";
+import { OverdentureImplantDetails } from "./components/Cases/Denture/OverdentureImplantDetails";
+import { OverdentureRelineArchSelection } from "./components/Cases/Denture/OverdentureRelineArchSelection";
+import { OverdentureRelineAddedModal } from "./components/Cases/Denture/OverdentureRelineAddedModal";
 
 // Import servicesData
 const servicesData = [
@@ -85,6 +93,8 @@ const Cases = () => {
   const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showPartialAddedModal, setShowPartialAddedModal] = useState(false);
+  const [showSwitchToOverdentureModal, setShowSwitchToOverdentureModal] = useState(false);
+  const [showOverdentureRelineAddedModal, setShowOverdentureRelineAddedModal] = useState(false);
   const { uploadFile, uploading } = useUploads();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { createCase } = useCases();
@@ -324,6 +334,14 @@ const Cases = () => {
         return;
       }
       
+      // For Overdenture Reline, show the "Added Overdenture Reline" modal after successful submission
+      const dentureType = watch("digitalType")?.[0];
+      if (selectedOption === "Overdenture" && dentureType === "Reline") {
+        setShowOverdentureRelineAddedModal(true);
+        // Don't reset/navigate yet - let user interact with modal first
+        return;
+      }
+      
       // For other case types, proceed with normal flow
       // confirmationMessage("Case submitted successfully", "success");
       setAttachments([]);
@@ -396,11 +414,20 @@ const Cases = () => {
           if (dentureType === "Conventional") {
             return <ExistingDentureCheck formConfig={formConfig} />;
           }
-          // If Immediate or Reline, maybe go to scans or next steps.
-          // For now, let's assume we proceed to the main form or photos?
-          // User said "i will share the others once these are done".
-          // Let's fallback to the DigitalCompleteDenture form for now if not "New Denture"
-          // Or just placeholder.
+          // For Overdenture + Immediate Denture, FIRST show scan/impression selection (Step 1)
+          if (selectedOption === "Overdenture" && dentureType === "Immediate") {
+            return <OverdentureScanSelection formConfig={formConfig} />;
+          }
+          // For Overdenture + Reline, show implant-supported check with switch option
+          if (selectedOption === "Overdenture" && dentureType === "Reline") {
+            return (
+              <OverdentureRelineImplantCheck
+                formConfig={formConfig}
+                onSwitchToOverdenture={() => setShowSwitchToOverdentureModal(true)}
+              />
+            );
+          }
+          // If Immediate or Reline for Full Denture, show Digital Complete Denture form
           return <DigitalCompleteDenture formConfig={formConfig} />;
         }
         if (["Partial Denture"].includes(selectedOption || "")) {
@@ -418,15 +445,77 @@ const Cases = () => {
         if (
           ["Full Denture", "Overdenture"].includes(selectedOption || "")
         ) {
-          // Step 5: Implant Support Check
-          // Only if we came from Existing Denture Check (Step 4)
-          // If "New Denture" was selected in Step 3
+          // Step 5: Implant Support Check OR Digital Complete Denture form OR Overdenture Support Type
           const dentureType = watch("digitalType")?.[0];
+          // If "New Denture" (Conventional) was selected, show Implant Support Check
           if (dentureType === "Conventional") {
             return <ImplantSupportedCheck formConfig={formConfig} />;
           }
-
+          // For Overdenture + Immediate Denture, flow ends at step 4 (scan selection), so this step shouldn't be reached
+          if (selectedOption === "Overdenture" && dentureType === "Immediate") {
+            return null; // Flow should have ended at step 4
+          }
+          // For Overdenture + Reline, show support type selection (after switch confirmation)
+          if (selectedOption === "Overdenture" && dentureType === "Reline") {
+            return <OverdentureSupportTypeSelection formConfig={formConfig} />;
+          }
+          // For other cases (Full Denture + Immediate/Reline), show Digital Complete Denture form
           return <DigitalCompleteDenture formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <AbutmentSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 6:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const dentureType = watch("digitalType")?.[0];
+          // For Overdenture + Reline + Implant-supported, show implant location selection
+          if (selectedOption === "Overdenture" && dentureType === "Reline") {
+            const supportType = watch("overdentureSupportType");
+            if (supportType === "Implant-supported") {
+              return <OverdentureImplantLocationSelection formConfig={formConfig} />;
+            }
+            // For Overdenture + Reline + Tooth-supported, show arch selection
+            if (supportType === "Tooth-supported") {
+              return <OverdentureRelineArchSelection formConfig={formConfig} />;
+            }
+          }
+          // Continue with normal flow for other cases
+          return <DentureArchSelection formConfig={formConfig} onNext={handleNext} />;
+        }
+        return (
+          <>
+            <AbutmentSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 7:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const dentureType = watch("digitalType")?.[0];
+          // For Overdenture + Reline + Implant-supported, show implant details form
+          if (selectedOption === "Overdenture" && dentureType === "Reline") {
+            const supportType = watch("overdentureSupportType");
+            if (supportType === "Implant-supported") {
+              return <OverdentureImplantDetails formConfig={formConfig} />;
+            }
+          }
+          // Continue with normal flow for other cases
+          return <DentureShadeSelection formConfig={formConfig} />;
+        }
+        return (
+          <>
+            <AbutmentSelection selectedTeeth={selectedTeeth} />
+          </>
+        );
+      case 8:
+        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const dentureType = watch("digitalType")?.[0];
+          // For Overdenture + Reline, show arch selection
+          if (selectedOption === "Overdenture" && dentureType === "Reline") {
+            return <OverdentureRelineArchSelection formConfig={formConfig} />;
+          }
+          // Continue with normal flow for other cases
+          return <DentureShadeSelection formConfig={formConfig} />;
         }
         if (["Partial Denture"].includes(selectedOption || "")) {
           return <PartialDentureReplacementCheck formConfig={formConfig} />;
@@ -435,46 +524,6 @@ const Cases = () => {
         return (
           <>
             <AbutmentSelection selectedTeeth={selectedTeeth} />
-          </>
-        );
-      case 6:
-        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          // Step 6: Arch Selection
-          // Only if coming from step 5 (Implant Check or otherwise if skipping)
-          // Check if we are in the "New Denture" flow
-          const dentureType = watch("digitalType")?.[0];
-          if (dentureType === "Conventional") {
-            return <DentureArchSelection formConfig={formConfig} onNext={handleNext} />;
-          }
-          // If not conventional, we skip this step and go to photos (which is step 7)
-          // But renderStep is called based on currentStep. 
-          // We shouldn't be here if we skipped? 
-          // Actually, if we are at step 6 and not conventional, we should have skipped 3->4->...
-          // Wait, if not conventional, flow is: 
-          // 1. Item -> 2. Teeth -> 3. Type (Immediate/Reline) -> 4. DigitalCompleteDenture (as placeholder)
-          // So for Immediate/Reline, step 4 is the form. Step 5 is Photos?
-          // Current TOTAL_STEPS=7 implies we expect 7 steps.
-          // If Immediate, we might have fewer steps.
-          // For now, let's just render the form again or photos if we end up here to be safe.
-          return (
-            <OptionalPhotos
-              attachments={attachments}
-              setAttachments={setAttachments}
-            />
-          );
-        }
-        // Photos step commented out for Partial Denture
-        // if (["Partial Denture"].includes(selectedOption || "")) {
-        //   return (
-        //     <OptionalPhotos
-        //       attachments={attachments}
-        //       setAttachments={setAttachments}
-        //     />
-        //   );
-        // }
-        return (
-          <>
-            <AddingCrown />
           </>
         );
       case 7:
@@ -599,12 +648,47 @@ const Cases = () => {
     "Partial Denture",
   ].includes(selectedOption || "");
 
-  const TOTAL_STEPS = isFixedRestoration ? 4 : isDenture ? (selectedOption === "Partial Denture" ? 5 : 15) : 9;
+  // Calculate TOTAL_STEPS based on flow
+  const dentureType = watch("digitalType")?.[0];
+  const isOverdentureImmediate = selectedOption === "Overdenture" && dentureType === "Immediate";
+  const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
+  const supportType = watch("overdentureSupportType");
+  const isOverdentureRelineImplant = isOverdentureReline && supportType === "Implant-supported";
+  
+  const TOTAL_STEPS = isFixedRestoration 
+    ? 4 
+    : isDenture 
+      ? (selectedOption === "Partial Denture" 
+          ? 5 
+          : isOverdentureImmediate 
+            ? 4  // Overdenture + Immediate: Step 2 (Services) → Step 3 (Type) → Step 4 (Scan) = 4 steps total
+            : isOverdentureRelineImplant
+              ? 8  // Overdenture + Reline + Implant: Step 2 → Step 3 → Step 4 → Step 5 (Support Type) → Step 6 (Implant Locations) → Step 7 (Implant Details) → Step 8 (Arch Selection) = 8 steps total
+              : isOverdentureReline
+                ? 6  // Overdenture + Reline: Step 2 → Step 3 → Step 4 → Step 5 (Support Type) → Step 6 (Arch Selection) = 6 steps total
+                : 15) // Full Denture/Overdenture Conventional: 15 steps
+      : 9;
   const [currentStep, setCurrentStep] = useState(1);
 
   // Map currentStep to stepper step ID for dentures (accounting for steps not in stepper)
   const getStepperActiveStep = () => {
     if (isDenture) {
+      const dentureType = watch("digitalType")?.[0];
+      const isOverdentureImmediate = selectedOption === "Overdenture" && dentureType === "Immediate";
+      
+      if (isOverdentureImmediate) {
+        // Overdenture + Immediate Denture flow mapping:
+        // Step 2 (Services) → stepper id: 1 (Item)
+        // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
+        // Step 4 (OverdentureScanSelection) → stepper id: 3 (Scan/Impression)
+        const overdentureImmediateStepMap: { [key: number]: number } = {
+          2: 1, // Item
+          3: 2, // Type
+          4: 3, // Scan/Impression
+        };
+        return overdentureImmediateStepMap[currentStep] || 1;
+      }
+      
       if (selectedOption === "Partial Denture") {
         // Partial Denture flow mapping:
         // Step 2 (Services) → stepper id: 1 (Item)
@@ -620,6 +704,48 @@ const Cases = () => {
           // 6: 5, // Photos - commented out
         };
         return partialStepMap[currentStep] || 1;
+      }
+
+      const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
+      const supportType = watch("overdentureSupportType");
+      const isOverdentureRelineImplant = isOverdentureReline && supportType === "Implant-supported";
+      
+      if (isOverdentureRelineImplant) {
+        // Overdenture + Reline + Implant-supported flow mapping:
+        // Step 2 (Services) → stepper id: 1 (Item)
+        // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
+        // Step 4 (OverdentureRelineImplantCheck) → stepper id: 3 (Reline Check)
+        // Step 5 (OverdentureSupportTypeSelection) → stepper id: 4 (Support Type)
+        // Step 6 (OverdentureImplantLocationSelection) → stepper id: 5 (Implant Locations)
+        // Step 7 (OverdentureImplantDetails) → stepper id: 6 (Implant Details)
+        // Step 8 (OverdentureRelineArchSelection) → stepper id: 7 (Arch Selection) - needs to be added to stepper
+        const overdentureRelineImplantStepMap: { [key: number]: number } = {
+          2: 1, // Item
+          3: 2, // Type
+          4: 3, // Reline Check
+          5: 4, // Support Type
+          6: 5, // Implant Locations
+          7: 6, // Implant Details
+          8: 7, // Arch Selection
+        };
+        return overdentureRelineImplantStepMap[currentStep] || 1;
+      }
+
+      if (isOverdentureReline) {
+        // Overdenture + Reline (Tooth-supported) flow mapping:
+        // Step 2 (Services) → stepper id: 1 (Item)
+        // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
+        // Step 4 (OverdentureRelineImplantCheck) → stepper id: 3 (Reline Check)
+        // Step 5 (OverdentureSupportTypeSelection) → stepper id: 4 (Support Type)
+        // Step 6 (OverdentureRelineArchSelection) → stepper id: 5 (Arch Selection) - needs to be added to stepper
+        const overdentureRelineStepMap: { [key: number]: number } = {
+          2: 1, // Item
+          3: 2, // Type
+          4: 3, // Reline Check
+          5: 4, // Support Type
+          6: 5, // Arch Selection
+        };
+        return overdentureRelineStepMap[currentStep] || 1;
       }
       // Full Denture/Overdenture flow mapping:
       // Step 2 (Services) → stepper id: 1 (Item)
@@ -672,6 +798,8 @@ const Cases = () => {
                 activeStep={getStepperActiveStep()}
                 selectedTeeth={selectedTeeth}
                 selectedOption={selectedOption}
+                dentureType={watch("digitalType")?.[0]}
+                overdentureSupportType={watch("overdentureSupportType")}
               />
             </div>
           )}
@@ -687,6 +815,20 @@ const Cases = () => {
           isSubmitting={createCase.isPending}
         />
       </form>
+
+      {/* Switch to Overdenture Confirmation Modal */}
+      <SwitchToOverdentureModal
+        isOpen={showSwitchToOverdentureModal}
+        onConfirm={() => {
+          // When confirmed, update the form to reflect overdenture selection
+          // and proceed to support type selection
+          setShowSwitchToOverdentureModal(false);
+          // The flow will continue to step 5 (OverdentureSupportTypeSelection)
+          // We can trigger next step or update form state as needed
+          setCurrentStep(5);
+        }}
+        onCancel={() => setShowSwitchToOverdentureModal(false)}
+      />
 
       {/* Partial Denture Added Modal */}
       {showPartialAddedModal && selectedOption === "Partial Denture" && (
@@ -710,6 +852,43 @@ const Cases = () => {
             reset(CASE_FORM_DEFAULT_VALUES);
             setSelectedOption(null);
             setCurrentStep(2);
+          }}
+        />
+      )}
+
+      {/* Overdenture Reline Added Modal */}
+      {showOverdentureRelineAddedModal && selectedOption === "Overdenture" && (
+        <OverdentureRelineAddedModal
+          isOpen={showOverdentureRelineAddedModal}
+          patientName={watch("patientName") || "Training"}
+          onStartScanning={() => {
+            setShowOverdentureRelineAddedModal(false);
+            // Reset form and navigate to cases list after scanning
+            setAttachments([]);
+            reset(CASE_FORM_DEFAULT_VALUES);
+            setSelectedOption(null);
+            setCurrentStep(1);
+            navigate("/cases");
+          }}
+          onAddAnotherItem={() => {
+            setShowOverdentureRelineAddedModal(false);
+            // Reset form and go back to item selection
+            reset(CASE_FORM_DEFAULT_VALUES);
+            setSelectedOption(null);
+            setCurrentStep(2);
+          }}
+          onEdit={() => {
+            setShowOverdentureRelineAddedModal(false);
+            // Go back to the last step to allow editing
+            const dentureType = watch("digitalType")?.[0];
+            const supportType = watch("overdentureSupportType");
+            if (dentureType === "Reline") {
+              if (supportType === "Implant-supported") {
+                setCurrentStep(8); // Go back to arch selection step
+              } else {
+                setCurrentStep(6); // Go back to arch selection step
+              }
+            }
           }}
         />
       )}

@@ -51,6 +51,30 @@ const PARTIAL_DENTURE_STEPS: Step[] = [
   // { id: 5, label: "Photos", icon: <Camera size={16} /> },
 ];
 
+const OVERDENTURE_IMMEDIATE_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Type", icon: <Activity size={16} /> },
+  { id: 3, label: "Scan/Impression", icon: <Camera size={16} /> },
+];
+
+const OVERDENTURE_RELINE_IMPLANT_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Type", icon: <Activity size={16} /> },
+  { id: 3, label: "Reline Check", icon: <Activity size={16} /> },
+  { id: 4, label: "Support Type", icon: <Activity size={16} /> },
+  { id: 5, label: "Implant Locations", icon: <Activity size={16} /> },
+  { id: 6, label: "Implant Details", icon: <Activity size={16} /> },
+  { id: 7, label: "Arch Selection", icon: <Activity size={16} /> },
+];
+
+const OVERDENTURE_RELINE_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Type", icon: <Activity size={16} /> },
+  { id: 3, label: "Reline Check", icon: <Activity size={16} /> },
+  { id: 4, label: "Support Type", icon: <Activity size={16} /> },
+  { id: 5, label: "Arch Selection", icon: <Activity size={16} /> },
+];
+
 /* =======================
    VerticalStepper Component
 ======================= */
@@ -60,7 +84,9 @@ export const VerticalStepper: React.FC<{
   activeStep: number;
   selectedTeeth: number[];
   selectedOption?: any;
-}> = ({ activeStep, selectedTeeth, selectedOption }) => {
+  dentureType?: string;
+  overdentureSupportType?: string;
+}> = ({ activeStep, selectedTeeth, selectedOption, dentureType, overdentureSupportType }) => {
 
 
 
@@ -81,14 +107,24 @@ export const VerticalStepper: React.FC<{
   ].includes(selectedOption || "");
 
   const isPartialDenture = selectedOption === "Partial Denture";
+  const isOverdentureImmediate = selectedOption === "Overdenture" && dentureType === "Immediate";
+  const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
+  const isOverdentureRelineImplant = isOverdentureReline && overdentureSupportType === "Implant-supported";
+  const isOverdentureRelineTooth = isOverdentureReline && overdentureSupportType === "Tooth-supported";
 
   const stepsToRender = isFixedRestoration
     ? CROWN_STEPS
     : isPartialDenture
       ? PARTIAL_DENTURE_STEPS
-      : isDenture
-        ? DENTURE_STEPS
-        : STEPS;
+      : isOverdentureImmediate
+        ? OVERDENTURE_IMMEDIATE_STEPS
+        : isOverdentureRelineImplant
+          ? OVERDENTURE_RELINE_IMPLANT_STEPS
+          : isOverdentureReline
+            ? OVERDENTURE_RELINE_STEPS // Show reline steps even if support type not selected yet
+            : isDenture
+              ? DENTURE_STEPS
+              : STEPS;
 
   return (
     <div className="bg-[#F8F8F8] rounded-[32px] p-3 min-w-[200px]  max-w-[200px] h-fit sticky top-6 border border-gray-100 shadow-sm">

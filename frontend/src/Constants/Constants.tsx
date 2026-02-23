@@ -294,6 +294,16 @@ export type CaseFormValues = {
   dentureReviewOptions?: string[]; // ["self-review", "narrated-video", "video-call"]
   dentureDesignPreviewAddOns?: string[]; // ["narrated-video-addon", "video-call-addon"]
   dentureRxInstructions?: string; // Rx-specific instructions
+  // Overdenture specific
+  overdentureScanMethod?: string; // "Intraoral scan" | "Impression scan"
+  overdentureSupportType?: string; // "Implant-supported" | "Tooth-supported"
+  overdentureImplantLocations?: number[]; // Array of tooth numbers where implants are located
+  overdentureImplantManufacturer?: string; // Manufacturer name
+  overdentureImplantSystem?: string; // System name (e.g., "Multi-Unit", "Tapered 3.0")
+  overdentureImplantPlatformSize?: string; // Platform size (e.g., "3.0mm", "4.0mm")
+  overdentureImplantCuffHeight?: string; // Cuff height (e.g., "2.5mm")
+  overdentureUseSameImplantSystem?: boolean; // Toggle for using same system for all implants
+  overdentureRelineArch?: string; // Arch selection for Overdenture Reline ("Dual arch" | "Single arch: upper" | "Single arch: lower")
   // Partial denture
   partialType: string[];
   partialFramework: string[];
@@ -393,6 +403,16 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   dentureReviewOptions: [],
   dentureDesignPreviewAddOns: [],
   dentureRxInstructions: "",
+  // Overdenture specific
+  overdentureScanMethod: "",
+  overdentureSupportType: "",
+  overdentureImplantLocations: [],
+  overdentureImplantManufacturer: "",
+  overdentureImplantSystem: "",
+  overdentureImplantPlatformSize: "",
+  overdentureImplantCuffHeight: "",
+  overdentureUseSameImplantSystem: false,
+  overdentureRelineArch: "",
   // Partial denture
   partialIsReplacement: undefined,
   partialMaterial: "",
