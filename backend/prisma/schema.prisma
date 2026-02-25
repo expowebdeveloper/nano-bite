@@ -126,6 +126,27 @@ model CaseRecord {
   digitalRequiredScans   String[] @default([])
   digitalNewRecord       String?
   digitalChanges         String?
+  // Denture-specific fields (Digital / Conventional)
+  hasExistingDenture     Boolean?
+  isExactCopy            Boolean?
+  isImplantSupported     Boolean?
+  dentureArch            String?
+  dentureBaseShade       String?
+  dentureTissueShade     String?
+  dentureKind            String?
+  dentureSmileStyle      String?
+  dentureFestooningLevel String?
+  dentureWantsAddOns     Boolean?
+  dentureHasDiastema     Boolean?
+  dentureDiastemaHandling String?
+  dentureAddOns          String[] @default([])
+  dentureBiteAdjustment  String?
+  dentureMidlineCorrection String?
+  dentureOtherDetails    String[] @default([])
+  dentureWantsDesignPreview Boolean?
+  dentureReviewOptions   String[] @default([])
+  dentureDesignPreviewAddOns String[] @default([])
+  dentureRxInstructions  String?
   partialType            String[] @default([])
   partialFramework       String[] @default([])
   partialMajorConnector  String?
@@ -135,6 +156,21 @@ model CaseRecord {
   partialBaseAreas       String?
   partialAesthetics      String[] @default([])
   partialRequiredScans   String[] @default([])
+  // Partial denture additional fields
+  partialIsReplacement   Boolean?
+  partialMaterial        String?
+  partialBaseShade       String?
+  partialTissueShade     String?
+  // Overdenture specific fields
+  overdentureScanMethod  String?
+  overdentureSupportType String?
+  overdentureImplantLocations Int[] @default([])
+  overdentureImplantManufacturer String?
+  overdentureImplantSystem String?
+  overdentureImplantPlatformSize String?
+  overdentureImplantCuffHeight String?
+  overdentureUseSameImplantSystem Boolean?
+  overdentureRelineArch String?
 
   createdById String?
   createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])

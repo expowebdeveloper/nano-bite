@@ -8,7 +8,7 @@ import caseRoutes from './routes/cases.js';
 import uploadRoutes from './routes/uploads.js';
 import userRoutes from "./routes/user.js";
 import cors from 'cors';
-import { createDefaultAdmin } from "./DefaultUser/DefaultUser.js";
+import { createDefaultAdmin, createDefaultDentist } from "./DefaultUser/DefaultUser.js";
 
 app.use(cors("*"))
 
@@ -20,7 +20,8 @@ const PORT = process.env.PORT || 8000;
 // Middleware to parse JSON
 app.use(express.json());
 
-createDefaultAdmin()
+createDefaultAdmin();
+createDefaultDentist();
 // Routes
 app.use('/api/accounts', authRoutes);
 app.use('/api/qc', qcRoutes);
