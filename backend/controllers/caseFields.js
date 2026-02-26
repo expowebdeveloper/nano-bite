@@ -21,11 +21,33 @@ export const stringFields = [
   "digitalShade",
   "digitalNewRecord",
   "digitalChanges",
+  // Denture-specific strings
+  "dentureArch",
+  "dentureBaseShade",
+  "dentureTissueShade",
+  "dentureKind",
+  "dentureSmileStyle",
+  "dentureFestooningLevel",
+  "dentureDiastemaHandling",
+  "dentureBiteAdjustment",
+  "dentureMidlineCorrection",
+  "dentureRxInstructions",
   "partialMajorConnector",
   "partialRests",
   "partialShade",
   "partialClasps",
   "partialBaseAreas",
+  // Overdenture specific strings
+  "overdentureScanMethod",
+  "overdentureSupportType",
+  "overdentureImplantManufacturer",
+  "overdentureImplantSystem",
+  "overdentureImplantPlatformSize",
+  "overdentureImplantCuffHeight",
+  "overdentureRelineArch",
+  "partialMaterial",
+  "partialBaseShade",
+  "partialTissueShade",
 ];
 
 export const arrayFields = [
@@ -67,9 +89,18 @@ export const arrayFields = [
   "digitalBase",
   "digitalCopy",
   "digitalRequiredScans",
+  // Denture-specific string[]
+  "dentureAddOns",
+  "dentureOtherDetails",
+  "dentureReviewOptions",
+  "dentureDesignPreviewAddOns",
   "partialType",
   "partialFramework",
   "partialAesthetics",
   "partialRequiredScans",
 ];
 
+// Overdenture implant locations is a number array, not string array
+export const numberArrayFields = [
+  "overdentureImplantLocations",
+];

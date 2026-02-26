@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { stringFields, arrayFields } from "./caseFields.js";
+import { stringFields, arrayFields, numberArrayFields } from "./caseFields.js";
 import { prisma } from "../lib/prisma.js";
 
 const allowedCaseTypes = [
@@ -34,6 +34,16 @@ const normalizeArray = (value) => {
   }
   if (typeof value === "string" && value.trim().length > 0) {
     return [value.trim()];
+  }
+  return [];
+};
+
+const normalizeNumberArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => typeof item === "number" || (typeof item === "string" && !isNaN(Number(item))))
+      .map((item) => typeof item === "number" ? item : Number(item))
+      .filter((item) => !isNaN(item));
   }
   return [];
 };
@@ -142,7 +152,7 @@ const validatePayload = (body) => {
   } else if (body.caseType === "Full Arch Implant Fixed") {
     // Add validations for Full Arch Implant Fixed if needed
   } else if (body.caseType === "Digital Complete Denture") {
-    // Add validations for Digital Complete Denture if needed
+    // Digital Complete Denture / Denture-specific validations can be added here if needed
   } else if (body.caseType === "Partial Denture") {
     // Add validations for Partial Denture if needed
   }
@@ -173,6 +183,28 @@ const createCase = async (req, res) => {
 
     arrayFields.forEach((field) => {
       payload[field] = normalizeArray(req.body[field]);
+    });
+
+    numberArrayFields.forEach((field) => {
+      payload[field] = normalizeNumberArray(req.body[field]);
+    });
+
+    // Map boolean fields directly without string/array normalization
+    const booleanFields = [
+      "hasExistingDenture",
+      "isExactCopy",
+      "isImplantSupported",
+      "dentureWantsAddOns",
+      "dentureHasDiastema",
+      "dentureWantsDesignPreview",
+      "partialIsReplacement",
+      "overdentureUseSameImplantSystem",
+    ];
+
+    booleanFields.forEach((field) => {
+      if (typeof req.body[field] === "boolean") {
+        payload[field] = req.body[field];
+      }
     });
 
     const { attachments } = normalizeAttachments(req.body.attachments);
@@ -353,6 +385,14 @@ export const casesController = {
         orderBy: { createdAt: "desc" },
       });
 
+      if (!cases || cases.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: "No cases found.",
+          data: [],
+        });
+      }
+
       res.status(200).json({
         success: true,
         data: cases,
@@ -410,6 +450,14 @@ export const casesController = {
 
       });
 
+      if (!cases || cases.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: "No cases found.",
+          data: [],
+        });
+      }
+
       res.status(200).json({
         success: true,
         data: cases,
@@ -438,6 +486,14 @@ export const casesController = {
           assignedAt: "desc",
         },
       });
+
+      if (!cases || cases.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: "No cases found.",
+          data: [],
+        });
+      }
 
       return res.json({
         success: true,
