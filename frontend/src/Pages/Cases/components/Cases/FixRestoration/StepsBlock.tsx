@@ -31,22 +31,23 @@ const DENTURE_STEPS: Step[] = [
   { id: 1, label: "Item", icon: <Layers size={16} /> },
   { id: 2, label: "Type", icon: <Activity size={16} /> },
   { id: 3, label: "Arch", icon: <Activity size={16} /> },
-  { id: 4, label: "Shade", icon: <Palette size={16} /> },
-  { id: 5, label: "Denture Type", icon: <Layers size={16} /> },
-  { id: 6, label: "Smile Style", icon: <Activity size={16} /> },
-  { id: 7, label: "Festooning", icon: <Activity size={16} /> },
-  { id: 8, label: "Settings", icon: <Activity size={16} /> },
-  { id: 9, label: "Functional Preferences", icon: <Activity size={16} /> },
-  { id: 10, label: "Design Preview", icon: <Activity size={16} /> },
-  { id: 11, label: "Photos", icon: <Camera size={16} /> },
-  { id: 12, label: "Review", icon: <Check size={16} /> },
+  // { id: 4, label: "Shade", icon: <Palette size={16} /> }, // Shade step commented out - not required
+  // Steps commented out for Full Denture/Overdenture Conventional flow:
+  // { id: 4, label: "Denture Type", icon: <Layers size={16} /> },
+  // { id: 5, label: "Smile Style", icon: <Activity size={16} /> },
+  // { id: 6, label: "Festooning", icon: <Activity size={16} /> },
+  // { id: 7, label: "Settings", icon: <Activity size={16} /> },
+  // { id: 8, label: "Functional Preferences", icon: <Activity size={16} /> },
+  // { id: 4, label: "Design Preview", icon: <Activity size={16} /> }, // Design Preview commented out - not required
+  { id: 4, label: "Photos", icon: <Camera size={16} /> },
+  { id: 5, label: "Review", icon: <Check size={16} /> },
 ];
 
 const PARTIAL_DENTURE_STEPS: Step[] = [
   { id: 1, label: "Item", icon: <Layers size={16} /> },
   { id: 2, label: "Material", icon: <Activity size={16} /> },
-  { id: 3, label: "Shade", icon: <Palette size={16} /> },
-  { id: 4, label: "Replacement", icon: <Activity size={16} /> },
+  // { id: 3, label: "Shade", icon: <Palette size={16} /> }, // Shade step commented out - not required
+  { id: 3, label: "Replacement", icon: <Activity size={16} /> },
   // Photos step commented out for Partial Denture
   // { id: 5, label: "Photos", icon: <Camera size={16} /> },
 ];
@@ -73,6 +74,21 @@ const OVERDENTURE_RELINE_STEPS: Step[] = [
   { id: 3, label: "Reline Check", icon: <Activity size={16} /> },
   { id: 4, label: "Support Type", icon: <Activity size={16} /> },
   { id: 5, label: "Arch Selection", icon: <Activity size={16} /> },
+];
+
+const DENTURE_CONVENTIONAL_STEPS: Step[] = [
+  { id: 1, label: "Item", icon: <Layers size={16} /> },
+  { id: 2, label: "Type", icon: <Activity size={16} /> },
+  { id: 3, label: "Arch", icon: <Activity size={16} /> },
+  // Steps commented out for Full Denture/Overdenture Conventional flow:
+  // { id: 4, label: "Denture Type", icon: <Layers size={16} /> },
+  // { id: 5, label: "Smile Style", icon: <Activity size={16} /> },
+  // { id: 6, label: "Festooning", icon: <Activity size={16} /> },
+  // { id: 7, label: "Settings", icon: <Activity size={16} /> },
+  // { id: 8, label: "Functional Preferences", icon: <Activity size={16} /> },
+  // { id: 4, label: "Design Preview", icon: <Activity size={16} /> }, // Design Preview commented out - not required
+  { id: 4, label: "Photos", icon: <Camera size={16} /> },
+  { id: 5, label: "Review", icon: <Check size={16} /> },
 ];
 
 /* =======================
@@ -111,6 +127,8 @@ export const VerticalStepper: React.FC<{
   const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
   const isOverdentureRelineImplant = isOverdentureReline && overdentureSupportType === "Implant-supported";
   const isOverdentureRelineTooth = isOverdentureReline && overdentureSupportType === "Tooth-supported";
+  const isDentureConventional = isDenture && (dentureType === "Conventional" || !dentureType);
+  const isFullDentureImmediate = selectedOption === "Full Denture" && dentureType === "Immediate";
 
   const stepsToRender = isFixedRestoration
     ? CROWN_STEPS
@@ -122,9 +140,13 @@ export const VerticalStepper: React.FC<{
           ? OVERDENTURE_RELINE_IMPLANT_STEPS
           : isOverdentureReline
             ? OVERDENTURE_RELINE_STEPS // Show reline steps even if support type not selected yet
-            : isDenture
-              ? DENTURE_STEPS
-              : STEPS;
+            : isFullDentureImmediate
+              ? DENTURE_CONVENTIONAL_STEPS // Use simplified steps for Full Denture Immediate flow (same as Conventional)
+              : isDentureConventional
+                ? DENTURE_CONVENTIONAL_STEPS // Use simplified steps for Conventional flow
+                : isDenture
+                  ? DENTURE_STEPS // Use full steps for other denture types (Reline)
+                  : STEPS;
 
   return (
     <div className="bg-[#F8F8F8] rounded-[32px] p-3 min-w-[200px]  max-w-[200px] h-fit sticky top-6 border border-gray-100 shadow-sm">

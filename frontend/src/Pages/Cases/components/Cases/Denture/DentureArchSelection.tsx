@@ -41,17 +41,12 @@ export const DentureArchSelection = ({
     // Helper to handle selection
     const handleSelect = (onChange: (val: string) => void, value: string) => {
         onChange(value);
-        if (value === "Dual arch") {
-            setShowPopup(true);
-        } else {
-            // For now, only Dual Arch triggers popup as per request,
-            // but usually any selection might trigger 'next' logic or popup
-            setShowPopup(true); // Assuming consistent behavior for all for now, or restriction?
-            // "on clicking on the dual arch the popup will show" -> implied specifically for dual arch?
-            // Let's enable for all for consistency unless specified otherwise, but strict reading suggests purely for dual arch example.
-            // I'll enable for all to be safe UX-wise, or just Dual Arch if strict.
-            // For now, let's just show it.
-        }
+        // Popup/scanning modal commented out - not required
+        // if (value === "Dual arch") {
+        //     setShowPopup(true);
+        // } else {
+        //     setShowPopup(true);
+        // }
     };
 
     return (
@@ -113,15 +108,13 @@ export const DentureArchSelection = ({
                 )}
             />
 
-            {/* Popup Overlay */}
-            {showPopup && (
+            {/* Popup Overlay - COMMENTED OUT: Scanning modal removed as per requirements */}
+            {/* {showPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all scale-100 mx-4">
                         <div className="flex flex-col items-center text-center space-y-6">
-                            {/* Icon */}
                             <div className="w-16 h-16 relative">
                                 <span className="text-4xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">🦷</span>
-                                {/* Visual sugar: adding little sparkles or checkmark if needed */}
                             </div>
 
                             <div>
@@ -134,7 +127,7 @@ export const DentureArchSelection = ({
                             </div>
 
                             <button
-                                onClick={onNext} // Proceed to "Start scanning" -> typically next step in flow
+                                onClick={onNext}
                                 className="w-full bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] hover:shadow-lg text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
                             >
                                 <span>Start scanning</span>
@@ -142,7 +135,7 @@ export const DentureArchSelection = ({
                             </button>
 
                             <button
-                                onClick={() => setShowPopup(false)} // allow editing selection
+                                onClick={() => setShowPopup(false)}
                                 className="text-[#0B75C9] font-medium flex items-center gap-2 hover:underline"
                             >
                                 <Edit className="w-4 h-4" />
@@ -151,7 +144,7 @@ export const DentureArchSelection = ({
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

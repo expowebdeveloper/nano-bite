@@ -293,6 +293,7 @@ export type CaseFormValues = {
   dentureWantsDesignPreview?: boolean; // Whether user wants Design Preview
   dentureReviewOptions?: string[]; // ["self-review", "narrated-video", "video-call"]
   dentureDesignPreviewAddOns?: string[]; // ["narrated-video-addon", "video-call-addon"]
+  dentureAdditionalDetails?: string; // Additional details / special instructions
   dentureRxInstructions?: string; // Rx-specific instructions
   // Overdenture specific
   overdentureScanMethod?: string; // "Intraoral scan" | "Impression scan"
@@ -402,6 +403,7 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   dentureWantsDesignPreview: undefined,
   dentureReviewOptions: [],
   dentureDesignPreviewAddOns: [],
+  dentureAdditionalDetails: "",
   dentureRxInstructions: "",
   // Overdenture specific
   overdentureScanMethod: "",

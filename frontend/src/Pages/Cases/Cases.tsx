@@ -44,7 +44,7 @@ import { DentureSmileStyleSelection } from "./components/Cases/Denture/DentureSm
 import { DentureFestooningSelection } from "./components/Cases/Denture/DentureFestooningSelection";
 import { DentureSettingsSelection } from "./components/Cases/Denture/DentureSettingsSelection";
 import { DentureOtherDetailsSelection } from "./components/Cases/Denture/DentureOtherDetailsSelection";
-import { DentureDesignPreviewSelection } from "./components/Cases/Denture/DentureDesignPreviewSelection";
+// import { DentureDesignPreviewSelection } from "./components/Cases/Denture/DentureDesignPreviewSelection"; // Design Preview commented out - not required
 import { DentureReviewSummary } from "./components/Cases/Denture/DentureReviewSummary";
 import { PartialDentureReplacementCheck } from "./components/Cases/Denture/PartialDentureReplacementCheck";
 import { PartialDentureMaterialSelection } from "./components/Cases/Denture/PartialDentureMaterialSelection";
@@ -226,7 +226,28 @@ const Cases = () => {
   const handleNext = async () => {
     const isValid = await trigger();
     if (isValid) {
-      setCurrentStep((p) => p + 1);
+      setCurrentStep((p) => {
+        const nextStep = p + 1;
+        const dentureType = watch("digitalType")?.[0];
+        
+        // For Full Denture + Immediate, skip steps 4 and 5 (Digital Complete Denture form)
+        // Go directly from step 3 (Type) to step 6 (Arch)
+        if (nextStep === 4 && selectedOption === "Full Denture" && dentureType === "Immediate") {
+          return 6; // Skip to Arch selection
+        }
+        
+        // For all Full Denture/Overdenture flows, skip steps 7-13 (intermediate steps + Design Preview)
+        // Go directly from step 6 (Arch) to step 14 (Photos)
+        // Exception: Overdenture Reline has its own unique flow through steps 7-8
+        if (nextStep >= 7 && nextStep <= 13 && ["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
+          if (!isOverdentureReline) {
+            return 14; // Skip to Photos
+          }
+        }
+        
+        return nextStep;
+      });
     }
   };
 
@@ -427,11 +448,23 @@ const Cases = () => {
               />
             );
           }
-          // If Immediate or Reline for Full Denture, show Digital Complete Denture form
+          // For Full Denture + Immediate, skip Digital Complete Denture form and go to Arch selection
+          if (selectedOption === "Full Denture" && dentureType === "Immediate") {
+            // Skip to Arch selection (step 6)
+            return null; // Will be handled by step 6
+          }
+          // If Reline for Full Denture, show Digital Complete Denture form
+          if (selectedOption === "Full Denture" && dentureType === "Reline") {
+            return <DigitalCompleteDenture formConfig={formConfig} />;
+          }
+          // Default: show Digital Complete Denture form for other cases
           return <DigitalCompleteDenture formConfig={formConfig} />;
         }
         if (["Partial Denture"].includes(selectedOption || "")) {
-          return <PartialDentureShadeSelection formConfig={formConfig} />;
+          // Shade step commented out - not required
+          // return <PartialDentureShadeSelection formConfig={formConfig} />;
+          // Skip to next step
+          return <PartialDentureReplacementCheck formConfig={formConfig} />;
         }
         return (
           <>
@@ -459,7 +492,16 @@ const Cases = () => {
           if (selectedOption === "Overdenture" && dentureType === "Reline") {
             return <OverdentureSupportTypeSelection formConfig={formConfig} />;
           }
-          // For other cases (Full Denture + Immediate/Reline), show Digital Complete Denture form
+          // For Full Denture + Immediate, skip Digital Complete Denture form and go to Arch selection
+          if (selectedOption === "Full Denture" && dentureType === "Immediate") {
+            // Skip to Arch selection (step 6)
+            return null; // Will be handled by step 6
+          }
+          // For Full Denture + Reline, show Digital Complete Denture form
+          if (selectedOption === "Full Denture" && dentureType === "Reline") {
+            return <DigitalCompleteDenture formConfig={formConfig} />;
+          }
+          // Default: show Digital Complete Denture form for other cases
           return <DigitalCompleteDenture formConfig={formConfig} />;
         }
         return (
@@ -499,36 +541,24 @@ const Cases = () => {
               return <OverdentureImplantDetails formConfig={formConfig} />;
             }
           }
-          // Continue with normal flow for other cases
-          return <DentureShadeSelection formConfig={formConfig} />;
-        }
-        return (
-          <>
-            <AbutmentSelection selectedTeeth={selectedTeeth} />
-          </>
-        );
-      case 8:
-        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          const dentureType = watch("digitalType")?.[0];
-          // For Overdenture + Reline, show arch selection
-          if (selectedOption === "Overdenture" && dentureType === "Reline") {
-            return <OverdentureRelineArchSelection formConfig={formConfig} />;
+          // For Full Denture/Overdenture Conventional OR Immediate flow, skip these steps
+          if (dentureType === "Conventional" || !dentureType || dentureType === "Immediate") {
+            // Steps commented out for Full Denture/Overdenture Conventional/Immediate:
+            // - Denture Type (DentureKindSelection)
+            // - Smile Style (DentureSmileStyleSelection)
+            // - Festooning (DentureFestooningSelection)
+            // - Settings (DentureSettingsSelection)
+            // - Functional Preferences (DentureOtherDetailsSelection)
+            // - Design Preview (DentureDesignPreviewSelection) — commented out
+            // Flow: Arch → Photos
+            // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+            return null;
           }
-          // Continue with normal flow for other cases
-          return <DentureShadeSelection formConfig={formConfig} />;
-        }
-        if (["Partial Denture"].includes(selectedOption || "")) {
-          return <PartialDentureReplacementCheck formConfig={formConfig} />;
-        }
-
-        return (
-          <>
-            <AbutmentSelection selectedTeeth={selectedTeeth} />
-          </>
-        );
-      case 7:
-        if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          return <DentureShadeSelection formConfig={formConfig} />;
+          // For other denture types (Reline), continue with normal flow
+          // Shade step commented out - not required
+          // return <DentureShadeSelection formConfig={formConfig} />;
+          // Skip shade and go to Denture Type selection
+          return <DentureKindSelection formConfig={formConfig} />;
         }
         return (
           <>
@@ -540,9 +570,16 @@ const Cases = () => {
         );
       case 8:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          return <DentureKindSelection formConfig={formConfig} />;
+          const dentureType = watch("digitalType")?.[0];
+          // For Full Denture/Overdenture Conventional flow, these steps are commented out
+          if (dentureType === "Conventional" || !dentureType) {
+            // Denture Type step commented out — Design Preview also commented out
+            // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+            return null;
+          }
+          // For other flows, continue normally
+          return <DentureSmileStyleSelection formConfig={formConfig} />;
         }
-        // ... rest of case 8
         return (
           <>
             <ShadeSelection selectedTeeth={selectedTeeth} />
@@ -550,7 +587,15 @@ const Cases = () => {
         );
       case 9:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          return <DentureSmileStyleSelection formConfig={formConfig} />;
+          const dentureType = watch("digitalType")?.[0];
+          // For Full Denture/Overdenture Conventional OR Immediate flow, these steps are commented out
+          if (dentureType === "Conventional" || !dentureType || dentureType === "Immediate") {
+            // Smile Style step commented out — Design Preview also commented out
+            // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+            return null;
+          }
+          // For other flows, continue normally
+          return <DentureFestooningSelection formConfig={formConfig} />;
         }
         return (
           <>
@@ -559,6 +604,14 @@ const Cases = () => {
         );
       case 10:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const dentureType = watch("digitalType")?.[0];
+          // For Full Denture/Overdenture Conventional OR Immediate flow, these steps are commented out
+          if (dentureType === "Conventional" || !dentureType || dentureType === "Immediate") {
+            // Festooning step commented out — Design Preview also commented out
+            // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+            return null;
+          }
+          // For other flows, continue normally
           return <DentureFestooningSelection formConfig={formConfig} />;
         }
         return (
@@ -568,6 +621,14 @@ const Cases = () => {
         );
       case 11:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const dentureType = watch("digitalType")?.[0];
+          // For Full Denture/Overdenture Conventional OR Immediate flow, these steps are commented out
+          if (dentureType === "Conventional" || !dentureType || dentureType === "Immediate") {
+            // Settings step commented out — Design Preview also commented out
+            // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+            return null;
+          }
+          // For other flows, continue normally
           return <DentureSettingsSelection formConfig={formConfig} />;
         }
         return (
@@ -577,6 +638,14 @@ const Cases = () => {
         );
       case 12:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+          const dentureType = watch("digitalType")?.[0];
+          // For Full Denture/Overdenture Conventional OR Immediate flow, these steps are commented out
+          if (dentureType === "Conventional" || !dentureType || dentureType === "Immediate") {
+            // Functional Preferences step commented out — Design Preview also commented out
+            // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+            return null;
+          }
+          // For other flows, continue normally
           return <DentureOtherDetailsSelection formConfig={formConfig} />;
         }
         return (
@@ -586,7 +655,9 @@ const Cases = () => {
         );
       case 13:
         if (["Full Denture", "Overdenture"].includes(selectedOption || "")) {
-          return <DentureDesignPreviewSelection formConfig={formConfig} />;
+          // Design Preview step commented out — not required
+          // return <DentureDesignPreviewSelection formConfig={formConfig} />;
+          return null;
         }
         return (
           <>
@@ -655,18 +726,26 @@ const Cases = () => {
   const supportType = watch("overdentureSupportType");
   const isOverdentureRelineImplant = isOverdentureReline && supportType === "Implant-supported";
   
+  // Check if it's Conventional denture type for Full Denture/Overdenture
+  const isDentureConventional = isDenture && (dentureType === "Conventional" || !dentureType);
+  const isFullDentureImmediate = selectedOption === "Full Denture" && dentureType === "Immediate";
+  
   const TOTAL_STEPS = isFixedRestoration 
     ? 4 
     : isDenture 
       ? (selectedOption === "Partial Denture" 
-          ? 5 
+          ? 4  // Partial Denture: Step 2 (Services) → Step 3 (Material) → Step 4 (Replacement) = 4 steps total (Shade removed)
           : isOverdentureImmediate 
             ? 4  // Overdenture + Immediate: Step 2 (Services) → Step 3 (Type) → Step 4 (Scan) = 4 steps total
             : isOverdentureRelineImplant
               ? 8  // Overdenture + Reline + Implant: Step 2 → Step 3 → Step 4 → Step 5 (Support Type) → Step 6 (Implant Locations) → Step 7 (Implant Details) → Step 8 (Arch Selection) = 8 steps total
               : isOverdentureReline
                 ? 6  // Overdenture + Reline: Step 2 → Step 3 → Step 4 → Step 5 (Support Type) → Step 6 (Arch Selection) = 6 steps total
-                : 15) // Full Denture/Overdenture Conventional: 15 steps
+                : isFullDentureImmediate
+                  ? 15  // Full Denture + Immediate: Step 2 (Services) → Step 3 (Type) → Step 6 (Arch) → Step 13 (Design Preview) → Step 14 (Photos) → Step 15 (Review) = last step is 15
+                  : isDentureConventional
+                    ? 15  // Full Denture/Overdenture Conventional: Step 2 (Services) → Step 3 (Type) → Step 6 (Arch) → Step 13 (Design Preview) → Step 14 (Photos) → Step 15 (Review) = last step is 15
+                    : 15) // Other denture types (Reline): last step is 15 (Review)
       : 9;
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -675,6 +754,7 @@ const Cases = () => {
     if (isDenture) {
       const dentureType = watch("digitalType")?.[0];
       const isOverdentureImmediate = selectedOption === "Overdenture" && dentureType === "Immediate";
+      const isFullDentureImmediate = selectedOption === "Full Denture" && dentureType === "Immediate";
       
       if (isOverdentureImmediate) {
         // Overdenture + Immediate Denture flow mapping:
@@ -688,19 +768,40 @@ const Cases = () => {
         };
         return overdentureImmediateStepMap[currentStep] || 1;
       }
+
+      if (isFullDentureImmediate) {
+        // Full Denture + Immediate flow mapping:
+        // Step 2 (Services) → stepper id: 1 (Item)
+        // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
+        // Step 4 (ExistingDentureCheck) → skip (not in stepper)
+        // Step 5 (ImplantSupportedCheck) → skip (not in stepper)
+        // Step 6 (DentureArchSelection) → stepper id: 3 (Arch)
+        // Steps 7-13 COMMENTED OUT: Denture Type, Smile Style, Festooning, Settings, Functional Preferences, Design Preview
+        // Step 14 (OptionalPhotos) → stepper id: 4 (Photos)
+        // Step 15 (DentureReviewSummary) → stepper id: 5 (Review)
+        const fullDentureImmediateStepMap: { [key: number]: number } = {
+          2: 1, // Item
+          3: 2, // Type
+          6: 3, // Arch
+          // Steps 7-13 commented out (Denture Type, Smile Style, Festooning, Settings, Functional Preferences, Design Preview)
+          14: 4, // Photos
+          15: 5, // Review
+        };
+        return fullDentureImmediateStepMap[currentStep] || 1;
+      }
       
       if (selectedOption === "Partial Denture") {
         // Partial Denture flow mapping:
         // Step 2 (Services) → stepper id: 1 (Item)
         // Step 3 (PartialDentureMaterialSelection) → stepper id: 2 (Material)
-        // Step 4 (PartialDentureShadeSelection) → stepper id: 3 (Shade)
-        // Step 5 (PartialDentureReplacementCheck) → stepper id: 4 (Replacement)
-        // Photos step is commented out - flow ends at step 5
+        // Step 4 (PartialDentureShadeSelection) → stepper id: 3 (Shade) - COMMENTED OUT
+        // Step 4 (PartialDentureReplacementCheck) → stepper id: 3 (Replacement) - moved up
+        // Photos step is commented out - flow ends at step 4
         const partialStepMap: { [key: number]: number } = {
           2: 1, // Item
           3: 2, // Material
-          4: 3, // Shade
-          5: 4, // Replacement
+          // 4: 3, // Shade - commented out
+          4: 3, // Replacement (moved from step 5)
           // 6: 5, // Photos - commented out
         };
         return partialStepMap[currentStep] || 1;
@@ -748,33 +849,43 @@ const Cases = () => {
         return overdentureRelineStepMap[currentStep] || 1;
       }
       // Full Denture/Overdenture flow mapping:
-      // Step 2 (Services) → stepper id: 1 (Item)
-      // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
-      // Step 4 (ExistingDentureCheck) → skip (not in stepper)
-      // Step 5 (ImplantSupportedCheck) → skip (not in stepper)
-      // Step 6 (DentureArchSelection) → stepper id: 3 (Arch)
-      // Step 7 (DentureShadeSelection) → stepper id: 4 (Shade)
-      // Step 8 (DentureKindSelection) → stepper id: 5 (Denture Type)
-      // Step 9 (DentureSmileStyleSelection) → stepper id: 6 (Smile Style)
-      // Step 10 (DentureFestooningSelection) → stepper id: 7 (Festooning)
-      // Step 11 (DentureSettingsSelection) → stepper id: 8 (Settings)
-      // Step 12 (DentureOtherDetailsSelection) → stepper id: 9 (Functional Preferences)
-      // Step 13 (DentureDesignPreviewSelection) → stepper id: 10 (Design Preview)
-      // Step 14 (OptionalPhotos) → stepper id: 11 (Photos)
-      // Step 15 (DentureReviewSummary) → stepper id: 12 (Review)
+      // dentureType is already declared above, reuse it
+      if (dentureType === "Conventional" || !dentureType) {
+        // For Full Denture/Overdenture Conventional flow:
+        // Step 2 (Services) → stepper id: 1 (Item)
+        // Step 3 (DentureTypeSelection) → stepper id: 2 (Type)
+        // Step 4 (ExistingDentureCheck) → skip (not in stepper)
+        // Step 5 (ImplantSupportedCheck) → skip (not in stepper)
+        // Step 6 (DentureArchSelection) → stepper id: 3 (Arch)
+        // Steps 7-13 COMMENTED OUT: Denture Type, Smile Style, Festooning, Settings, Functional Preferences, Design Preview
+        // Step 14 (OptionalPhotos) → stepper id: 4 (Photos)
+        // Step 15 (DentureReviewSummary) → stepper id: 5 (Review)
+        const conventionalStepMap: { [key: number]: number } = {
+          2: 1, // Item
+          3: 2, // Type
+          6: 3, // Arch
+          // Steps 7-13 commented out (Denture Type, Smile Style, Festooning, Settings, Functional Preferences, Design Preview)
+          14: 4, // Photos
+          15: 5, // Review
+        };
+        return conventionalStepMap[currentStep] || 1;
+      }
+      // For other denture types (Reline), use normal flow:
+      // Stepper only shows: Item (1), Type (2), Arch (3), Photos (4), Review (5)
+      // Intermediate workflow steps 7-12 map to Arch (3) in stepper since they're not shown as separate stepper items
       const stepMap: { [key: number]: number } = {
         2: 1, // Item
         3: 2, // Type
         6: 3, // Arch
-        7: 4, // Shade
-        8: 5, // Denture Type
-        9: 6, // Smile Style
-        10: 7, // Festooning
-        11: 8, // Settings
-        12: 9, // Functional Preferences
-        13: 10, // Design Preview
-        14: 11, // Photos
-        15: 12, // Review
+        7: 3,  // DentureKindSelection — keep Arch active
+        8: 3,  // DentureSmileStyleSelection — keep Arch active
+        9: 3,  // DentureFestooningSelection — keep Arch active
+        10: 3, // DentureSettingsSelection — keep Arch active
+        11: 3, // DentureOtherDetailsSelection — keep Arch active
+        12: 3, // (step 12 sub-step) — keep Arch active
+        // Step 13 skipped (Design Preview commented out)
+        14: 4, // Photos
+        15: 5, // Review
       };
       return stepMap[currentStep] || 1;
     }

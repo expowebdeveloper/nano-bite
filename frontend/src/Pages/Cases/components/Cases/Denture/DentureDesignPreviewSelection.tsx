@@ -82,6 +82,26 @@ export const DentureDesignPreviewSelection = ({
                             </div>
                         )}
                     />
+
+                    {/* Additional Details Section */}
+                    <div className="mt-6 space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Additional Details
+                        </h3>
+                        <Controller
+                            name="dentureAdditionalDetails"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <textarea
+                                    value={value || ""}
+                                    onChange={onChange}
+                                    placeholder="Add any special instructions, notes, or preferences for the lab..."
+                                    rows={4}
+                                    className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:border-[#0B75C9] focus:outline-none focus:ring-1 focus:ring-[#0B75C9] resize-y"
+                                />
+                            )}
+                        />
+                    </div>
                 </div>
             </div>
         );
@@ -101,6 +121,26 @@ export const DentureDesignPreviewSelection = ({
                         <p className="text-gray-600">
                             Design Preview is not selected. You can proceed to the next step.
                         </p>
+                    </div>
+
+                    {/* Additional Details Section */}
+                    <div className="mt-6 space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Additional Details
+                        </h3>
+                        <Controller
+                            name="dentureAdditionalDetails"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <textarea
+                                    value={value || ""}
+                                    onChange={onChange}
+                                    placeholder="Add any special instructions, notes, or preferences for the lab..."
+                                    rows={4}
+                                    className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:border-[#0B75C9] focus:outline-none focus:ring-1 focus:ring-[#0B75C9] resize-y"
+                                />
+                            )}
+                        />
                     </div>
                 </div>
             </div>
@@ -228,6 +268,25 @@ export const DentureDesignPreviewSelection = ({
                                         );
                                     })}
                                 </div>
+                            )}
+                        />
+                    </div>
+                    {/* Additional Details Section */}
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                            Additional Details
+                        </h3>
+                        <Controller
+                            name="dentureAdditionalDetails"
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                                <textarea
+                                    value={value || ""}
+                                    onChange={onChange}
+                                    placeholder="Add any special instructions, notes, or preferences for the lab..."
+                                    rows={4}
+                                    className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-gray-700 placeholder-gray-400 focus:border-[#0B75C9] focus:outline-none focus:ring-1 focus:ring-[#0B75C9] resize-y"
+                                />
                             )}
                         />
                     </div>
