@@ -378,24 +378,43 @@ export const casesController = {
   uploadDesignerAttachments,
   listCases: async (req, res) => {
     try {
-      const cases = await prisma.caseRecord.findMany({
-        where: {
-          createdById: req.user?.data?.id ?? undefined,
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
 
-      if (!cases || cases.length === 0) {
-        return res.status(200).json({
-          success: true,
-          message: "No cases found.",
-          data: [],
-        });
+      const where = { createdById: req.user?.data?.id ?? undefined };
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
       }
 
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
+
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
       res.status(200).json({
         success: true,
         data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
       });
     } catch (error) {
       console.error("List cases error:", error);
@@ -410,57 +429,77 @@ export const casesController = {
 
   listAllCasesForAdmin: async (req, res) => {
     try {
-      const cases = await prisma.caseRecord.findMany({
-        orderBy: { createdAt: "desc" },
-        include: {
-          assignedToDesigner: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              role: true,
-            },
-          },
-          assignedToQc: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              role: true,
-            },
-          },
-          assignedBy: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              role: true,
-            },
-          },
-          createdBy: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              role: true,
-            },
-          },
-        },
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
 
-
-      });
-
-      if (!cases || cases.length === 0) {
-        return res.status(200).json({
-          success: true,
-          message: "No cases found.",
-          data: [],
-        });
+      const where = {};
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
       }
 
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+          include: {
+            assignedToDesigner: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            assignedToQc: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            assignedBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            createdBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+          },
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
+
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
       res.status(200).json({
         success: true,
         data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
       });
     } catch (error) {
       console.error("Admin list cases error:", error);
@@ -472,32 +511,45 @@ export const casesController = {
     }
   },
   listCasesForDesigner: async (req, res) => {
-    console.log("Fetching cases for designer:", req.user);
     try {
-      const designerId = req.user.data.id; // from JWT
+      const designerId = req.user.data.id;
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
 
-      // console.log("Designer ID:", req.user.data.id);
-
-      const cases = await prisma.caseRecord.findMany({
-        where: {
-          assignedToDesignerId: designerId,
-        },
-        orderBy: {
-          assignedAt: "desc",
-        },
-      });
-
-      if (!cases || cases.length === 0) {
-        return res.status(200).json({
-          success: true,
-          message: "No cases found.",
-          data: [],
-        });
+      const where = { assignedToDesignerId: designerId };
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
       }
 
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { assignedAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
+
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
       return res.json({
         success: true,
         data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
       });
     } catch (error) {
       console.error("Get designer cases error:", error);

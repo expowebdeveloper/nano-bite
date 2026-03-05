@@ -8,7 +8,7 @@ import Modal from "../../components/common/Modal/Modal";
 import { confirmationMessage } from "../../components/common/ToastMessage";
 import { useSelector } from "react-redux";
 import { ChangeEvent } from "react";
-import { CaseAttachment } from "../../interfaces/types";
+import type { CaseAttachment, CaseRecord } from "../../interfaces/types";
 
 
 const CaseDetails = () => {
@@ -93,7 +93,6 @@ const getNextStatus = (currentStatus?: string) => {
 };
 
 const handleUpdateStatus = () => {
-  console.log("c>>>>>>>>>>>>>>>>>>>>>>>>alled")
   if (!record?.caseId) return;
 
   const nextStatus = getNextStatus(record.status);
@@ -122,9 +121,10 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
 
 
 
-  const record = data;
+  const record = data as CaseRecord | undefined;
 
   const hasValue = (value: any) => {
+    if (typeof value === "boolean") return true;
     if (Array.isArray(value)) return value.length > 0;
     if (value === null || value === undefined) return false;
     if (typeof value === "string") return value.trim().length > 0;
@@ -132,6 +132,7 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
   };
 
   const formatValue = (value: any) => {
+    if (typeof value === "boolean") return value ? "Yes" : "No";
     if (Array.isArray(value)) return value.length ? value.join(", ") : "—";
     if (value === null || value === undefined || value === "") return "—";
     return value;
@@ -267,8 +268,55 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
     );
 
     addSection(
+      "Denture (Full / Conventional)",
+      [
+        { label: "Arch", value: record.dentureArch },
+        { label: "Base Shade", value: record.dentureBaseShade },
+        { label: "Tissue Shade", value: record.dentureTissueShade },
+        { label: "Denture Kind", value: record.dentureKind },
+        { label: "Smile Style", value: record.dentureSmileStyle },
+        { label: "Festooning Level", value: record.dentureFestooningLevel },
+        { label: "Add-ons", value: record.dentureAddOns },
+        { label: "Bite Adjustment", value: record.dentureBiteAdjustment },
+        { label: "Midline Correction", value: record.dentureMidlineCorrection },
+        { label: "Other Details", value: record.dentureOtherDetails },
+        { label: "Review Options", value: record.dentureReviewOptions },
+        { label: "Design Preview Add-ons", value: record.dentureDesignPreviewAddOns },
+        { label: "Rx Instructions", value: record.dentureRxInstructions },
+        { label: "Has Existing Denture", value: record.hasExistingDenture },
+        { label: "Exact Copy", value: record.isExactCopy },
+        { label: "Implant Supported", value: record.isImplantSupported },
+        { label: "Wants Add-ons", value: record.dentureWantsAddOns },
+        { label: "Has Diastema", value: record.dentureHasDiastema },
+        { label: "Diastema Handling", value: record.dentureDiastemaHandling },
+        { label: "Wants Design Preview", value: record.dentureWantsDesignPreview },
+      ],
+      ["Digital Complete Denture"]
+    );
+
+    addSection(
+      "Overdenture",
+      [
+        { label: "Scan Method", value: record.overdentureScanMethod },
+        { label: "Support Type", value: record.overdentureSupportType },
+        { label: "Implant Locations", value: Array.isArray(record.overdentureImplantLocations) ? record.overdentureImplantLocations.join(", ") : record.overdentureImplantLocations },
+        { label: "Implant Manufacturer", value: record.overdentureImplantManufacturer },
+        { label: "Implant System", value: record.overdentureImplantSystem },
+        { label: "Platform Size", value: record.overdentureImplantPlatformSize },
+        { label: "Cuff Height", value: record.overdentureImplantCuffHeight },
+        { label: "Use Same Implant System", value: record.overdentureUseSameImplantSystem },
+        { label: "Reline Arch", value: record.overdentureRelineArch },
+      ],
+      ["Digital Complete Denture"]
+    );
+
+    addSection(
       "Partial Denture",
       [
+        { label: "Replacement", value: record.partialIsReplacement },
+        { label: "Material", value: record.partialMaterial },
+        { label: "Base Shade", value: record.partialBaseShade },
+        { label: "Tissue Shade", value: record.partialTissueShade },
         { label: "Type", value: record.partialType },
         { label: "Framework", value: record.partialFramework },
         { label: "Major Connector", value: record.partialMajorConnector },

@@ -5,20 +5,21 @@ import CaseDueDates from "./CaseDueDates";
 import TreatmentCard from "./TreatmentCard";
 import dashboard from "../../assets/images/dashboard.png";
 import useCases from "../../hooks/useCases";
+import { ITEMS_PER_PAGE } from "../../Constants/Constants";
 
 /**
  * Dashboard component - Main page for authenticated users
  */
 const Dashboard = () => {
   const { user } = useSelector((state: any) => state.user);
-  const { casesListQuery } = useCases();
-  const cases = casesListQuery.data ?? [];
+  const { casesListQuery } = useCases({ page: 1, limit: ITEMS_PER_PAGE });
+  const listResult = casesListQuery.data;
   const loading = casesListQuery.isLoading;
 
-  const totalCases = cases.length;
-  const submittedCount = cases.filter((c: any) => c.status === "Submitted").length;
-  const inDesignCount = cases.filter((c: any) => c.status === "In Design").length;
-  const completedCount = cases.filter((c: any) => c.status === "Completed").length;
+  const totalCases = listResult?.total ?? 0;
+  const submittedCount = listResult?.submittedCount ?? 0;
+  const inDesignCount = listResult?.inDesignCount ?? 0;
+  const completedCount = listResult?.completedCount ?? 0;
 
   type CardConfig = {
     label: string;

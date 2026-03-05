@@ -1,4 +1,5 @@
 import ReactPaginate from "react-paginate";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
   onPageChange: (selectedItem: { selected: number }) => void;
@@ -19,16 +20,16 @@ const Pagination = ({
     <>
       {shouldShowPagination && (
         <ReactPaginate
-          previousLabel={"<"}
-          nextLabel={">"}
+          previousLabel={<ChevronLeft size={18} />}
+          nextLabel={<ChevronRight size={18} />}
           pageCount={totalPages}
           onPageChange={onPageChange}
-          containerClassName={"flex gap-2 justify-end pagination_custom"}
-          previousLinkClassName={"border px-2 bg-[#F5F5F5] rounded-md py-1"}
-          nextLinkClassName={"border px-2 bg-[#F5F5F5] rounded-md py-1"}
-          disabledClassName={"pagination__link--disabled"}
-          activeClassName={"active"}
-          pageClassName={"border px-2 bg-[#F5F5F5] rounded-md"}
+          containerClassName="flex gap-2 justify-end items-center flex-wrap pagination_custom"
+          previousLinkClassName="border border-gray-300 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors min-w-[2.25rem] text-center"
+          nextLinkClassName="border border-gray-300 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors min-w-[2.25rem] text-center"
+          pageLinkClassName="border border-gray-300 px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors min-w-[2.25rem] inline-block text-center"
+          activeLinkClassName="!bg-[#2B89D2] !text-white !border-[#2B89D2] font-medium"
+          disabledClassName="opacity-50 pointer-events-none"
           forcePage={currentPage - 1}
         />
       )}

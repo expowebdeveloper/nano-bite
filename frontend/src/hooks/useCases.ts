@@ -5,11 +5,20 @@ import { useShowErrorMessage } from "../components/common/ShowErrorMessage";
 import type { CaseRecord } from "../interfaces/types";
 import { useSelector } from "react-redux";
 
-const useCases = () => {
+export type CasesListParams = {
+  page: number;
+  limit: number;
+  search?: string;
+};
+
+const useCases = (params?: CasesListParams) => {
   const { request } = useAuth();
   const showErrorMessage = useShowErrorMessage();
   const queryClient = useQueryClient();
   const { user } = useSelector((state: any) => state.user);
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 10;
+  const search = params?.search ?? "";
 
   /*
   const LOCAL_STORAGE_KEY = "nano-bite-cases";
@@ -69,25 +78,26 @@ const useCases = () => {
   });
 
   const casesListQuery = useQuery({
-    queryKey: ["cases"],
-    queryFn: async (): Promise<CaseRecord[]> => {
-      // Return local cases for now
-      // return getLocalCases();
-
-
-      console.log("User Role:", user?.role);
-
-      let url = "/cases"; // default (Dentist)
-
+    queryKey: ["cases", page, limit, search],
+    queryFn: async () => {
+      let url = "/cases";
       if (["ADMIN", "QC"].includes(user?.role)) {
         url = "/cases/admin/all";
       } else if (user?.role === "Designer") {
         url = "/cases/designer";
       }
-      const response = await request.get(url);
-
-      return response.data?.data ?? [];
-
+      const response = await request.get(url, {
+        params: { page, limit, ...(search ? { search } : {}) },
+      });
+      const data = response.data?.data ?? [];
+      const total = response.data?.total ?? data.length;
+      return {
+        data,
+        total,
+        submittedCount: response.data?.submittedCount,
+        inDesignCount: response.data?.inDesignCount,
+        completedCount: response.data?.completedCount,
+      };
     },
     refetchOnWindowFocus: false,
   });
