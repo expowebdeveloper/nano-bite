@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import useCases from "../../hooks/useCases";
 import useUploads from "../../hooks/useUploads";
-import {  useMemo, useRef, useState } from "react";
+import {  useMemo, useRef, useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Button from "../../components/common/Buttons/Button";
 import Modal from "../../components/common/Modal/Modal";
@@ -9,6 +9,7 @@ import { confirmationMessage } from "../../components/common/ToastMessage";
 import { useSelector } from "react-redux";
 import { ChangeEvent } from "react";
 import { CaseAttachment } from "../../interfaces/types";
+import { StlViewer } from "../../components/common/StlViewer/StlViewer";
 
 
 const CaseDetails = () => {
@@ -36,8 +37,38 @@ const { data: designerAttachmentsData } =
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
     const [qcComment, setQcComment] = useState("");
+    const [stlUrls, setStlUrls] = useState<Record<string, string>>({});
 
-  
+  const allAttachments = [
+    ...(record?.attachments || []),
+    ...(designerAttachmentsData?.designersAttachments || []),
+    ...attachments,
+  ];
+
+  useEffect(() => {
+    const stlFiles = allAttachments.filter(
+      (f) => f.type === "stl" && f.key && !stlUrls[f.key]
+    );
+    if (stlFiles.length === 0) return;
+
+    let cancelled = false;
+    const resolve = async () => {
+      for (const file of stlFiles) {
+        if (cancelled) break;
+        try {
+          const url = file.url || (await getDownloadUrl(file.key));
+          if (!cancelled) {
+            setStlUrls((prev) => ({ ...prev, [file.key]: url }));
+          }
+        } catch {
+          // skip files that fail to resolve
+        }
+      }
+    };
+    resolve();
+    return () => { cancelled = true; };
+  }, [record?.attachments, designerAttachmentsData?.designersAttachments, attachments]);
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -383,37 +414,45 @@ const getStatusButtonText = (status?: string) => {
             <div className="space-y-3">
               <h3 className="text-lg font-semibold text-gray-900">Attachments</h3>
               {record.attachments && record.attachments.length > 0 ? (
-                <ul className="space-y-3">
-                  {record.attachments.map((file) => (
-                    <li
-                      key={file.key}
-                      className="flex items-center justify-between text-sm text-gray-800"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="inline-flex items-center rounded-full bg-[#e8f4ff] px-2 py-1 text-[11px] font-semibold uppercase text-[#0B75C9]">
-                          {file.type}
-                        </span>
-                        <span className="truncate">{file.name}</span>
+                <>
+                  <ul className="space-y-3">
+                    {record.attachments.map((file) => (
+                      <li
+                        key={file.key}
+                        className="flex items-center justify-between text-sm text-gray-800"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="inline-flex items-center rounded-full bg-[#e8f4ff] px-2 py-1 text-[11px] font-semibold uppercase text-[#0B75C9]">
+                            {file.type}
+                          </span>
+                          <span className="truncate">{file.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <span>{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                          <button
+                            onClick={() => handleDownload(file.key)}
+                            className="text-[#0B75C9] hover:underline disabled:opacity-60"
+                            disabled={downloadingKey === file.key}
+                          >
+                            {downloadingKey === file.key ? "Preparing..." : "View / Download"}
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Inline STL 3D Previews */}
+                  {record.attachments
+                    .filter((file) => file.type === "stl" && stlUrls[file.key])
+                    .map((file) => (
+                      <div key={`stl-preview-${file.key}`} className="mt-4">
+                        <StlViewer url={stlUrls[file.key]} fileName={file.name} />
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <span>{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
-                        <button
-                          onClick={() => handleDownload(file.key)}
-                          className="text-[#0B75C9] hover:underline disabled:opacity-60"
-                          disabled={downloadingKey === file.key}
-                        >
-                          {downloadingKey === file.key ? "Preparing..." : "View / Download"}
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                    ))}
+                </>
               ) : (
                 <p className="text-sm text-gray-600">No attachments</p>
               )}
-              <p className="text-xs text-gray-500">
-                STL preview: browsers need a 3D viewer (e.g., three.js + STLLoader). For now, download the STL and open in your preferred viewer.
-              </p>
             </div>
             {record.qcComment && (
               <div className="space-y-2">
@@ -568,6 +607,15 @@ Upload File
               </li>
             ))}
           </ul>
+
+          {/* Inline STL 3D Previews for designer uploads */}
+          {attachments
+            .filter((item) => item.type === "stl" && stlUrls[item.key])
+            .map((item) => (
+              <div key={`stl-designer-${item.key}`} className="mt-4">
+                <StlViewer url={stlUrls[item.key]} fileName={item.name} />
+              </div>
+            ))}
         </div>
       )}
     </div>
