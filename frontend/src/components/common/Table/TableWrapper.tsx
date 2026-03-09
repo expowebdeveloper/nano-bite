@@ -8,7 +8,7 @@ type TableWrapperProps = {
 function TableWrapper({ children, tableHeader }: TableWrapperProps) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className="min-w-full border-separate border-spacing-0 bg-white text-sm">
+      <table className="min-w-[800px] w-full border-separate border-spacing-0 bg-white text-sm">
         <thead className="bg-[#027bc9] text-white">
           <tr>
             {tableHeader?.map((item, index) => (

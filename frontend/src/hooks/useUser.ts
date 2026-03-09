@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../redux/user/userSlice";
 import type { User } from "../interfaces/interfaces";
-import type { Login, LoginResponse, UserProfile } from "../interfaces/types";
+import type { Login, LoginResponse } from "../interfaces/types";
 import { confirmationMessage } from "../components/common/ToastMessage";
 import { useShowErrorMessage } from "../components/common/ShowErrorMessage";
 

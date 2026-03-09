@@ -24,7 +24,7 @@ interface ClinicFormValues {
 
 const ClinicInformation = () => {
   const [, setStep] = useQueryState("step");
-  const { formData, updateFormData, getStepData } = useSignUp();
+  const {  updateFormData, getStepData } = useSignUp();
   
   // Load saved data into form
   const savedStepData = getStepData(2);

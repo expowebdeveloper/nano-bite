@@ -5,54 +5,99 @@ import { useShowErrorMessage } from "../components/common/ShowErrorMessage";
 import type { CaseRecord } from "../interfaces/types";
 import { useSelector } from "react-redux";
 
-const useCases = () => {
+export type CasesListParams = {
+  page: number;
+  limit: number;
+  search?: string;
+};
+
+const useCases = (params?: CasesListParams) => {
   const { request } = useAuth();
   const showErrorMessage = useShowErrorMessage();
   const queryClient = useQueryClient();
   const { user } = useSelector((state: any) => state.user);
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 10;
+  const search = params?.search ?? "";
+
+  /*
+  const LOCAL_STORAGE_KEY = "nano-bite-cases";
+
+  const getLocalCases = (): CaseRecord[] => {
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const saveLocalCase = (newCase: any) => {
+    const cases = getLocalCases();
+    // Generate a mock ID and timestamps if not present
+    const caseWithId = {
+      ...newCase,
+      id: newCase.id || Math.random().toString(36).substr(2, 9),
+      caseId: newCase.caseId || `CASE-${Date.now().toString().slice(-6)}`,
+      status: "Submitted",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Mock due date 7 days from now
+      createdBy: user,
+    };
+    cases.unshift(caseWithId);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cases));
+    return caseWithId;
+  };
+  */
 
   const createCase = useMutation({
     mutationFn: async (
       payload: Partial<CaseRecord> & { attachments?: CaseRecord["attachments"] }
     ) => {
+      // Mocking API call latency
+      // await new Promise((resolve) => setTimeout(resolve, 500));
+      // return saveLocalCase(payload);
       const response = await request.post("/cases/", payload);
       return response.data?.data ?? response.data;
     },
-    onSuccess: () => {
-      confirmationMessage("Case submitted successfully", "success");
+    onSuccess: (_data, variables) => {
+      // Don't show toast for Partial Denture - modal will be shown instead
+      if (variables.caseType !== "Partial Denture") {
+        confirmationMessage("Case submitted successfully", "success");
+      }
       queryClient.invalidateQueries({ queryKey: ["cases"] });
     },
     onError: (error: any) => {
       showErrorMessage(
         error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          "Unable to submit case"
+        error?.response?.data?.error ||
+        "Unable to submit case"
       );
     },
   });
 
   const casesListQuery = useQuery({
-    queryKey: ["cases"],
-    queryFn: async (): Promise<CaseRecord[]> => {
-      console.log("User Role:", user?.role);
-
-      // const isPrivilegedUser = ["ADMIN", "QC"].includes(user?.role);
-
-      // const response = isPrivilegedUser
-      //   ? await request.get("/cases/admin/all")
-      //   : await request.get("/cases/");
-
-
-      let url = "/cases"; // default (Dentist)
-
-    if (["ADMIN", "QC"].includes(user?.role)) {
-      url = "/cases/admin/all";
-    } else if (user?.role === "Designer") {
-      url = "/cases/designer";
-    }
-    const response = await request.get(url);
-
-      return response.data?.data ?? [];
+    queryKey: ["cases", page, limit, search],
+    queryFn: async () => {
+      let url = "/cases";
+      if (["ADMIN", "QC"].includes(user?.role)) {
+        url = "/cases/admin/all";
+      } else if (user?.role === "Designer") {
+        url = "/cases/designer";
+      }
+      const response = await request.get(url, {
+        params: { page, limit, ...(search ? { search } : {}) },
+      });
+      const data = response.data?.data ?? [];
+      const total = response.data?.total ?? data.length;
+      return {
+        data,
+        total,
+        submittedCount: response.data?.submittedCount,
+        inDesignCount: response.data?.inDesignCount,
+        completedCount: response.data?.completedCount,
+      };
     },
     refetchOnWindowFocus: false,
   });
@@ -115,38 +160,38 @@ const useCases = () => {
       refetchOnWindowFocus: false,
     });
 
-const uploadDesignerAttachments = useMutation({
-  mutationFn: async ({
-    caseId,
-    attachments,
-  }: {
-    caseId: string;
-    attachments: any[];
-  }) => {
-    const response = await request.post("/cases/designer-attachments", {
+  const uploadDesignerAttachments = useMutation({
+    mutationFn: async ({
       caseId,
-      designerId: user.id,
       attachments,
-    });
-    return response.data;
-  },
-  onSuccess: (_data, variables) => {
-    confirmationMessage("Files saved successfully", "success");
-    queryClient.invalidateQueries({
-      queryKey: ["cases", variables.caseId, "designer-attachments"],
-    });
-    queryClient.invalidateQueries({ queryKey: ["cases"] });
-  },
-  onError: (error: any) => {
-    showErrorMessage(error?.response?.data?.message || "Upload failed");
-  },
-});
+    }: {
+      caseId: string;
+      attachments: any[];
+    }) => {
+      const response = await request.post("/cases/designer-attachments", {
+        caseId,
+        designerId: user.id,
+        attachments,
+      });
+      return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      confirmationMessage("Files saved successfully", "success");
+      queryClient.invalidateQueries({
+        queryKey: ["cases", variables.caseId, "designer-attachments"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    },
+    onError: (error: any) => {
+      showErrorMessage(error?.response?.data?.message || "Upload failed");
+    },
+  });
 
   return {
     createCase,
     casesListQuery,
     caseDetailsQuery,
-    updateCaseStatus,designerAttachmentsQuery,uploadDesignerAttachments
+    updateCaseStatus, designerAttachmentsQuery, uploadDesignerAttachments
   };
 };
 

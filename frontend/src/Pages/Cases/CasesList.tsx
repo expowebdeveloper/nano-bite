@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TableWrapper from "../../components/common/Table/TableWrapper";
 import Pagination from "../../components/common/Pagination/Pagination";
-import ActionButton from "../../components/common/Buttons/ActionButton";
 import usePagination from "../../hooks/usePagination";
 import { ITEMS_PER_PAGE } from "../../Constants/Constants";
 import useCases from "../../hooks/useCases";
-import type { CaseRecord } from "../../interfaces/types";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
 import { useSelector } from "react-redux";
 import useUser from "../../hooks/useUser";
@@ -28,11 +26,17 @@ const TABLE_HEADER = [
 
 const CasesList = () => {
   const [search, setSearch] = useState("");
-  const [showAddModal, setShowAddModal] = useState({ open: false, caseID: "" }); //
+  const [showAddModal, setShowAddModal] = useState({ open: false, caseID: "" });
   const { page, onPageChange, setPage } = usePagination();
   const navigate = useNavigate();
-  const { casesListQuery } = useCases();
-  const [cases, setCases] = useState<CaseRecord[]>([]);
+  const { casesListQuery } = useCases({
+    page,
+    limit: ITEMS_PER_PAGE,
+    search: search.trim() || undefined,
+  });
+  const listResult = casesListQuery.data;
+  const cases = listResult?.data ?? [];
+  const totalData = listResult?.total ?? 0;
   const { user } = useSelector((state: any) => state.user);
   const { designersQuery } = useUser();
   const { assignCase } = useUser();
@@ -56,32 +60,6 @@ const CasesList = () => {
     setShowAddModal({ open: false, caseID: "" });
   };
 
-  useEffect(() => {}, [casesListQuery]);
-
-  useEffect(() => {
-    if (casesListQuery.data) {
-      setCases(casesListQuery.data);
-    }
-  }, [casesListQuery.data]);
-
-  const filteredCases = useMemo(() => {
-    if (!search.trim()) return cases;
-    return cases.filter((caseItem) => {
-      const haystack = `${caseItem.caseId || ""} ${
-        caseItem.patientName || ""
-      } ${caseItem.caseType || ""} ${caseItem.status || ""}`.toLowerCase();
-      return haystack.includes(search.toLowerCase());
-    });
-  }, [search, cases]);
-
-  const paginatedCases = useMemo(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    return filteredCases.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredCases, page]);
-
-  const totalData = filteredCases.length;
-
-  console.log(paginatedCases, "<<<<<<<<<<paginatedCases");
   const formatDate = (dateString?: string) => {
     if (!dateString) return "—";
     try {
@@ -109,7 +87,6 @@ const CasesList = () => {
     return "bg-gray-100 text-gray-700";
   };
 
-  console.log(user);
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6">
       <h1 className="text-xl font-semibold text-gray-800 mb-4">Cases</h1>
@@ -145,7 +122,7 @@ const CasesList = () => {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl">
+        <div className="rounded-2xl overflow-x-auto">
           <TableWrapper tableHeader={TABLE_HEADER}>
             {casesListQuery.isLoading ? (
               <tr>
@@ -165,8 +142,8 @@ const CasesList = () => {
                   Failed to load cases. Please try again.
                 </td>
               </tr>
-            ) : paginatedCases.length ? (
-              paginatedCases.map((caseItem, index) => {
+            ) : cases.length ? (
+              cases.map((caseItem:any, index:number) => {
                 const isStriped = index % 2 === 0;
                 return (
                   <tr
@@ -202,56 +179,49 @@ const CasesList = () => {
                     <td className="px-4 py-3 text-[15px] text-gray-800">
                       {formatDate(caseItem.updatedAt)}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {/* <Button
-            btnType="button"
-            btnText={'Assign'}
-          customClass="!py-3 !px-8 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
-          /> */}
-                        {caseItem.status !== "Assigned" &&
-                          user.role === "ADMIN" && (
-                            <button
-                              onClick={() =>
-                                setShowAddModal({
-                                  open: true,
-                                  caseID: caseItem.caseId || caseItem.id,
-                                })
-                              }
-                              className="inline-flex items-center gap-2 underline rounded-lg px-2py-2 text-sm  shadow-sm "
-                            >
-                              Assign Designer & QC
-                            </button>
-                          )}
-                        {user.role === "Dentist" && caseItem.status === "Assigned" && (
-                          <>
-                            <Link
-                              to={`/cases/${caseItem.caseId || caseItem.id}`}
-                              className="p-2 rounded-lg text-[#0B75C9] hover:bg-[#e8f4ff] transition-colors"
-                              title="View Details"
-                            >
-                              <Eye size={16} />
-                            </Link>
-                            <ActionButton
-                              icon={<Edit size={16} />}
-                              btnText="Edit"
-                              btnClick={(event) => {
-                                event?.preventDefault();
-                                navigate(`/cases/${caseItem.caseId || caseItem.id}`);
-                              }}
-                              customClass="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
-                            />
-                            <ActionButton
-                              icon={<Trash2 size={16} />}
-                              btnText="Delete"
-                              btnClick={(event) => {
-                                event?.preventDefault();
-                                // TODO: Implement delete functionality
-                                console.log("Delete case:", caseItem.caseId);
-                              }}
-                              customClass="p-2 rounded-lg text-[#dc2626] hover:bg-[#ffdcdc] transition-colors"
-                            />
-                          </>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-3 flex-nowrap">
+                        <Link
+                          to={`/cases/${caseItem.caseId || caseItem.id}`}
+                          className="p-2 rounded-lg text-[#0B75C9] hover:bg-[#e8f4ff] transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/cases/${caseItem.caseId || caseItem.id}`)}
+                          className="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        {caseItem.status !== "Assigned" && user?.role === "ADMIN" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowAddModal({
+                                open: true,
+                                caseID: caseItem.caseId || caseItem.id,
+                              })
+                            }
+                            className="inline-flex items-center gap-2 underline rounded-lg px-2 py-2 text-sm"
+                          >
+                            Assign Designer & QC
+                          </button>
+                        )}
+                        {user?.role === "Dentist" && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              // TODO: Implement delete functionality
+                            }}
+                            className="p-2 rounded-lg text-[#dc2626] hover:bg-[#ffdcdc] transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         )}
                       </div>
                     </td>

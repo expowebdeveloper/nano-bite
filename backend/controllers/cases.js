@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { stringFields, arrayFields } from "./caseFields.js";
+import { stringFields, arrayFields, numberArrayFields } from "./caseFields.js";
 import { prisma } from "../lib/prisma.js";
 
 const allowedCaseTypes = [
@@ -34,6 +34,16 @@ const normalizeArray = (value) => {
   }
   if (typeof value === "string" && value.trim().length > 0) {
     return [value.trim()];
+  }
+  return [];
+};
+
+const normalizeNumberArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => typeof item === "number" || (typeof item === "string" && !isNaN(Number(item))))
+      .map((item) => typeof item === "number" ? item : Number(item))
+      .filter((item) => !isNaN(item));
   }
   return [];
 };
@@ -121,6 +131,30 @@ const validatePayload = (body) => {
     requireArray("contacts", "contacts");
     requireArray("occlusion", "occlusion");
     requireArray("requiredScans", "requiredScans");
+  } else if (body.caseType === "Short-span Bridge") {
+    requireText("abutmentsLeft", "abutmentsLeft");
+    requireText("abutmentsRight", "abutmentsRight");
+    requireText("ponticTeeth", "ponticTeeth");
+    requireArray("ponticDesign", "ponticDesign");
+    requireArray("ponticContacts", "ponticContacts");
+    requireArray("bridgeMaterial", "bridgeMaterial");
+    requireArray("bridgeRequiredScans", "bridgeRequiredScans");
+  } else if (body.caseType === "Implant Crown / Implant Bridge") {
+    requireText("implantBrand", "implantBrand");
+    requireText("implantPlatform", "implantPlatform");
+    requireText("implantConnection", "implantConnection");
+    // requireText("implantTooth", "implantTooth");
+    // requireArray("implantRestoration", "implantRestoration"); // optional or handle logic
+    // requireArray("implantEmergence", "implantEmergence");
+    // requireArray("implantRequiredScans", "implantRequiredScans");
+    // requireArray("implantAbutment", "implantAbutment");
+    // requireArray("implantOcclusion", "implantOcclusion");
+  } else if (body.caseType === "Full Arch Implant Fixed") {
+    // Add validations for Full Arch Implant Fixed if needed
+  } else if (body.caseType === "Digital Complete Denture") {
+    // Digital Complete Denture / Denture-specific validations can be added here if needed
+  } else if (body.caseType === "Partial Denture") {
+    // Add validations for Partial Denture if needed
   }
 
   const { errors: attachmentErrors } = normalizeAttachments(body.attachments);
@@ -149,6 +183,28 @@ const createCase = async (req, res) => {
 
     arrayFields.forEach((field) => {
       payload[field] = normalizeArray(req.body[field]);
+    });
+
+    numberArrayFields.forEach((field) => {
+      payload[field] = normalizeNumberArray(req.body[field]);
+    });
+
+    // Map boolean fields directly without string/array normalization
+    const booleanFields = [
+      "hasExistingDenture",
+      "isExactCopy",
+      "isImplantSupported",
+      "dentureWantsAddOns",
+      "dentureHasDiastema",
+      "dentureWantsDesignPreview",
+      "partialIsReplacement",
+      "overdentureUseSameImplantSystem",
+    ];
+
+    booleanFields.forEach((field) => {
+      if (typeof req.body[field] === "boolean") {
+        payload[field] = req.body[field];
+      }
     });
 
     const { attachments } = normalizeAttachments(req.body.attachments);
@@ -227,22 +283,22 @@ const getDesignerAttachments = async (req, res) => {
 const uploadDesignerAttachments = async (req, res) => {
   try {
     const { caseId, attachments, designerId } = req.body;
-    
+
     // Validation
     const errors = [];
-    
+
     if (!caseId) {
       errors.push("caseId is required");
     }
-    
+
     if (!designerId) {
       errors.push("designerId is required");
     }
-    
+
     if (!attachments || !Array.isArray(attachments) || attachments.length === 0) {
       errors.push("At least one attachment is required");
     }
-    
+
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
@@ -322,16 +378,43 @@ export const casesController = {
   uploadDesignerAttachments,
   listCases: async (req, res) => {
     try {
-      const cases = await prisma.caseRecord.findMany({
-        where: {
-          createdById: req.user?.data?.id ?? undefined,
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
 
+      const where = { createdById: req.user?.data?.id ?? undefined };
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
+
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
       res.status(200).json({
         success: true,
         data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
       });
     } catch (error) {
       console.error("List cases error:", error);
@@ -344,51 +427,79 @@ export const casesController = {
   },
 
 
-    listAllCasesForAdmin: async (req, res) => {
+  listAllCasesForAdmin: async (req, res) => {
     try {
-      const cases = await prisma.caseRecord.findMany({
-        orderBy: { createdAt: "desc" },
-            include: {
-        assignedToDesigner: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-        assignedToQc: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-        assignedBy: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
 
+      const where = {};
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
+      }
 
-      });
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: limit,
+          include: {
+            assignedToDesigner: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            assignedToQc: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            assignedBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            createdBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+          },
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
 
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
       res.status(200).json({
         success: true,
         data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
       });
     } catch (error) {
       console.error("Admin list cases error:", error);
@@ -399,137 +510,160 @@ export const casesController = {
       });
     }
   },
-listCasesForDesigner: async (req, res) => {
-  console.log("Fetching cases for designer:", req.user);
-  try {
-    const designerId = req.user.data.id; // from JWT
-    
-    // console.log("Designer ID:", req.user.data.id);
+  listCasesForDesigner: async (req, res) => {
+    try {
+      const designerId = req.user.data.id;
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
 
-    const cases = await prisma.caseRecord.findMany({
-      where: {
-        assignedToDesignerId: designerId,
-      },
-      orderBy: {
-        assignedAt: "desc",
-      },
-    });
+      const where = { assignedToDesignerId: designerId };
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
+      }
 
-    return res.json({
-      success: true,
-      data: cases,
-    });
-  } catch (error) {
-    console.error("Get designer cases error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch designer cases",
-    });
-  }}
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { assignedAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
+
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
+      return res.json({
+        success: true,
+        data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
+      });
+    } catch (error) {
+      console.error("Get designer cases error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch designer cases",
+      });
+    }
+  }
 
   ,
-assignCaseToDesigner: async (req, res) => {
-  try {
-    const { caseId } = req.params;
-    const { designerId,qcId} = req.body;
+  assignCaseToDesigner: async (req, res) => {
+    try {
+      const { caseId } = req.params;
+      const { designerId, qcId } = req.body;
 
-    const assignedById = req.user.data.id; // ADMIN / QC
+      const assignedById = req.user.data.id; // ADMIN / QC
 
-    if (!designerId ) {
-      return res.status(400).json({ message: "Designer ID is required" });
-    }
-    if (!qcId ) {
-      return res.status(400).json({ message: "QC ID is required" });
-    }
+      if (!designerId) {
+        return res.status(400).json({ message: "Designer ID is required" });
+      }
+      if (!qcId) {
+        return res.status(400).json({ message: "QC ID is required" });
+      }
 
-    // 1️ Validate case
-    const caseRecord = await prisma.caseRecord.findUnique({
-      where: { caseId },
-    });
+      // 1️ Validate case
+      const caseRecord = await prisma.caseRecord.findUnique({
+        where: { caseId },
+      });
 
-    if (!caseRecord) {
-      return res.status(404).json({ message: "Case not found" });
-    }
+      if (!caseRecord) {
+        return res.status(404).json({ message: "Case not found" });
+      }
 
-    // 2️ Validate designer
-    const designer = await prisma.user.findFirst({
-      where: {
-        id: designerId,
-        role: "Designer",
-        isActive: true,
-        isDeleted: false,
-      },
-    });
+      // 2️ Validate designer
+      const designer = await prisma.user.findFirst({
+        where: {
+          id: designerId,
+          role: "Designer",
+          isActive: true,
+          isDeleted: false,
+        },
+      });
 
-    if (!designer) {
-      return res.status(400).json({ message: "Invalid designer" });
-    }
+      if (!designer) {
+        return res.status(400).json({ message: "Invalid designer" });
+      }
       const qc = await prisma.user.findFirst({
-      where: {
-        id: qcId,
-        role: "QC",
-        isActive: true,
-        isDeleted: false,
-      },
-    });
+        where: {
+          id: qcId,
+          role: "QC",
+          isActive: true,
+          isDeleted: false,
+        },
+      });
 
-    if (!qc) {
-      return res.status(400).json({ message: "Invalid QC" });
+      if (!qc) {
+        return res.status(400).json({ message: "Invalid QC" });
+      }
+
+      // 3️⃣ Assign case
+      const updatedCase = await prisma.caseRecord.update({
+        where: { caseId },
+        data: {
+          assignedToDesignerId: designerId,
+          assignedToQcId: qcId,
+          assignedById,
+          assignedAt: new Date(),
+          status: "Assigned",
+        },
+      });
+
+      return res.json({
+        message: "Case assigned to designer successfully",
+        data: updatedCase,
+      });
+    } catch (error) {
+      console.error("Assign case error:", error);
+      return res.status(500).json({ message: "Failed to assign case" });
     }
+  },
 
-    // 3️⃣ Assign case
-    const updatedCase = await prisma.caseRecord.update({
-      where: { caseId },
-      data: {
-        assignedToDesignerId: designerId,
-        assignedToQcId: qcId,
-        assignedById,
-        assignedAt: new Date(),
-        status: "Assigned",
-      },
-    });
-
-    return res.json({
-      message: "Case assigned to designer successfully",
-      data: updatedCase,
-    });
-  } catch (error) {
-    console.error("Assign case error:", error);
-    return res.status(500).json({ message: "Failed to assign case" });
-  }
-},
-
-updateCaseStatus:async(req,res)=>{
-  try{
- const { caseId } = req.params;
-const { status, qcComment } = req.body;
+  updateCaseStatus: async (req, res) => {
+    try {
+      const { caseId } = req.params;
+      const { status, qcComment } = req.body;
       if (!caseId) {
         return res.status(400).json({
           success: false,
           message: "caseId is required",
         })
       }
-const updatedCase = await prisma.caseRecord.update({
-      where: { caseId },
-      data: {
-        status,
-        qcComment: typeof qcComment === "string" ? qcComment : undefined,
-      },})
-       if (!updatedCase) {
+      const updatedCase = await prisma.caseRecord.update({
+        where: { caseId },
+        data: {
+          status,
+          qcComment: typeof qcComment === "string" ? qcComment : undefined,
+        },
+      })
+      if (!updatedCase) {
         return res.status(404).json({
           success: false,
           message: "Case not found."
         })
       }
-        return res.json({
-      success: true,
-      message: "Case status updated successfully",
-      data: updatedCase,
-    })
+      return res.json({
+        success: true,
+        message: "Case status updated successfully",
+        data: updatedCase,
+      })
 
-  }catch(error){ }
+    } catch (error) { }
 
-},
+  },
 
   getCase: async (req, res) => {
     try {
