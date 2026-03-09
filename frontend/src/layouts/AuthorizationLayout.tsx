@@ -16,7 +16,7 @@ const AuthorizationLayout = ({ children }: ChildrenProps) => {
         <div>
           <Sidebar activeSidebar={activeSidebar} />
         </div>
-        <div className={`${activeSidebar ? `collapse-active` : ` w-[calc(100%-200px)]`} main-content min-h-24 `}>
+        <div className={`${activeSidebar ? `collapse-active` : ` w-[calc(100%-345px)]`} main-content min-h-24 `}>
           <NavBar handleCollapseSidebar={handleCollapseSidebar} />
           <div className="h-[calc(100%-70px)] overflow-y-auto pb-[100px]">{children}</div>
         </div>

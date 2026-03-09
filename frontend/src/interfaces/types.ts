@@ -159,6 +159,38 @@ export type Login = {
     digitalRequiredScans?: string[];
     digitalNewRecord?: string;
     digitalChanges?: string;
+    // Denture (Full / Conventional)
+    hasExistingDenture?: boolean;
+    isExactCopy?: boolean;
+    isImplantSupported?: boolean;
+    dentureArch?: string;
+    dentureBaseShade?: string;
+    dentureTissueShade?: string;
+    dentureKind?: string;
+    dentureSmileStyle?: string;
+    dentureFestooningLevel?: string;
+    dentureWantsAddOns?: boolean;
+    dentureHasDiastema?: boolean;
+    dentureDiastemaHandling?: string;
+    dentureAddOns?: string[];
+    dentureBiteAdjustment?: string;
+    dentureMidlineCorrection?: string;
+    dentureOtherDetails?: string[];
+    dentureWantsDesignPreview?: boolean;
+    dentureReviewOptions?: string[];
+    dentureDesignPreviewAddOns?: string[];
+    dentureRxInstructions?: string;
+    // Overdenture
+    overdentureScanMethod?: string;
+    overdentureSupportType?: string;
+    overdentureImplantLocations?: number[];
+    overdentureImplantManufacturer?: string;
+    overdentureImplantSystem?: string;
+    overdentureImplantPlatformSize?: string;
+    overdentureImplantCuffHeight?: string;
+    overdentureUseSameImplantSystem?: boolean;
+    overdentureRelineArch?: string;
+    // Partial denture
     partialType?: string[];
     partialFramework?: string[];
     partialMajorConnector?: string;
@@ -168,6 +200,10 @@ export type Login = {
     partialBaseAreas?: string;
     partialAesthetics?: string[];
     partialRequiredScans?: string[];
+    partialIsReplacement?: boolean;
+    partialMaterial?: string;
+    partialBaseShade?: string;
+    partialTissueShade?: string;
     qcComment?: string;
     createdAt?: string;
     updatedAt?: string;

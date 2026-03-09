@@ -103,3 +103,17 @@ body {
   width: 100%;
   background-color: #000;
 }
+
+li:where(.previous, .next) {
+    min-width: 20px;
+    display: flex;
+    min-height: 40px;
+    justify-content: center;
+}
+li:where(.previous, .next) a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0!important;
+    max-height: 37.6px;
+}
