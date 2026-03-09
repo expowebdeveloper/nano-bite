@@ -32,7 +32,6 @@ import ErrorMessage from "../ErrorMessage";
     formConfig,
     label,
     placeholder,
-    country,
     customClassInput = "!w-full !bg-transparent !rounded-lg !rounded-[8px] !p-2 text-black !h-[auto]",
     errorMsg,
     disableCountryCode = true,

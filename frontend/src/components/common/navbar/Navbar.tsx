@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useShowErrorMessage } from "../ShowErrorMessage";
 import CommonDropDown from "../Dropdown/Dropdown";
 import { LogOut, User } from "lucide-react";
 import ScreenLoader from "../ScreenLoader/ScreenLoader";
@@ -11,7 +10,6 @@ const NavBar = ({ handleCollapseSidebar }: { handleCollapseSidebar: () => void }
   const [toggleDropDown, setToggleDropDown] = useState(false);
   const location = useLocation()
   const [loader, setLoader] = useState(false);
-  const showErrorMessage = useShowErrorMessage();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
   const { user } = useSelector((state: any) => state.user);

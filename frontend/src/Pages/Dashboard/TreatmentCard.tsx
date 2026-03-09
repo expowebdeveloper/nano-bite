@@ -1,4 +1,3 @@
-import React from 'react';
 import dashboard from '../../assets/images/dashboard2.png';
 const TreatmentCard = () => {
     return (

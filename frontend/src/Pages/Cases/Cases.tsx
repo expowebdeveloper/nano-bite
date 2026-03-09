@@ -4,12 +4,7 @@ import Button from "../../components/common/Buttons/Button";
 import Modal from "../../components/common/Modal/Modal";
 // import CaseHeader from "./components/CaseHeader";
 import PatientInformation from "./components/PatientInformation";
-import SingleCrownOnlayVeneer from "./components/SingleCrownOnlayVeneer";
-import ShortSpanBridge from "./components/ShortSpanBridge";
-import ImplantCrownBridge from "./components/ImplantCrownBridge";
-import FullArchImplantFixed from "./components/FullArchImplantFixed";
 import DigitalCompleteDenture from "./components/DigitalCompleteDenture";
-import PartialDenture from "./components/PartialDenture";
 import {
   CaseFormValues,
   CASE_FORM_DEFAULT_VALUES,
@@ -32,13 +27,11 @@ import AbutmentSelection from "./components/Cases/AbutmentSelection/AbutmentSele
 import OptionalPhotos from "./components/Cases/ImplantsSolutions/OriginalPhoto";
 import ShadeSelection from "./components/Cases/ImplantsSolutions/Shades";
 import ImplantConfirmation from "./components/Cases/ImplantsSolutions/ImplantConfirmation";
-import AddingCrown from "./components/Cases/FixRestoration/AddingCrown";
 // import AddingImplantRestoration from "./components/Cases/FixRestoration/AddingImplantRestoration";
 import { DentureTypeSelection } from "./components/Cases/Denture/DentureTypeSelection";
 import { ExistingDentureCheck } from "./components/Cases/Denture/ExistingDentureCheck";
 import { ImplantSupportedCheck } from "./components/Cases/Denture/ImplantSupportedCheck";
 import { DentureArchSelection } from "./components/Cases/Denture/DentureArchSelection";
-import { DentureShadeSelection } from "./components/Cases/Denture/DentureShadeSelection";
 import { DentureKindSelection } from "./components/Cases/Denture/DentureKindSelection";
 import { DentureSmileStyleSelection } from "./components/Cases/Denture/DentureSmileStyleSelection";
 import { DentureFestooningSelection } from "./components/Cases/Denture/DentureFestooningSelection";
@@ -48,7 +41,6 @@ import { DentureOtherDetailsSelection } from "./components/Cases/Denture/Denture
 import { DentureReviewSummary } from "./components/Cases/Denture/DentureReviewSummary";
 import { PartialDentureReplacementCheck } from "./components/Cases/Denture/PartialDentureReplacementCheck";
 import { PartialDentureMaterialSelection } from "./components/Cases/Denture/PartialDentureMaterialSelection";
-import { PartialDentureShadeSelection } from "./components/Cases/Denture/PartialDentureShadeSelection";
 import { AddedItemModal } from "./components/Cases/Denture/AddedItemModal";
 import { OverdentureScanSelection } from "./components/Cases/Denture/OverdentureScanSelection";
 import { OverdentureRelineImplantCheck } from "./components/Cases/Denture/OverdentureRelineImplantCheck";
@@ -60,33 +52,33 @@ import { OverdentureRelineArchSelection } from "./components/Cases/Denture/Overd
 import { OverdentureRelineAddedModal } from "./components/Cases/Denture/OverdentureRelineAddedModal";
 
 // Import servicesData
-const servicesData = [
-  {
-    id: "fixed-restoration",
-    title: "Fixed Restoration",
-    description: "Crowns, Bridges, Inlays, Onlays and Veneers",
-  },
-  {
-    id: "implants-solutions",
-    title: "Implants Solutions",
-    description: "Implant Crowns, Bridges and Surgical Guides",
-  },
-  {
-    id: "splints-guards",
-    title: "Splints, Guards & TMJ",
-    description: "Night Guards, Sports Guards TMD/TMJ",
-  },
-  {
-    id: "dentures",
-    title: "Dentures",
-    description: "Full Dentures, Partial Dentures and Overdentures",
-  },
-  {
-    id: "wax-ups",
-    title: "Wax-ups & Matrix",
-    description: "Physical Wax-up, Digital Wax-Up and Study Model",
-  },
-];
+// const servicesData = [
+//   {
+//     id: "fixed-restoration",
+//     title: "Fixed Restoration",
+//     description: "Crowns, Bridges, Inlays, Onlays and Veneers",
+//   },
+//   {
+//     id: "implants-solutions",
+//     title: "Implants Solutions",
+//     description: "Implant Crowns, Bridges and Surgical Guides",
+//   },
+//   {
+//     id: "splints-guards",
+//     title: "Splints, Guards & TMJ",
+//     description: "Night Guards, Sports Guards TMD/TMJ",
+//   },
+//   {
+//     id: "dentures",
+//     title: "Dentures",
+//     description: "Full Dentures, Partial Dentures and Overdentures",
+//   },
+//   {
+//     id: "wax-ups",
+//     title: "Wax-ups & Matrix",
+//     description: "Physical Wax-up, Digital Wax-Up and Study Model",
+//   },
+// ];
 
 const Cases = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -252,24 +244,24 @@ const Cases = () => {
   };
 
 
-  const renderCaseTypeSection = () => {
-    switch (caseType) {
-      case "Single Crown / Onlay / Veneer":
-        return <SingleCrownOnlayVeneer formConfig={formConfig} />;
-      case "Short-span Bridge":
-        return <ShortSpanBridge formConfig={formConfig} />;
-      case "Implant Crown / Implant Bridge":
-        return <ImplantCrownBridge formConfig={formConfig} />;
-      case "Full Arch Implant Fixed":
-        return <FullArchImplantFixed formConfig={formConfig} />;
-      case "Digital Complete Denture":
-        return <DigitalCompleteDenture formConfig={formConfig} />;
-      case "Partial Denture":
-        return <PartialDenture formConfig={formConfig} />;
-      default:
-        return null;
-    }
-  };
+  // const renderCaseTypeSection = () => {
+  //   switch (caseType) {
+  //     case "Single Crown / Onlay / Veneer":
+  //       return <SingleCrownOnlayVeneer formConfig={formConfig} />;
+  //     case "Short-span Bridge":
+  //       return <ShortSpanBridge formConfig={formConfig} />;
+  //     case "Implant Crown / Implant Bridge":
+  //       return <ImplantCrownBridge formConfig={formConfig} />;
+  //     case "Full Arch Implant Fixed":
+  //       return <FullArchImplantFixed formConfig={formConfig} />;
+  //     case "Digital Complete Denture":
+  //       return <DigitalCompleteDenture formConfig={formConfig} />;
+  //     case "Partial Denture":
+  //       return <PartialDenture formConfig={formConfig} />;
+  //     default:
+  //       return null;
+  //   }
+  // };
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -600,6 +592,7 @@ const Cases = () => {
         return (
           <>
             <ShadeSelection selectedTeeth={selectedTeeth} />
+            <ImplantConfirmation selectedTeeth={selectedTeeth} />
           </>
         );
       case 10:
@@ -684,6 +677,7 @@ const Cases = () => {
             <DentureReviewSummary
               formConfig={formConfig}
               onEditStep={(step) => setCurrentStep(step)}
+              selectedOption={selectedOption}
             />
           );
         }
@@ -693,13 +687,6 @@ const Cases = () => {
           </>
         );
 
-      case 9:
-        return (
-          <>
-            <ShadeSelection selectedTeeth={selectedTeeth} />
-            <ImplantConfirmation selectedTeeth={selectedTeeth} />
-          </>
-        );
       default:
         return null;
     }

@@ -27,42 +27,42 @@ const ORDER_ITEMS: OrderItem[] = [
 ];
 
 
-const ORDER_ITEMS_Implants_Solutions: OrderItem[] = [
-  { id: "Implants", label: "Implants" },
-  { id: "ImplantsBridges", label: "ImplantsBridges" },
-  { id: "SurgicalGuide", label: "SurgicalGuide" },
+// const ORDER_ITEMS_Implants_Solutions: OrderItem[] = [
+//   { id: "Implants", label: "Implants" },
+//   { id: "ImplantsBridges", label: "ImplantsBridges" },
+//   { id: "SurgicalGuide", label: "SurgicalGuide" },
 
-];
+// ];
 
-const ORDER_ITEMS_Splints_TMJ: OrderItem[] = [
-  { id: "SplintsGuards_1", label: "SplintsGuards_1" },
-  { id: "SplintsGuards_2", label: "SplintsGuards_2" },
-  { id: "SplintsGuards_3", label: "SplintsGuards_3" },
+// const ORDER_ITEMS_Splints_TMJ: OrderItem[] = [
+//   { id: "SplintsGuards_1", label: "SplintsGuards_1" },
+//   { id: "SplintsGuards_2", label: "SplintsGuards_2" },
+//   { id: "SplintsGuards_3", label: "SplintsGuards_3" },
 
-];
+// ];
 
 
-const SUB_OPTIONS: Record<string, string[]> = {
-  crown: [
-    "Full Contour Zirconia",
-    "Layered Zirconia",
-    "PFM (Porcelain Fused to Metal)",
-    "E-Max Lithium Disilicate",
-  ],
-  inlay: ["Composite Inlay", "Ceramic Inlay", "Gold Inlay"],
-  onlay: ["Composite Onlay", "Ceramic Onlay", "Gold Onlay"],
-  veneer: [
-    "Prep-less Veneer",
-    "Minimal Prep Veneer",
-    "Diagnostic Wax-up Veneer",
-  ],
-  bridge: [
-    "Traditional Bridge",
-    "Cantilever Bridge",
-    "Maryland Bridge",
-    "Implant-Supported Bridge",
-  ],
-};
+// const SUB_OPTIONS: Record<string, string[]> = {
+//   crown: [
+//     "Full Contour Zirconia",
+//     "Layered Zirconia",
+//     "PFM (Porcelain Fused to Metal)",
+//     "E-Max Lithium Disilicate",
+//   ],
+//   inlay: ["Composite Inlay", "Ceramic Inlay", "Gold Inlay"],
+//   onlay: ["Composite Onlay", "Ceramic Onlay", "Gold Onlay"],
+//   veneer: [
+//     "Prep-less Veneer",
+//     "Minimal Prep Veneer",
+//     "Diagnostic Wax-up Veneer",
+//   ],
+//   bridge: [
+//     "Traditional Bridge",
+//     "Cantilever Bridge",
+//     "Maryland Bridge",
+//     "Implant-Supported Bridge",
+//   ],
+// };
 
 /* =======================
    Sub-Components
@@ -72,7 +72,7 @@ const ItemCard: React.FC<{
   label: string;
   selected: boolean;
   onClick?: () => void;
-}> = ({ label, selected, onClick }) => (
+}> = ({ label, selected }) => (
   <div
     className={`
       relative flex items-end justify-center aspect-square rounded-[32px] border-2 transition-all duration-300
@@ -100,9 +100,7 @@ const OrderItemPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [innerStep, setInnerStep] = useState(1); // Nested Step logic
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [selectedSubOption, setSelectedSubOption] = useState<string | null>(
-    null,
-  );
+
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
 
   // Computed Values

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { ToothIconSvg } from "./ToothIconSvg";
 
 /* =======================
@@ -90,8 +89,8 @@ const TeethSelectionPage = ({ selectedTeeth, setSelectedTeeth }: { selectedTeeth
                  To match the image, numbers move AWAY from the center.
                  Left side teeth move further left, Right side move further right.
               */
-              const xOffset = tooth.x < 140 ? -18 : 18; 
-              const yOffset = tooth.jaw === "upper" ? -5 : 5;
+              // const xOffset = tooth.x < 140 ? -18 : 18; 
+              // const yOffset = tooth.jaw === "upper" ? -5 : 5;
 
               return (
                 <g 

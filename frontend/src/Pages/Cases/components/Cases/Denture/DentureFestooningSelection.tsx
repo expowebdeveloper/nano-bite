@@ -1,7 +1,7 @@
 import { UseFormReturn, Controller } from "react-hook-form";
 import { CaseFormValues } from "../../../../../Constants/Constants";
 import { CommanHeading } from "../../../CommanHeading";
-import { Circle, Disc, Settings } from "lucide-react";
+import { Circle, Disc } from "lucide-react";
 
 interface DentureFestooningSelectionProps {
     formConfig: UseFormReturn<CaseFormValues>;
@@ -31,8 +31,8 @@ const FESTOONING_OPTIONS = [
 export const DentureFestooningSelection = ({
     formConfig,
 }: DentureFestooningSelectionProps) => {
-    const { control, watch } = formConfig;
-    const patientName = watch("patientName") || "the patient";
+    const { control } = formConfig;
+    // const patientName = watch("patientName") || "the patient";
 
     return (
         <div className="bg-white p-6 md:p-8 space-y-6">

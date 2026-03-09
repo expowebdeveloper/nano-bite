@@ -1,4 +1,4 @@
-import { Check, Edit, ArrowRight } from "lucide-react";
+import { Edit, ArrowRight } from "lucide-react";
 
 interface AddedItemModalProps {
     isOpen: boolean;

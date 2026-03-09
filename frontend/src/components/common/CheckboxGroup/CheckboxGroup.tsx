@@ -1,4 +1,3 @@
-import React from "react";
 import { UseFormReturn, FieldValues, Path, FieldError, Controller } from "react-hook-form";
 import { ValidationRule } from "../../../interfaces/interfaces";
 import ErrorMessage from "../ErrorMessage";

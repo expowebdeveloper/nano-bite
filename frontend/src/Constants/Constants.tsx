@@ -315,6 +315,10 @@ export type CaseFormValues = {
   partialBaseAreas: string;
   partialAesthetics: string[];
   partialRequiredScans: string[];
+  partialIsReplacement?: boolean;
+  partialMaterial?: string;
+  partialBaseShade?: string;
+  partialTissueShade?: string;
   // Uploads
   attachments: CaseAttachment[];
 };

@@ -32,6 +32,7 @@ const { data: designerAttachmentsData } =
   designerAttachmentsQuery(caseId);
 
   const { data, isLoading, error } = caseDetailsQuery(caseId);
+  const record = data as CaseRecord | undefined;
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
@@ -151,8 +152,6 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
 };
 
 
-
-  const record = data as CaseRecord | undefined;
 
   const hasValue = (value: any) => {
     if (typeof value === "boolean") return true;

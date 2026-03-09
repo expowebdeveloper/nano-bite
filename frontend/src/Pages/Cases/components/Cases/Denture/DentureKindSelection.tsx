@@ -31,8 +31,8 @@ const DENTURE_KIND_OPTIONS = [
 export const DentureKindSelection = ({
     formConfig,
 }: DentureKindSelectionProps) => {
-    const { control, watch } = formConfig;
-    const patientName = watch("patientName") || "the patient";
+    const { control } = formConfig;
+    // const patientName = watch("patientName") || "the patient";
 
     return (
         <div className="bg-white p-6 md:p-8 space-y-6">

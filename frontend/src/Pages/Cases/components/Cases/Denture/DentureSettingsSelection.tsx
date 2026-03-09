@@ -13,7 +13,7 @@ export const DentureSettingsSelection = ({
     const { control, watch, setValue } = formConfig;
     const patientName = watch("patientName") || "the patient";
     const wantsAddOns = watch("dentureWantsAddOns");
-    const hasDiastema = watch("dentureHasDiastema");
+    // const hasDiastema = watch("dentureHasDiastema");
 
     // If wantsAddOns is not set, show the initial question
     if (wantsAddOns === undefined) {

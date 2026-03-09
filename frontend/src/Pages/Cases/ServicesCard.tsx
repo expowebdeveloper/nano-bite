@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Check, ArrowLeft } from "lucide-react";
 import { CommanHeading } from "./CommanHeading";
-import { VerticalStepper } from "./components/Cases/FixRestoration/StepsBlock";
 
 /* =======================
    Types
@@ -105,7 +104,6 @@ interface ServiceCardProps extends ServiceItem {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
-  id,
   title,
   description,
   isSelected,
@@ -195,6 +193,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onOptionSe
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [selectedOptionLabel, setSelectedOptionLabel] = useState<string | null>(null);
+  console.log(selectedOptionLabel)
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId);

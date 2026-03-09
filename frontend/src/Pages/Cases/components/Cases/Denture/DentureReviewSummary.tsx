@@ -7,6 +7,7 @@ import { useState } from "react";
 interface DentureReviewSummaryProps {
     formConfig: UseFormReturn<CaseFormValues>;
     onEditStep: (step: number) => void;
+    selectedOption?: string | null;
 }
 
 interface SummaryItem {
@@ -18,6 +19,7 @@ interface SummaryItem {
 export const DentureReviewSummary = ({
     formConfig,
     onEditStep,
+    selectedOption,
 }: DentureReviewSummaryProps) => {
     const { watch, setValue } = formConfig;
     const rxInstructions = watch("dentureRxInstructions") || "";
@@ -42,10 +44,10 @@ export const DentureReviewSummary = ({
         const items: SummaryItem[] = [];
 
         // Type
-        if (formValues.selectedOption) {
+        if (selectedOption) {
             items.push({
                 label: "Type",
-                value: formValues.selectedOption,
+                value: selectedOption,
                 step: 3,
             });
         }

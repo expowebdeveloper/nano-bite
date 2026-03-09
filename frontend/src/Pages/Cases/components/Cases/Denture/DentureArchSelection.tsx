@@ -1,8 +1,6 @@
 import { UseFormReturn, Controller } from "react-hook-form";
 import { CaseFormValues } from "../../../../../Constants/Constants";
 import { CommanHeading } from "../../../CommanHeading";
-import { Check, Edit } from "lucide-react";
-import { useState } from "react";
 import singleUpper from "../../../../../assets/images/single-upper.webp";
 import singleLower from "../../../../../assets/images/single-lower.webp";
 import dual from "../../../../../assets/images/dual.webp";
@@ -32,11 +30,9 @@ const ARCH_OPTIONS = [
 
 export const DentureArchSelection = ({
     formConfig,
-    onNext,
 }: DentureArchSelectionProps) => {
     const { control, watch } = formConfig;
     const patientName = watch("patientName") || "the patient";
-    const [showPopup, setShowPopup] = useState(false);
 
     // Helper to handle selection
     const handleSelect = (onChange: (val: string) => void, value: string) => {

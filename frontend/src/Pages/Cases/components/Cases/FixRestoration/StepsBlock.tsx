@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Camera, Layers, Activity, Palette } from "lucide-react";
+import { Check, Camera, Layers, Activity } from "lucide-react";
 
 /* =======================
    Types & Constants
@@ -126,7 +126,7 @@ export const VerticalStepper: React.FC<{
   const isOverdentureImmediate = selectedOption === "Overdenture" && dentureType === "Immediate";
   const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
   const isOverdentureRelineImplant = isOverdentureReline && overdentureSupportType === "Implant-supported";
-  const isOverdentureRelineTooth = isOverdentureReline && overdentureSupportType === "Tooth-supported";
+  // const isOverdentureRelineTooth = isOverdentureReline && overdentureSupportType === "Tooth-supported";
   const isDentureConventional = isDenture && (dentureType === "Conventional" || !dentureType);
   const isFullDentureImmediate = selectedOption === "Full Denture" && dentureType === "Immediate";
 

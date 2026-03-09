@@ -1,4 +1,4 @@
-import { UseFormReturn, Controller } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { CaseFormValues } from "../../../../../Constants/Constants";
 import { CommanHeading } from "../../../CommanHeading";
 import { ToothIconSvg } from "../FixRestoration/ToothIconSvg";
@@ -59,7 +59,7 @@ const teethData: Tooth[] = [
 export const OverdentureImplantLocationSelection = ({
     formConfig,
 }: OverdentureImplantLocationSelectionProps) => {
-    const { control, watch, setValue } = formConfig;
+    const { watch, setValue } = formConfig;
     const selectedImplantLocations = watch("overdentureImplantLocations") || [];
 
     const toggleTooth = (number: number) => {

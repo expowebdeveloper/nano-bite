@@ -24,9 +24,6 @@ interface PatientInformationProps {
 const PatientInformation = ({
   formConfig,
   onUploadClick,
-  onNext,
-  doctorSignatureValue,
-  dateValue,
 }: PatientInformationProps) => {
   return (
     <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 ddd">

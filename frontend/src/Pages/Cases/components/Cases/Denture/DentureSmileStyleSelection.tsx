@@ -42,8 +42,8 @@ const SMILE_STYLE_OPTIONS = [
 export const DentureSmileStyleSelection = ({
     formConfig,
 }: DentureSmileStyleSelectionProps) => {
-    const { control, watch } = formConfig;
-    const patientName = watch("patientName") || "the patient";
+    const { control } = formConfig;
+    // const patientName = watch("patientName") || "the patient";
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (

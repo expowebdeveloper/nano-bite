@@ -282,9 +282,9 @@ const PlatformSizeDropdown = ({
 export const OverdentureImplantDetails = ({
     formConfig,
 }: OverdentureImplantDetailsProps) => {
-    const { control, watch, setValue } = formConfig;
+    const { control, watch } = formConfig;
     const selectedImplantLocations = (watch("overdentureImplantLocations") || []) as number[];
-    const useSameForAll = watch("overdentureUseSameImplantSystem") || false;
+    // const useSameForAll = watch("overdentureUseSameImplantSystem") || false;
     const [wantsNotification, setWantsNotification] = useState(false);
 
     // Format selected teeth for display (e.g., "2, 5 and 13")

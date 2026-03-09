@@ -47,12 +47,14 @@ const OTHER_OPTIONS = [
         title: "Acrylic",
         description: "Cost-effective. Best for temporary use and/or immediate extractions.",
         category: "Other",
+        categoryDescription: "Alternative materials for specific needs.",
     },
     {
         value: "Acetal",
         title: "Acetal",
         description: "Requires the entire framework to be tooth colored (i.e. white/off-white).",
         category: "Other",
+        categoryDescription: "Alternative materials for specific needs.",
     },
 ];
 

@@ -41,9 +41,9 @@ const ADD_ON_OPTIONS = [
 export const DentureDesignPreviewSelection = ({
     formConfig,
 }: DentureDesignPreviewSelectionProps) => {
-    const { control, watch, setValue } = formConfig;
+    const { control, watch } = formConfig;
     const wantsDesignPreview = watch("dentureWantsDesignPreview");
-    const selectedReviewOptions = watch("dentureReviewOptions") || [];
+    // const selectedReviewOptions = watch("dentureReviewOptions") || [];
 
     // If wantsDesignPreview is not set, show the initial question
     if (wantsDesignPreview === undefined) {
