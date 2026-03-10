@@ -1,17 +1,16 @@
-import React, { Suspense, useRef, useState, useEffect } from "react";
-import { Canvas, useLoader, useThree } from "@react-three/fiber";
+import React, { useRef, useState, useEffect } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Center } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import * as THREE from "three";
 import { Maximize2, Minimize2, RotateCcw } from "lucide-react";
 
 interface StlModelProps {
-  url: string;
+  geometry: THREE.BufferGeometry;
   resetKey: number;
 }
 
-const StlModel = ({ url, resetKey }: StlModelProps) => {
-  const geometry = useLoader(STLLoader, url);
+const StlModel = ({ geometry, resetKey }: StlModelProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
 
@@ -70,12 +69,52 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
   const [expanded, setExpanded] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [hasError, setHasError] = useState(false);
+  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setHasError(false);
+    setGeometry(null);
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buffer) => {
+        if (cancelled) return;
+        const loader = new STLLoader();
+        const geo = loader.parse(buffer);
+        geo.computeVertexNormals();
+        setGeometry(geo);
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
 
   if (hasError) {
     return (
       <div className="w-full rounded-xl border border-gray-200 bg-gray-50 p-6 text-center">
         <p className="text-sm text-gray-500">Unable to load 3D preview for this file.</p>
         {fileName && <p className="text-xs text-gray-400 mt-1">{fileName}</p>}
+      </div>
+    );
+  }
+
+  if (loading || !geometry) {
+    return (
+      <div className="w-full rounded-xl border border-gray-200 bg-gradient-to-b from-[#f0f5fa] to-[#e4ecf4] h-[400px] relative">
+        <LoadingFallback />
       </div>
     );
   }
@@ -126,34 +165,32 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
       {/* 3D Canvas */}
       <div className={expanded ? "h-full" : "h-[400px]"}>
         <ErrorBoundary onError={() => setHasError(true)}>
-          <Suspense fallback={<LoadingFallback />}>
-            <Canvas
-              camera={{ position: [80, 60, 80], fov: 45, near: 0.1, far: 5000 }}
-              shadows
-              gl={{ antialias: true, alpha: true }}
-              onCreated={({ gl }) => {
-                gl.toneMapping = THREE.ACESFilmicToneMapping;
-                gl.toneMappingExposure = 1.2;
-              }}
-            >
-              <ambientLight intensity={0.6} />
-              <directionalLight position={[50, 80, 50]} intensity={1} castShadow />
-              <directionalLight position={[-30, 40, -30]} intensity={0.4} />
-              <pointLight position={[0, 100, 0]} intensity={0.3} />
+          <Canvas
+            camera={{ position: [80, 60, 80], fov: 45, near: 0.1, far: 5000 }}
+            shadows
+            gl={{ antialias: true, alpha: true }}
+            onCreated={({ gl }) => {
+              gl.toneMapping = THREE.ACESFilmicToneMapping;
+              gl.toneMappingExposure = 1.2;
+            }}
+          >
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[50, 80, 50]} intensity={1} castShadow />
+            <directionalLight position={[-30, 40, -30]} intensity={0.4} />
+            <pointLight position={[0, 100, 0]} intensity={0.3} />
 
-              <StlModel url={url} resetKey={resetKey} />
+            <StlModel geometry={geometry} resetKey={resetKey} />
 
-              <OrbitControls
-                enableDamping
-                dampingFactor={0.08}
-                minDistance={20}
-                maxDistance={500}
-                enablePan
-                makeDefault
-              />
-              <gridHelper args={[200, 20, "#d0d5dd", "#e8ecf0"]} position={[0, -25, 0]} />
-            </Canvas>
-          </Suspense>
+            <OrbitControls
+              enableDamping
+              dampingFactor={0.08}
+              minDistance={20}
+              maxDistance={500}
+              enablePan
+              makeDefault
+            />
+            <gridHelper args={[200, 20, "#d0d5dd", "#e8ecf0"]} position={[0, -25, 0]} />
+          </Canvas>
         </ErrorBoundary>
       </div>
 
