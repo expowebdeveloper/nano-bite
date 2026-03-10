@@ -37,6 +37,7 @@ createdCases CaseRecord[] @relation("CreatedBy")
   resetPasswordToken  String?
   resetPasswordExpires DateTime?
   dentistProfile      DentistProfile?
+  chatMessages        ChatMessage[]
 }
 
 enum Role {
@@ -191,6 +192,15 @@ model ActivityLog {
   createdAt   DateTime @default(now())
 
   caseRecord  CaseRecord @relation(fields: [caseId], references: [caseId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  roomId   String   @default("admin-qc")
+  senderId String
+  sender   User     @relation(fields: [senderId], references: [id])
+  content  String
+  createdAt DateTime @default(now())
 }
 
 model DentistProfile {

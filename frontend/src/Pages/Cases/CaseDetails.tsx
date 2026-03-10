@@ -57,7 +57,8 @@ const { data: designerAttachmentsData } =
       for (const file of stlFiles) {
         if (cancelled) break;
         try {
-          const url = file.url || (await getDownloadUrl(file.key));
+          // Always use presigned URL for STL so private S3 buckets work (direct file.url would 403)
+          const url = await getDownloadUrl(file.key);
           if (!cancelled) {
             setStlUrls((prev) => ({ ...prev, [file.key]: url }));
           }
