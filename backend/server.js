@@ -22,12 +22,17 @@ app.use(express.json());
 
 createDefaultAdmin();
 createDefaultDentist();
-// Routes
+// Routes (with /api for direct access; without /api for proxy that strips prefix)
 app.use('/api/accounts', authRoutes);
+app.use('/accounts', authRoutes);
 app.use('/api/qc', qcRoutes);
+app.use('/qc', qcRoutes);
 app.use('/api/cases', caseRoutes);
+app.use('/cases', caseRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/uploads', uploadRoutes);
 app.use("/api/users", userRoutes);
+app.use("/users", userRoutes);
 
 
 // Basic route
