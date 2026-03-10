@@ -133,7 +133,16 @@ const useUser = () => {
     },
     initialData: [],
     refetchOnWindowFocus: false,
-    // staleTime: 5 * 60 * 1000, // cache designers
+  });
+
+  const usersListQuery = useQuery({
+    queryKey: ["users", "list", user?.role],
+    enabled: !!user?.token && user?.role === "ADMIN",
+    queryFn: async () => {
+      const response = await request.get("/users/list");
+      return response.data?.data ?? [];
+    },
+    refetchOnWindowFocus: false,
   });
 
   const profileQuery = useQuery({
@@ -196,6 +205,7 @@ const assignCase = useMutation({
     setPassword,
     verifyEmail,
     designersQuery,
+    usersListQuery,
     assignCase,
     profileQuery,
     updateProfileMutation,

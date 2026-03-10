@@ -469,7 +469,7 @@ export const SIDE_BAR_ITEMS = [
     name: "Messages",
     url: "/messages",
     icon: () => <MessageSquareMore className="w-5 h-5" />,
-    allowedRoles: ["ADMIN", "Dentist", "Designer", "QC"],
+    allowedRoles: ["ADMIN", "QC"],
   },
   {
     name: "Calendar",
