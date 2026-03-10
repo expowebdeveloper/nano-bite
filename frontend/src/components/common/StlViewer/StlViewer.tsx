@@ -1,53 +1,40 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Center } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import * as THREE from "three";
 import { Maximize2, Minimize2, RotateCcw } from "lucide-react";
 
 interface StlModelProps {
   geometry: THREE.BufferGeometry;
+  radius: number;
   resetKey: number;
 }
 
-const StlModel = ({ geometry, resetKey }: StlModelProps) => {
+const StlModel = ({ geometry, radius, resetKey }: StlModelProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
 
   useEffect(() => {
-    if (!geometry) return;
-
-    geometry.computeBoundingBox();
-    const bbox = geometry.boundingBox;
-    if (!bbox) return;
-
-    const size = new THREE.Vector3();
-    bbox.getSize(size);
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 50 / maxDim;
-
-    if (meshRef.current) {
-      meshRef.current.scale.set(scale, scale, scale);
-    }
-
-    const distance = 120;
-    camera.position.set(distance * 0.7, distance * 0.5, distance * 0.7);
+    // Position camera so the model fills the viewport
+    const fov = 45;
+    const dist = radius / Math.sin((fov / 2) * (Math.PI / 180));
+    camera.position.set(dist * 0.6, dist * 0.4, dist * 0.6);
     camera.lookAt(0, 0, 0);
-  }, [geometry, camera, resetKey]);
+    camera.near = radius * 0.01;
+    camera.far = radius * 100;
+    camera.updateProjectionMatrix();
+  }, [radius, camera, resetKey]);
 
   return (
-    <Center>
-      <mesh ref={meshRef} geometry={geometry} castShadow receiveShadow>
-        <meshPhysicalMaterial
-          color="#c8d8e8"
-          metalness={0.1}
-          roughness={0.4}
-          clearcoat={0.3}
-          clearcoatRoughness={0.2}
-          envMapIntensity={0.8}
-        />
-      </mesh>
-    </Center>
+    <mesh ref={meshRef} geometry={geometry} castShadow receiveShadow>
+      <meshStandardMaterial
+        color="#e0e0e0"
+        roughness={0.5}
+        metalness={0.05}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
   );
 };
 
@@ -70,6 +57,7 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
   const [resetKey, setResetKey] = useState(0);
   const [hasError, setHasError] = useState(false);
   const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [boundingRadius, setBoundingRadius] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,6 +76,20 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
         const loader = new STLLoader();
         const geo = loader.parse(buffer);
         geo.computeVertexNormals();
+
+        // Center geometry at origin (do this once here, not in the render component)
+        geo.computeBoundingBox();
+        const bbox = geo.boundingBox;
+        if (bbox) {
+          const center = new THREE.Vector3();
+          bbox.getCenter(center);
+          geo.translate(-center.x, -center.y, -center.z);
+        }
+
+        // Compute bounding sphere for camera auto-fit
+        geo.computeBoundingSphere();
+        const radius = geo.boundingSphere?.radius || 1;
+        setBoundingRadius(radius);
         setGeometry(geo);
       })
       .catch(() => {
@@ -121,7 +123,7 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
 
   return (
     <div
-      className={`relative rounded-xl border border-gray-200 bg-gradient-to-b from-[#f0f5fa] to-[#e4ecf4] overflow-hidden transition-all duration-300 ${
+      className={`relative rounded-xl border border-gray-200 bg-gradient-to-b from-[#f8fafb] to-[#eef2f6] overflow-hidden transition-all duration-300 ${
         expanded ? "fixed inset-4 z-50 rounded-2xl shadow-2xl" : "w-full"
       }`}
     >
@@ -166,30 +168,33 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
       <div className={expanded ? "h-full" : "h-[400px]"}>
         <ErrorBoundary onError={() => setHasError(true)}>
           <Canvas
-            camera={{ position: [80, 60, 80], fov: 45, near: 0.1, far: 5000 }}
+            camera={{ position: [0, 0, 100], fov: 45 }}
             shadows
             gl={{ antialias: true, alpha: true }}
             onCreated={({ gl }) => {
               gl.toneMapping = THREE.ACESFilmicToneMapping;
-              gl.toneMappingExposure = 1.2;
+              gl.toneMappingExposure = 1.5;
             }}
           >
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[50, 80, 50]} intensity={1} castShadow />
-            <directionalLight position={[-30, 40, -30]} intensity={0.4} />
-            <pointLight position={[0, 100, 0]} intensity={0.3} />
+            {/* Strong ambient for even base lighting */}
+            <ambientLight intensity={0.8} />
+            {/* Key light from front-top-right */}
+            <directionalLight position={[1, 2, 3]} intensity={1.5} castShadow />
+            {/* Fill light from left */}
+            <directionalLight position={[-2, 1, -1]} intensity={0.6} />
+            {/* Rim light from behind */}
+            <directionalLight position={[0, -1, -2]} intensity={0.3} />
+            {/* Top light */}
+            <hemisphereLight args={["#ffffff", "#d0d0d0", 0.6]} />
 
-            <StlModel geometry={geometry} resetKey={resetKey} />
+            <StlModel geometry={geometry} radius={boundingRadius} resetKey={resetKey} />
 
             <OrbitControls
               enableDamping
               dampingFactor={0.08}
-              minDistance={20}
-              maxDistance={500}
               enablePan
               makeDefault
             />
-            <gridHelper args={[200, 20, "#d0d5dd", "#e8ecf0"]} position={[0, -25, 0]} />
           </Canvas>
         </ErrorBoundary>
       </div>
