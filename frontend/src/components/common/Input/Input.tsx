@@ -11,18 +11,20 @@ interface InputFieldProps<T extends FieldValues> {
     placeholder?: string;
     type?: string;
     disabled?: boolean;
+    className?: string;
   }
   
   const Input = <T extends FieldValues>({
-  label, 
-  fieldName, 
-  formConfig, 
+  label,
+  fieldName,
+  formConfig,
   rules,
   customClass = "",
   placeholder,
   type,
   disabled,
-  ...props 
+  className = "",
+  ...props
 }: InputFieldProps<T>) => {
   const {
     register,
@@ -34,7 +36,7 @@ interface InputFieldProps<T extends FieldValues> {
   const inputClasses = `w-full h-[50px] bg-[#f2f6f8] rounded-2xl border border-solid border-[#dde4ec] [font-family:'Inter_Tight',Helvetica] font-normal text-[14px] placeholder:text-[14px] placeholder:text-[#6C6C6C] px-4 ${customClass}`;
 
   return (
-    <div>
+    <div className={className}>
       {label && <label className="block text-sm font-semibold text-[#6C6C6C] mb-1">{label}</label>}
       <input
         {...register(fieldName, rules)}

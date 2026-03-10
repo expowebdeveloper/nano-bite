@@ -47,7 +47,7 @@ const Settings = () => {
     defaultValues: defaultProfile as UserProfile,
   });
 
-  const { handleSubmit, setValue, reset } = formConfig;
+  const { handleSubmit, reset } = formConfig;
 
   useEffect(() => {
     if (!profileQuery.data) return;

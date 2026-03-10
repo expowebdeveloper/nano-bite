@@ -61,7 +61,7 @@ export interface PriceLine {
 export interface DenturePricingResult {
   breakdown: PriceLine[];
   rushFee: number;
-  rushLabel: RushTurnaround;
+  rushLabel: string;
   subtotal: number;
   total: number;
 }
@@ -72,7 +72,7 @@ function getArchCount(arch?: string): number {
   return 1;
 }
 
-export function getRushFromDueDate(dueDate?: string): { fee: number; label: RushTurnaround } {
+export function getRushFromDueDate(dueDate?: string): { fee: number; label: string } {
   if (!dueDate) return { fee: DENTURE_PRICES.rush.standard, label: "Standard" };
   const now = new Date();
   const due = new Date(dueDate);
@@ -152,7 +152,7 @@ export function calculateDenturePrice(input: DenturePricingInput): DenturePricin
   return {
     breakdown,
     rushFee,
-    rushLabel: rushLabel as RushTurnaround,
+    rushLabel,
     subtotal,
     total: subtotal + rushFee,
   };
