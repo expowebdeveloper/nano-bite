@@ -7,6 +7,7 @@ export const stringFields = [
   "dueDate",
   "estheticNotes",
   "additionalNotes",
+  "cloudFolderLink",
   "toothType",
   "finalShade",
   "stumpShade",

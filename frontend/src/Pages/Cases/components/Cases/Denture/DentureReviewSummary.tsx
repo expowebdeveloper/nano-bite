@@ -1,8 +1,9 @@
 import { UseFormReturn } from "react-hook-form";
 import { CaseFormValues } from "../../../../../Constants/Constants";
 import { CommanHeading } from "../../../CommanHeading";
-import { Edit, Plus } from "lucide-react";
-import { useState } from "react";
+import { Edit, Plus, DollarSign } from "lucide-react";
+import { useState, useMemo } from "react";
+import { calculateDenturePrice, formValuesToPricingInput } from "../../../../../utils/denturePricing";
 
 interface DentureReviewSummaryProps {
     formConfig: UseFormReturn<CaseFormValues>;
@@ -194,6 +195,11 @@ export const DentureReviewSummary = ({
 
     const summaryItems = getSummaryItems();
 
+    const pricing = useMemo(() => {
+        const input = formValuesToPricingInput(formValues, selectedOption ?? undefined);
+        return calculateDenturePrice(input);
+    }, [formValues, selectedOption]);
+
     return (
         <div className="bg-white p-6 md:p-8 space-y-6">
             <CommanHeading
@@ -205,6 +211,32 @@ export const DentureReviewSummary = ({
                 <p className="text-gray-600 text-sm">
                     This is all the information that the lab tech will see. Please review and make any necessary edits.
                 </p>
+            </div>
+
+            {/* Practice Price Guide – estimated lab fee */}
+            <div className="rounded-2xl border border-[#d6e8f5] bg-[#f0f7ff] p-5 md:p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <DollarSign className="w-5 h-5 text-[#0B75C9]" />
+                    <h3 className="text-lg font-semibold text-gray-900">Estimated lab fee</h3>
+                </div>
+                {pricing.breakdown.length > 0 ? (
+                    <div className="space-y-2 text-sm">
+                        {pricing.breakdown.map((line, i) => (
+                            <div key={i} className="flex justify-between text-gray-700">
+                                <span>{line.label}</span>
+                                <span className="font-medium">${line.amount.toFixed(2)}</span>
+                            </div>
+                        ))}
+                        <div className="flex justify-between text-base font-bold text-gray-900 pt-3 border-t-2 border-[#2B89D2] mt-2">
+                            <span>Total</span>
+                            <span>${pricing.total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="text-sm text-gray-600">
+                        Select denture type and options above to see the estimated fee. Rush fees apply based on due date (Same Day 0–24h: $50, Next Day 24–48h: $25, Standard 48+h: $0).
+                    </p>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">

@@ -80,8 +80,30 @@ export type Login = {
     url?: string;
   }
 
-  export interface UserProfile {
-    id: string;
+  export interface DentistProfilePayload {
+    licenseNumber?: string | null;
+    assistantName?: string | null;
+    assistantPhone?: string | null;
+    officeManager?: string | null;
+    officeManagerPhone?: string | null;
+    whoApprovesDesigns?: string | null;
+    contactTimeWindow?: string | null;
+    standardOcclusalPreference?: string | null;
+    standardShadesUsed?: string | null;
+    clinicName?: string | null;
+    clinicPhone?: string | null;
+    clinicAddress?: string | null;
+    clinicState?: string | null;
+    clinicCity?: string | null;
+    zipcode?: string | null;
+    scannerType?: string | null;
+    preferredContactMethod?: string[];
+    specialty?: string[];
+    preferredFileTransfer?: string[];
+  }
+
+  export interface UserProfile extends DentistProfilePayload {
+    id?: string;
     email: string;
     fullName: string;
     phone_number?: string;
@@ -92,12 +114,14 @@ export type Login = {
     country?: string;
     role?: string;
     createdAt?: string;
+    dentistProfile?: DentistProfilePayload | null;
   }
 
   export interface CaseRecord {
     id: string;
     caseId: string;
     status: string;
+    isPaid?: boolean;
     caseType?: string;
     doctorSignature?: string;
     date?: string;
@@ -115,6 +139,7 @@ export type Login = {
     requiredScans?: string[];
     additionalNotes?: string;
     attachments?: CaseAttachment[];
+    cloudFolderLink?: string | null;
     toothType?: string;
     finalShade?: string;
     stumpShade?: string;

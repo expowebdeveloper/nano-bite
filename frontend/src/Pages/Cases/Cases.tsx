@@ -13,6 +13,7 @@ import { confirmationMessage } from "../../components/common/ToastMessage";
 import useUploads from "../../hooks/useUploads";
 import type { CaseAttachment } from "../../interfaces/types";
 import useCases from "../../hooks/useCases";
+import useUser from "../../hooks/useUser";
 // import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 // import { useSelector } from "react-redux";
@@ -90,7 +91,12 @@ const Cases = () => {
   const { uploadFile, uploading } = useUploads();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { createCase } = useCases();
+  const { profileQuery } = useUser();
   const navigate = useNavigate();
+
+  const showCloudFolderOption =
+    (profileQuery.data as { dentistProfile?: { preferredFileTransfer?: string[] } } | undefined)
+      ?.dentistProfile?.preferredFileTransfer?.includes("Cloud Shared Folder") ?? false;
 
   // const { casesListQuery} = useCases();
   // const { data, isLoading, error } = casesListQuery();
@@ -376,6 +382,7 @@ const Cases = () => {
             dateValue={signatureDate}
             onUploadClick={() => setShowUploadModal(true)}
             onNext={() => setCurrentStep(2)}
+            showCloudFolderOption={showCloudFolderOption}
           />
         );
       case 2:

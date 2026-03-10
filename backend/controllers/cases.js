@@ -510,6 +510,51 @@ export const casesController = {
       });
     }
   },
+  getCalendarCases: async (req, res) => {
+    try {
+      const userId = req.user?.data?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+      const me = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+      if (!me) {
+        return res.status(401).json({ success: false, message: "User not found" });
+      }
+
+      const year = parseInt(req.query.year, 10) || new Date().getFullYear();
+      const month = parseInt(req.query.month, 10);
+      if (!month || month < 1 || month > 12) {
+        return res.status(400).json({ success: false, message: "Valid month (1-12) required" });
+      }
+      const lastDay = new Date(year, month, 0).getDate();
+      const start = `${year}-${String(month).padStart(2, "0")}-01`;
+      const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+      let where = {};
+      if (me.role === "ADMIN" || me.role === "QC") {
+        where = {};
+      } else if (me.role === "Designer") {
+        where = { assignedToDesignerId: userId };
+      } else {
+        where = { createdById: userId };
+      }
+      where.dueDate = { gte: start, lte: end };
+
+      const cases = await prisma.caseRecord.findMany({
+        where,
+        select: { caseId: true, dueDate: true, patientName: true, status: true, caseType: true },
+        orderBy: { dueDate: "asc" },
+      });
+      res.status(200).json({ success: true, data: cases });
+    } catch (error) {
+      console.error("Calendar cases error:", error);
+      res.status(500).json({ success: false, message: "Failed to fetch calendar cases", error: error.message });
+    }
+  },
+
   listCasesForDesigner: async (req, res) => {
     try {
       const designerId = req.user.data.id;
@@ -707,6 +752,40 @@ export const casesController = {
         message: "Unable to fetch case.",
         error: error.message,
       });
+    }
+  },
+
+  markCasePaid: async (req, res) => {
+    try {
+      const { caseId } = req.params;
+      const userId = req.user?.data?.id;
+      if (!caseId || !userId) {
+        return res.status(400).json({ success: false, message: "caseId required" });
+      }
+      const record = await prisma.caseRecord.findUnique({
+        where: { caseId },
+        select: { id: true, createdById: true, status: true },
+      });
+      if (!record) {
+        return res.status(404).json({ success: false, message: "Case not found" });
+      }
+      const me = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+      const isOwner = record.createdById === userId;
+      const isAdmin = me?.role === "ADMIN";
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ success: false, message: "Only case owner or Admin can mark payment" });
+      }
+      await prisma.caseRecord.update({
+        where: { caseId },
+        data: { isPaid: true },
+      });
+      res.status(200).json({ success: true, message: "Case marked as paid" });
+    } catch (error) {
+      console.error("Mark case paid error:", error);
+      res.status(500).json({ success: false, message: "Failed to update payment status" });
     }
   },
 };

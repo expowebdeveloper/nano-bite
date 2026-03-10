@@ -321,6 +321,7 @@ export type CaseFormValues = {
   partialTissueShade?: string;
   // Uploads
   attachments: CaseAttachment[];
+  cloudFolderLink?: string;
 };
 
 // Case Form Default Values
@@ -435,6 +436,7 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   partialRequiredScans: [],
   // Uploads
   attachments: [],
+  cloudFolderLink: "",
 };
 
 

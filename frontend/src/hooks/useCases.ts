@@ -6,9 +6,19 @@ import type { CaseRecord } from "../interfaces/types";
 import { useSelector } from "react-redux";
 
 export type CasesListParams = {
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
   search?: string;
+  calendarYear?: number;
+  calendarMonth?: number;
+};
+
+export type CalendarCase = {
+  caseId: string;
+  dueDate: string;
+  patientName: string;
+  status: string;
+  caseType?: string;
 };
 
 const useCases = (params?: CasesListParams) => {
@@ -19,6 +29,8 @@ const useCases = (params?: CasesListParams) => {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 10;
   const search = params?.search ?? "";
+  const calendarYear = params?.calendarYear;
+  const calendarMonth = params?.calendarMonth;
 
   /*
   const LOCAL_STORAGE_KEY = "nano-bite-cases";
@@ -99,6 +111,18 @@ const useCases = (params?: CasesListParams) => {
         completedCount: response.data?.completedCount,
       };
     },
+    refetchOnWindowFocus: false,
+  });
+
+  const calendarCasesQuery = useQuery({
+    queryKey: ["cases", "calendar", calendarYear, calendarMonth],
+    queryFn: async (): Promise<CalendarCase[]> => {
+      const y = calendarYear ?? new Date().getFullYear();
+      const m = calendarMonth ?? new Date().getMonth() + 1;
+      const response = await request.get("/cases/calendar", { params: { year: y, month: m } });
+      return response.data?.data ?? [];
+    },
+    enabled: typeof calendarYear === "number" && typeof calendarMonth === "number",
     refetchOnWindowFocus: false,
   });
 
@@ -187,11 +211,32 @@ const useCases = (params?: CasesListParams) => {
     },
   });
 
+  const markCasePaid = useMutation({
+    mutationFn: async (caseId: string) => {
+      const response = await request.patch(`/cases/${caseId}/payment`);
+      return response.data;
+    },
+    onSuccess: (_data, caseId) => {
+      confirmationMessage("Payment recorded. You can now download the files.", "success");
+      queryClient.invalidateQueries({ queryKey: ["cases", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    },
+    onError: (error: any) => {
+      showErrorMessage(
+        error?.response?.data?.message || "Failed to update payment status"
+      );
+    },
+  });
+
   return {
     createCase,
     casesListQuery,
+    calendarCasesQuery,
     caseDetailsQuery,
-    updateCaseStatus, designerAttachmentsQuery, uploadDesignerAttachments
+    updateCaseStatus,
+    designerAttachmentsQuery,
+    uploadDesignerAttachments,
+    markCasePaid,
   };
 };
 

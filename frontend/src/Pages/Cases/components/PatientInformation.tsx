@@ -19,14 +19,17 @@ interface PatientInformationProps {
   onNext?: () => void;
   doctorSignatureValue?: string;
   dateValue?: string;
+  /** When true (dentist selected "Cloud Shared Folder" at signup), button label is "Upload files"; otherwise "Upload Link or Cloud Folder" */
+  showCloudFolderOption?: boolean;
 }
 
 const PatientInformation = ({
   formConfig,
   onUploadClick,
+  showCloudFolderOption = false,
 }: PatientInformationProps) => {
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6 ddd">
+    <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Patient Information</h2>
 
       <div className="space-y-6">
@@ -147,10 +150,19 @@ const PatientInformation = ({
               },
             }}
           />
+          <div className="space-y-2">
+            <Input
+              label="Cloud folder link (optional)"
+              fieldName="cloudFolderLink"
+              formConfig={formConfig}
+              placeholder="https://drive.google.com/... or paste your shared folder link"
+            />
+            <p className="text-sm text-gray-600">Or upload files using the button below.</p>
+          </div>
           <div className="flex justify-end">
             <Button
               btnType="button"
-              btnText="Upload Link or Cloud Folder"
+              btnText={showCloudFolderOption ? "Upload files" : "Upload Link or Cloud Folder"}
               customClass="!py-2 !px-4 rounded-lg bg-transparent text-[#0B75C9] border border-[#0B75C9] hover:bg-[#0B75C9] hover:text-white"
               backGround={false}
               border={false}

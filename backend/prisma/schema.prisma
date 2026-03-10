@@ -51,6 +51,7 @@ model CaseRecord {
   id                     String   @id @default(uuid())
   caseId                 String   @unique
   status                 String   @default("Submitted")
+  isPaid                 Boolean  @default(false)
 
   // 🔹 Assignment
   assignedToDesignerId   String?
@@ -79,6 +80,7 @@ model CaseRecord {
   scans                  String[] @default([])
   additionalNotes        String?
   attachments            Json?
+  cloudFolderLink        String?
   designersAttachments   Json?
   qcComment              String?
   toothType              String?

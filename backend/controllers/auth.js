@@ -419,22 +419,11 @@ const userProfile = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        role: true,
-        email: true,
-        fullName: true,
-        phone_number: true,
-        address: true,
-        state: true,
-        city: true,
-        country: true,
-        zipCode: true,
-        createdAt: true,
+      include: {
+        dentistProfile: true,
       },
     });
 
-    console.log("Fetched user profile:", user);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -442,9 +431,10 @@ const userProfile = async (req, res) => {
       });
     }
 
+    const { password, ...safeUser } = user;
     res.status(200).json({
       success: true,
-      user,
+      user: safeUser,
     });
   } catch (error) {
     console.error("User profile error:", error);
@@ -459,29 +449,137 @@ const userProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.data.id;
-    const { fullName, phone_number, address, state, city, zipCode, country } = req.body;
+    const {
+      fullName,
+      phone_number,
+      address,
+      state,
+      city,
+      zipCode,
+      country,
+      licenseNumber,
+      assistantName,
+      assistantPhone,
+      officeManager,
+      officeManagerPhone,
+      whoApprovesDesigns,
+      contactTimeWindow,
+      standardOcclusalPreference,
+      standardShadesUsed,
+      clinicName,
+      clinicPhone,
+      clinicAddress,
+      clinicState,
+      clinicCity,
+      zipcode,
+      scannerType,
+      preferredContactMethod,
+      specialty,
+      preferredFileTransfer,
+    } = req.body;
 
-    const updatedUser = await prisma.user.update({
+    const userData = {
+      ...(fullName != null && { fullName }),
+      ...(phone_number !== undefined && { phone_number: phone_number || "" }),
+      ...(address !== undefined && { address: address || "" }),
+      ...(state !== undefined && { state: state || "" }),
+      ...(city !== undefined && { city: city || "" }),
+      ...(zipCode !== undefined && { zipCode: zipCode || "" }),
+      ...(country !== undefined && { country: country || "" }),
+    };
+
+    await prisma.user.update({
       where: { id: userId },
-      data: { fullName, phone_number, address, state, city, zipCode, country },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        phone_number: true,
-        address: true,
-        state: true,
-        city: true,
-        country: true,
-        zipCode: true,
-        createdAt: true,
-      },
+      data: userData,
     });
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (currentUser?.role === "Dentist") {
+      const dpData = {
+        userId,
+        ...(licenseNumber !== undefined && { licenseNumber: licenseNumber && licenseNumber.trim() ? licenseNumber.trim() : null }),
+        ...(assistantName !== undefined && { assistantName: assistantName && assistantName.trim() ? assistantName.trim() : null }),
+        ...(assistantPhone !== undefined && { assistantPhone: assistantPhone && assistantPhone.trim() ? assistantPhone.trim() : null }),
+        ...(officeManager !== undefined && { officeManager: officeManager && officeManager.trim() ? officeManager.trim() : null }),
+        ...(officeManagerPhone !== undefined && { officeManagerPhone: officeManagerPhone && officeManagerPhone.trim() ? officeManagerPhone.trim() : null }),
+        ...(whoApprovesDesigns !== undefined && { whoApprovesDesigns: whoApprovesDesigns && whoApprovesDesigns.trim() ? whoApprovesDesigns.trim() : null }),
+        ...(contactTimeWindow !== undefined && { contactTimeWindow: contactTimeWindow && contactTimeWindow.trim() ? contactTimeWindow.trim() : null }),
+        ...(standardOcclusalPreference !== undefined && { standardOcclusalPreference: standardOcclusalPreference && standardOcclusalPreference.trim() ? standardOcclusalPreference.trim() : null }),
+        ...(standardShadesUsed !== undefined && { standardShadesUsed: standardShadesUsed && standardShadesUsed.trim() ? standardShadesUsed.trim() : null }),
+        ...(clinicName !== undefined && { clinicName: clinicName && clinicName.trim() ? clinicName.trim() : null }),
+        ...(clinicPhone !== undefined && { clinicPhone: clinicPhone && clinicPhone.trim() ? clinicPhone.trim() : null }),
+        ...(clinicAddress !== undefined && { clinicAddress: clinicAddress && clinicAddress.trim() ? clinicAddress.trim() : null }),
+        ...(clinicState !== undefined && { clinicState: clinicState && clinicState.trim() ? clinicState.trim() : null }),
+        ...(clinicCity !== undefined && { clinicCity: clinicCity && clinicCity.trim() ? clinicCity.trim() : null }),
+        ...(zipcode !== undefined && { zipcode: zipcode && zipcode.trim() ? zipcode.trim() : null }),
+        ...(scannerType !== undefined && { scannerType: scannerType && scannerType.trim() ? scannerType.trim() : null }),
+        ...(Array.isArray(preferredContactMethod) && { preferredContactMethod }),
+        ...(Array.isArray(specialty) && { specialty }),
+        ...(Array.isArray(preferredFileTransfer) && { preferredFileTransfer }),
+      };
+      const createData = {
+        userId,
+        licenseNumber: sanitizeString(licenseNumber) ?? null,
+        assistantName: sanitizeString(assistantName) ?? null,
+        assistantPhone: sanitizeString(assistantPhone) ?? null,
+        officeManager: sanitizeString(officeManager) ?? null,
+        officeManagerPhone: sanitizeString(officeManagerPhone) ?? null,
+        whoApprovesDesigns: sanitizeString(whoApprovesDesigns) ?? null,
+        contactTimeWindow: sanitizeString(contactTimeWindow) ?? null,
+        standardOcclusalPreference: sanitizeString(standardOcclusalPreference) ?? null,
+        standardShadesUsed: sanitizeString(standardShadesUsed) ?? null,
+        clinicName: sanitizeString(clinicName) ?? null,
+        clinicPhone: sanitizeString(clinicPhone) ?? null,
+        clinicAddress: sanitizeString(clinicAddress) ?? null,
+        clinicState: sanitizeString(clinicState) ?? null,
+        clinicCity: sanitizeString(clinicCity) ?? null,
+        zipcode: sanitizeString(zipcode) ?? null,
+        scannerType: sanitizeString(scannerType) ?? null,
+        preferredContactMethod: sanitizeArray(preferredContactMethod),
+        specialty: sanitizeArray(specialty),
+        preferredFileTransfer: sanitizeArray(preferredFileTransfer),
+      };
+      await prisma.dentistProfile.upsert({
+        where: { userId },
+        create: createData,
+        update: {
+          licenseNumber: createData.licenseNumber,
+          assistantName: createData.assistantName,
+          assistantPhone: createData.assistantPhone,
+          officeManager: createData.officeManager,
+          officeManagerPhone: createData.officeManagerPhone,
+          whoApprovesDesigns: createData.whoApprovesDesigns,
+          contactTimeWindow: createData.contactTimeWindow,
+          standardOcclusalPreference: createData.standardOcclusalPreference,
+          standardShadesUsed: createData.standardShadesUsed,
+          clinicName: createData.clinicName,
+          clinicPhone: createData.clinicPhone,
+          clinicAddress: createData.clinicAddress,
+          clinicState: createData.clinicState,
+          clinicCity: createData.clinicCity,
+          zipcode: createData.zipcode,
+          scannerType: createData.scannerType,
+          preferredContactMethod: createData.preferredContactMethod,
+          specialty: createData.specialty,
+          preferredFileTransfer: createData.preferredFileTransfer,
+        },
+      });
+    }
+
+    const withDp = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { dentistProfile: true },
+    });
+
+    const { password: _p, ...safeUser } = withDp || {};
     res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      user: updatedUser,
+      user: safeUser,
     });
   } catch (error) {
     console.error("Update profile error:", error);

@@ -24,10 +24,12 @@ router.get(
 router.post("/:caseId/assign",authenticate,requireAdminOrQc, casesController.assignCaseToDesigner
 );
 router.get("/", authenticate, casesController.listCases);
+router.get("/calendar", authenticate, casesController.getCalendarCases);
 router.get("/admin/all", authenticate,requireAdminOrQc, casesController.listAllCasesForAdmin);
 router.get("/designer", authenticate, casesController.listCasesForDesigner);
 router.get("/:caseId", authenticate, casesController.getCase);
 router.patch("/:caseId/status", authenticate, casesController.updateCaseStatus);
+router.patch("/:caseId/payment", authenticate, casesController.markCasePaid);
 
 
 

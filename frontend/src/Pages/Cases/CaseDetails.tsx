@@ -1,8 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import useCases from "../../hooks/useCases";
 import useUploads from "../../hooks/useUploads";
-import {  useMemo, useRef, useState, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
+import { useMemo, useRef, useState, useEffect } from "react";
+import { ArrowLeft, Download, Lock } from "lucide-react";
 import Button from "../../components/common/Buttons/Button";
 import Modal from "../../components/common/Modal/Modal";
 import { confirmationMessage } from "../../components/common/ToastMessage";
@@ -374,16 +374,15 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
       setDownloadingKey(null);
     }
   };
-const getStatusButtonText = (status?: string) => {
+
+  const getStatusButtonText = (status?: string) => {
   switch (status) {
     case "Assigned":
       return "Start In Design";
     case "In Design":
-      return "Design Complete?";
-    case "QC":
-      return "Assign To QC";
-      
-   
+      return "Send to QC";
+    default:
+      return "";
   }
 };
 
@@ -411,13 +410,17 @@ const getStatusButtonText = (status?: string) => {
                 {record?.status}
           </span>
           
-                            {user?.role === "Designer" &&   (record?.status === "Assigned" ||
-   record?.status === "In Design" ||
-   record?.status === "QC") && <button className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100"
-                            onClick={handleUpdateStatus}
-                            >
-  {getStatusButtonText(record?.status)}
-</button>}
+                            {user?.role === "Designer" && (record?.status === "Assigned" || record?.status === "In Design") && (
+                              <button
+                                className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100"
+                                onClick={handleUpdateStatus}
+                              >
+                                {getStatusButtonText(record?.status)}
+                              </button>
+                            )}
+                            {user?.role === "Designer" && record?.status === "QC" && (
+                              <span className="text-sm text-gray-600">Pending QC review</span>
+                            )}
 
               
        
@@ -502,6 +505,74 @@ const getStatusButtonText = (status?: string) => {
                 <p className="text-sm text-gray-600">No attachments</p>
               )}
             </div>
+
+            {/* Delivered files (QC-approved): Dentist can preview always; download only after payment */}
+            {user.role === "Dentist" && (record.status === "Ready" || record.status === "Completed") && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">Delivered files (QC-approved)</h3>
+                <p className="text-sm text-gray-600">
+                  Files are previewed below. Download is available after payment.
+                </p>
+                {(designerAttachmentsData?.designersAttachments?.length ?? 0) > 0 ? (
+                  <>
+                    <ul className="space-y-3">
+                      {(designerAttachmentsData?.designersAttachments ?? []).map((file: CaseAttachment) => (
+                        <li
+                          key={file.key}
+                          className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-800 border border-gray-100 rounded-xl p-3 bg-gray-50/50"
+                        >
+                          <div className="flex items-center gap-2 truncate min-w-0">
+                            <span className="inline-flex rounded-full bg-[#e8f4ff] px-2 py-1 text-[11px] font-semibold uppercase text-[#0B75C9] shrink-0">
+                              {file.type}
+                            </span>
+                            <span className="truncate">{file.name}</span>
+                            <span className="text-gray-500 shrink-0">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {record.isPaid ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDownload(file.key)}
+                                disabled={downloadingKey === file.key}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2B89D2] text-white hover:bg-[#2369a8] disabled:opacity-60 text-sm font-medium"
+                              >
+                                <Download size={14} />
+                                {downloadingKey === file.key ? "Preparing..." : "Download"}
+                              </button>
+                            ) : (
+                              <Link
+                                to="#"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-sm font-medium"
+                              >
+                                <Lock size={14} />
+                                Pay to download
+                              </Link>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {(designerAttachmentsData?.designersAttachments ?? []).filter(
+                      (f: CaseAttachment) => f.type === "stl" && stlUrls[f.key]
+                    ).length > 0 && (
+                      <div className="space-y-2 mt-4">
+                        <h4 className="text-sm font-semibold text-gray-700">3D preview</h4>
+                        {(designerAttachmentsData?.designersAttachments ?? [])
+                          .filter((file: CaseAttachment) => file.type === "stl" && stlUrls[file.key])
+                          .map((file: CaseAttachment) => (
+                            <div key={`delivered-stl-${file.key}`} className="mt-2">
+                              <StlViewer url={stlUrls[file.key]} fileName={file.name} />
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-600">No delivered files yet.</p>
+                )}
+              </div>
+            )}
+
             {record.qcComment && (
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-gray-900">QC Comment</h3>
