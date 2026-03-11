@@ -221,19 +221,29 @@ const Cases = () => {
   };
 
 
+  // Track whether we're editing from the review page
+  const [editingFromReview, setEditingFromReview] = useState(false);
+
   const handleNext = async () => {
     const isValid = await trigger();
     if (isValid) {
+      // If editing from review, return to the review step after one edit
+      if (editingFromReview) {
+        setEditingFromReview(false);
+        setCurrentStep(TOTAL_STEPS); // Go back to review (last step)
+        return;
+      }
+
       setCurrentStep((p) => {
         const nextStep = p + 1;
         const dentureType = watch("digitalType")?.[0];
-        
+
         // For Full Denture + Immediate, skip steps 4 and 5 (Digital Complete Denture form)
         // Go directly from step 3 (Type) to step 6 (Arch)
         if (nextStep === 4 && selectedOption === "Full Denture" && dentureType === "Immediate") {
           return 6; // Skip to Arch selection
         }
-        
+
         // For all Full Denture/Overdenture flows, skip steps 7-13 (intermediate steps + Design Preview)
         // Go directly from step 6 (Arch) to step 14 (Photos)
         // Exception: Overdenture Reline has its own unique flow through steps 7-8
@@ -243,10 +253,40 @@ const Cases = () => {
             return 14; // Skip to Photos
           }
         }
-        
+
         return nextStep;
       });
     }
+  };
+
+  const handleBack = () => {
+    // If editing from review, cancel the edit and return to review
+    if (editingFromReview) {
+      setEditingFromReview(false);
+      setCurrentStep(TOTAL_STEPS); // Go back to review (last step)
+      return;
+    }
+
+    setCurrentStep((p) => {
+      const prevStep = p - 1;
+      const dentureType = watch("digitalType")?.[0];
+
+      // For Full Denture + Immediate, skip steps 5 and 4 backwards (from 6 to 3)
+      if ((prevStep === 5 || prevStep === 4) && selectedOption === "Full Denture" && dentureType === "Immediate") {
+        return 3; // Skip back to Type selection
+      }
+
+      // For all Full Denture/Overdenture flows, skip steps 13-7 backwards (from 14 to 6)
+      // Exception: Overdenture Reline has its own unique flow through steps 7-8
+      if (prevStep >= 7 && prevStep <= 13 && ["Full Denture", "Overdenture"].includes(selectedOption || "")) {
+        const isOverdentureReline = selectedOption === "Overdenture" && dentureType === "Reline";
+        if (!isOverdentureReline) {
+          return 6; // Skip back to Arch
+        }
+      }
+
+      return prevStep;
+    });
   };
 
 
@@ -683,7 +723,10 @@ const Cases = () => {
           return (
             <DentureReviewSummary
               formConfig={formConfig}
-              onEditStep={(step) => setCurrentStep(step)}
+              onEditStep={(step) => {
+                setEditingFromReview(true);
+                setCurrentStep(step);
+              }}
               selectedOption={selectedOption}
             />
           );
@@ -915,7 +958,7 @@ const Cases = () => {
         <NavigationButtons
           currentStep={currentStep}
           totalSteps={TOTAL_STEPS}
-          onPrevious={() => setCurrentStep((p) => p - 1)}
+          onPrevious={handleBack}
           onNext={handleNext}
           isSubmitting={createCase.isPending}
         />

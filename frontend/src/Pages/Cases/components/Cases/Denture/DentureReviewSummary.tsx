@@ -40,6 +40,10 @@ export const DentureReviewSummary = ({
         return value || "Not selected";
     };
 
+    // Determine if the current flow includes steps 7-13 (only Reline flow does)
+    const dentureType = formValues.digitalType?.[0];
+    const hasDesignSteps = dentureType === "Reline" && selectedOption === "Full Denture";
+
     // Build summary items
     const getSummaryItems = (): SummaryItem[] => {
         const items: SummaryItem[] = [];
@@ -53,15 +57,6 @@ export const DentureReviewSummary = ({
             });
         }
 
-        // Denture Type
-        if (formValues.dentureKind) {
-            items.push({
-                label: "Denture Type",
-                value: formValues.dentureKind,
-                step: 8,
-            });
-        }
-
         // Arch
         if (formValues.dentureArch) {
             items.push({
@@ -71,115 +66,127 @@ export const DentureReviewSummary = ({
             });
         }
 
-        // Shade
-        const shadeParts: string[] = [];
-        if (formValues.dentureBaseShade) {
-            shadeParts.push(`Base: ${formValues.dentureBaseShade}`);
-        }
-        if (formValues.dentureTissueShade) {
-            shadeParts.push(`Tissue: ${formValues.dentureTissueShade}`);
-        }
-        if (shadeParts.length > 0) {
-            items.push({
-                label: "Shade",
-                value: shadeParts.join(", "),
-                step: 7,
-            });
-        }
+        // Steps 7-13 only exist in the Reline flow — skip for Conventional/Immediate
+        if (hasDesignSteps) {
+            // Shade
+            const shadeParts: string[] = [];
+            if (formValues.dentureBaseShade) {
+                shadeParts.push(`Base: ${formValues.dentureBaseShade}`);
+            }
+            if (formValues.dentureTissueShade) {
+                shadeParts.push(`Tissue: ${formValues.dentureTissueShade}`);
+            }
+            if (shadeParts.length > 0) {
+                items.push({
+                    label: "Shade",
+                    value: shadeParts.join(", "),
+                    step: 7,
+                });
+            }
 
-        // Smile Style
-        if (formValues.dentureSmileStyle) {
-            items.push({
-                label: "Smile Style",
-                value: formValues.dentureSmileStyle,
-                step: 9,
-            });
-        }
+            // Denture Type
+            if (formValues.dentureKind) {
+                items.push({
+                    label: "Denture Type",
+                    value: formValues.dentureKind,
+                    step: 8,
+                });
+            }
 
-        // Festooning Level
-        if (formValues.dentureFestooningLevel) {
-            items.push({
-                label: "Festooning Level",
-                value: formValues.dentureFestooningLevel,
-                step: 10,
-            });
-        }
+            // Smile Style
+            if (formValues.dentureSmileStyle) {
+                items.push({
+                    label: "Smile Style",
+                    value: formValues.dentureSmileStyle,
+                    step: 9,
+                });
+            }
 
-        // Other settings/add-ons
-        const settingsParts: string[] = [];
-        if (formValues.dentureHasDiastema !== undefined) {
-            if (formValues.dentureHasDiastema) {
-                settingsParts.push(`Diastema: Yes`);
-                if (formValues.dentureDiastemaHandling) {
-                    settingsParts.push(`Diastema Handling: ${formValues.dentureDiastemaHandling}`);
+            // Festooning Level
+            if (formValues.dentureFestooningLevel) {
+                items.push({
+                    label: "Festooning Level",
+                    value: formValues.dentureFestooningLevel,
+                    step: 10,
+                });
+            }
+
+            // Other settings/add-ons
+            const settingsParts: string[] = [];
+            if (formValues.dentureHasDiastema !== undefined) {
+                if (formValues.dentureHasDiastema) {
+                    settingsParts.push(`Diastema: Yes`);
+                    if (formValues.dentureDiastemaHandling) {
+                        settingsParts.push(`Diastema Handling: ${formValues.dentureDiastemaHandling}`);
+                    }
+                } else {
+                    settingsParts.push(`Diastema: No`);
                 }
-            } else {
-                settingsParts.push(`Diastema: No`);
             }
-        }
-        if (formValues.dentureAddOns && formValues.dentureAddOns.length > 0) {
-            formValues.dentureAddOns.forEach((addOn) => {
-                settingsParts.push(`${addOn}: Yes`);
-            });
-        }
-        // Show "No" for unchecked add-ons
-        const allAddOns = ["Stippling", "Cu-sil gasket", "Metal framework", "Metal mesh", "Softliner"];
-        allAddOns.forEach((addOn) => {
-            if (!formValues.dentureAddOns?.includes(addOn)) {
-                settingsParts.push(`${addOn}: No`);
+            if (formValues.dentureAddOns && formValues.dentureAddOns.length > 0) {
+                formValues.dentureAddOns.forEach((addOn) => {
+                    settingsParts.push(`${addOn}: Yes`);
+                });
             }
-        });
-        if (settingsParts.length > 0) {
-            items.push({
-                label: "Other settings/add-ons",
-                value: settingsParts.join(", "),
-                step: 11,
+            // Show "No" for unchecked add-ons
+            const allAddOns = ["Stippling", "Cu-sil gasket", "Metal framework", "Metal mesh", "Softliner"];
+            allAddOns.forEach((addOn) => {
+                if (!formValues.dentureAddOns?.includes(addOn)) {
+                    settingsParts.push(`${addOn}: No`);
+                }
             });
-        }
+            if (settingsParts.length > 0) {
+                items.push({
+                    label: "Other settings/add-ons",
+                    value: settingsParts.join(", "),
+                    step: 11,
+                });
+            }
 
-        // Functional Preferences
-        const functionalParts: string[] = [];
-        if (formValues.dentureBiteAdjustment) {
-            functionalParts.push(`Bite Adjustment: ${formValues.dentureBiteAdjustment}`);
-        }
-        if (formValues.dentureMidlineCorrection) {
-            functionalParts.push(`Midline Correction: ${formValues.dentureMidlineCorrection}`);
-        }
-        if (formValues.dentureOtherDetails && formValues.dentureOtherDetails.length > 0) {
-            formValues.dentureOtherDetails.forEach((detail) => {
-                functionalParts.push(`${detail}: Yes`);
-            });
-        }
-        // Show "No" for unchecked other details
-        const allOtherDetails = ["Correct occlusal scheme to Class I", "Post-dam"];
-        allOtherDetails.forEach((detail) => {
-            if (!formValues.dentureOtherDetails?.includes(detail)) {
-                functionalParts.push(`${detail}: No`);
+            // Functional Preferences
+            const functionalParts: string[] = [];
+            if (formValues.dentureBiteAdjustment) {
+                functionalParts.push(`Bite Adjustment: ${formValues.dentureBiteAdjustment}`);
             }
-        });
-        if (functionalParts.length > 0) {
-            items.push({
-                label: "Functional Preferences",
-                value: functionalParts.join(", "),
-                step: 12,
+            if (formValues.dentureMidlineCorrection) {
+                functionalParts.push(`Midline Correction: ${formValues.dentureMidlineCorrection}`);
+            }
+            if (formValues.dentureOtherDetails && formValues.dentureOtherDetails.length > 0) {
+                formValues.dentureOtherDetails.forEach((detail) => {
+                    functionalParts.push(`${detail}: Yes`);
+                });
+            }
+            // Show "No" for unchecked other details
+            const allOtherDetails = ["Correct occlusal scheme to Class I", "Post-dam"];
+            allOtherDetails.forEach((detail) => {
+                if (!formValues.dentureOtherDetails?.includes(detail)) {
+                    functionalParts.push(`${detail}: No`);
+                }
             });
-        }
+            if (functionalParts.length > 0) {
+                items.push({
+                    label: "Functional Preferences",
+                    value: functionalParts.join(", "),
+                    step: 12,
+                });
+            }
 
-        // Design Preview
-        if (formValues.dentureWantsDesignPreview !== undefined) {
-            const previewParts: string[] = [];
-            previewParts.push(`Design Preview: ${formValues.dentureWantsDesignPreview ? "Yes" : "No"}`);
-            if (formValues.dentureReviewOptions && formValues.dentureReviewOptions.length > 0) {
-                previewParts.push(`Review Options: ${formValues.dentureReviewOptions.join(", ")}`);
+            // Design Preview
+            if (formValues.dentureWantsDesignPreview !== undefined) {
+                const previewParts: string[] = [];
+                previewParts.push(`Design Preview: ${formValues.dentureWantsDesignPreview ? "Yes" : "No"}`);
+                if (formValues.dentureReviewOptions && formValues.dentureReviewOptions.length > 0) {
+                    previewParts.push(`Review Options: ${formValues.dentureReviewOptions.join(", ")}`);
+                }
+                if (formValues.dentureDesignPreviewAddOns && formValues.dentureDesignPreviewAddOns.length > 0) {
+                    previewParts.push(`Add-ons: ${formValues.dentureDesignPreviewAddOns.join(", ")}`);
+                }
+                items.push({
+                    label: "Design Preview",
+                    value: previewParts.join(", "),
+                    step: 13,
+                });
             }
-            if (formValues.dentureDesignPreviewAddOns && formValues.dentureDesignPreviewAddOns.length > 0) {
-                previewParts.push(`Add-ons: ${formValues.dentureDesignPreviewAddOns.join(", ")}`);
-            }
-            items.push({
-                label: "Design Preview",
-                value: previewParts.join(", "),
-                step: 13,
-            });
         }
 
         // Photos
