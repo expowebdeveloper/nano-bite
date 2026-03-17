@@ -1,10 +1,12 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import useCases from "../../hooks/useCases";
 import useUploads from "../../hooks/useUploads";
+import { usePayment } from "../../hooks/usePayment";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { ArrowLeft, Download, Lock } from "lucide-react";
 import Button from "../../components/common/Buttons/Button";
 import Modal from "../../components/common/Modal/Modal";
+import { useQueryClient } from "@tanstack/react-query";
 import { confirmationMessage } from "../../components/common/ToastMessage";
 import { useSelector } from "react-redux";
 import { ChangeEvent } from "react";
@@ -16,6 +18,17 @@ const CaseDetails = () => {
     const { user } = useSelector((state: any) => state.user);
 
   const { caseId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const payment = searchParams.get("payment");
+    if (payment === "success" && caseId) {
+      confirmationMessage("Payment successful. You can now download the files.", "success");
+      queryClient.invalidateQueries({ queryKey: ["cases", caseId] });
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, caseId, queryClient, setSearchParams]);
       const {
   caseDetailsQuery,
   updateCaseStatus,
@@ -23,11 +36,8 @@ const CaseDetails = () => {
   uploadDesignerAttachments,
 } = useCases();
 
-const {
-  uploadFile,
-  uploading,
-  getDownloadUrl,
-} = useUploads();
+const { uploadFile, uploading, getDownloadUrl } = useUploads();
+  const { createCheckoutSession } = usePayment();
 const { data: designerAttachmentsData } =
   designerAttachmentsQuery(caseId);
 
@@ -202,11 +212,9 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
       { label: "Name", value: record.patientName },
       { label: "Age", value: record.age },
       { label: "Sex", value: record.sex },
-      { label: "Bruxism", value: record.bruxism },
     ]);
 
     addSection("Esthetics & Notes", [
-      { label: "Smile Style", value: record.smileStyle },
       { label: "Midline", value: record.midline },
       { label: "Esthetic Notes", value: record.estheticNotes },
       { label: "Additional Notes", value: record.additionalNotes },
@@ -513,6 +521,26 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
                 <p className="text-sm text-gray-600">
                   Files are previewed below. Download is available after payment.
                 </p>
+                {!record.isPaid && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        createCheckoutSession.mutate({
+                          caseId: record.caseId,
+                          amountInCents: 10000,
+                          successUrl: `${window.location.origin}/cases/${record.caseId}?payment=success`,
+                          cancelUrl: `${window.location.origin}/cases/${record.caseId}?payment=cancelled`,
+                        })
+                      }
+                      disabled={createCheckoutSession.isPending}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2B89D2] text-white hover:bg-[#2369a8] disabled:opacity-60 text-sm font-medium"
+                    >
+                      <Lock size={16} />
+                      {createCheckoutSession.isPending ? "Redirecting to payment..." : "Pay now ($100)"}
+                    </button>
+                  </div>
+                )}
                 {(designerAttachmentsData?.designersAttachments?.length ?? 0) > 0 ? (
                   <>
                     <ul className="space-y-3">
@@ -540,13 +568,10 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
                                 {downloadingKey === file.key ? "Preparing..." : "Download"}
                               </button>
                             ) : (
-                              <Link
-                                to="#"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-sm font-medium"
-                              >
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 text-sm">
                                 <Lock size={14} />
                                 Pay to download
-                              </Link>
+                              </span>
                             )}
                           </div>
                         </li>

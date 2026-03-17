@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/common/Buttons/Button";
 import Input from "../../components/common/Input/Input";
 import PhoneNumberField from "../../components/common/PhoneNumberField/PhoneNumberField";
-import RadioButtonGroup from "../../components/common/RadioButtonGroup/RadioButtonGroup";
 import SignUpHeader from "./SignUpHeader";
 import SignUpLeftSection from "./SignUpLeftSection";
 import { useSignUp } from "../../contexts/SignUpContext";
@@ -140,6 +139,7 @@ const TeamContacts = () => {
         clinicName: updatedFormData.clinicName || "",
         clinicPhone: updatedFormData.clinicPhone || "",
         clinicAddress: updatedFormData.clinicAddress || "",
+        clinicCountry: updatedFormData.clinicCountry || "",
         clinicState: updatedFormData.clinicState || "",
         clinicCity: updatedFormData.clinicCity || "",
         zipcode: updatedFormData.zipcode || "",
@@ -254,6 +254,7 @@ const TeamContacts = () => {
               isRequired={false}
             />
 
+            {/* Office Manager – commented out (only one contact: Assistant)
             <Input
               label="Office Manager"
               fieldName="officeManager"
@@ -278,7 +279,9 @@ const TeamContacts = () => {
               options={["Dentist", "Assistant", "Both"]}
               className="flex flex-wrap gap-4"
             />
+            */}
 
+            {/* Preference Information – commented out
             <div>
               <h3 className="text-2xl font-semibold mb-4 text-[#0B75C9]">
                 Preference Information
@@ -312,6 +315,7 @@ const TeamContacts = () => {
               }}
               placeholder="Enter Standard Shades Used"
             />
+            */}
 
             <div className="flex gap-3 pt-4">
               <Button

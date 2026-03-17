@@ -50,6 +50,7 @@ export type Login = {
       clinicName: string;
       clinicPhone: string;
       clinicAddress: string;
+      clinicCountry?: string;
       clinicState: string;
       clinicCity: string;
       zipcode: string;
@@ -93,6 +94,7 @@ export type Login = {
     clinicName?: string | null;
     clinicPhone?: string | null;
     clinicAddress?: string | null;
+    clinicCountry?: string | null;
     clinicState?: string | null;
     clinicCity?: string | null;
     zipcode?: string | null;

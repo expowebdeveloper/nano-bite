@@ -33,6 +33,7 @@ const DENTIST_PROFILE_STRING_FIELDS = [
   "clinicName",
   "clinicPhone",
   "clinicAddress",
+  "clinicCountry",
   "clinicState",
   "clinicCity",
   "zipcode",
@@ -263,7 +264,7 @@ const resetPassword = async (req, res) => {
       },
     });
     const encodedEmail = encodeURIComponent(email);
-    const resetPasswordLink = `${process.env.FRONTEND_URL}/set-password?email=${encodedEmail}&challenge=${challenge}`;
+    const resetPasswordLink = `${process.env.FRONTEND_URL}set-password?email=${encodedEmail}&challenge=${challenge}`;
     console.log(`Password reset link for ${email}: ${resetPasswordLink}`);
 
      // Define mail options
@@ -469,6 +470,7 @@ const updateProfile = async (req, res) => {
       clinicName,
       clinicPhone,
       clinicAddress,
+      clinicCountry,
       clinicState,
       clinicCity,
       zipcode,
@@ -513,6 +515,7 @@ const updateProfile = async (req, res) => {
         ...(clinicName !== undefined && { clinicName: clinicName && clinicName.trim() ? clinicName.trim() : null }),
         ...(clinicPhone !== undefined && { clinicPhone: clinicPhone && clinicPhone.trim() ? clinicPhone.trim() : null }),
         ...(clinicAddress !== undefined && { clinicAddress: clinicAddress && clinicAddress.trim() ? clinicAddress.trim() : null }),
+        ...(clinicCountry !== undefined && { clinicCountry: clinicCountry && clinicCountry.trim() ? clinicCountry.trim() : null }),
         ...(clinicState !== undefined && { clinicState: clinicState && clinicState.trim() ? clinicState.trim() : null }),
         ...(clinicCity !== undefined && { clinicCity: clinicCity && clinicCity.trim() ? clinicCity.trim() : null }),
         ...(zipcode !== undefined && { zipcode: zipcode && zipcode.trim() ? zipcode.trim() : null }),
@@ -535,6 +538,7 @@ const updateProfile = async (req, res) => {
         clinicName: sanitizeString(clinicName) ?? null,
         clinicPhone: sanitizeString(clinicPhone) ?? null,
         clinicAddress: sanitizeString(clinicAddress) ?? null,
+        clinicCountry: sanitizeString(clinicCountry) ?? null,
         clinicState: sanitizeString(clinicState) ?? null,
         clinicCity: sanitizeString(clinicCity) ?? null,
         zipcode: sanitizeString(zipcode) ?? null,
@@ -559,6 +563,7 @@ const updateProfile = async (req, res) => {
           clinicName: createData.clinicName,
           clinicPhone: createData.clinicPhone,
           clinicAddress: createData.clinicAddress,
+          clinicCountry: createData.clinicCountry,
           clinicState: createData.clinicState,
           clinicCity: createData.clinicCity,
           zipcode: createData.zipcode,

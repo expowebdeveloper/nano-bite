@@ -197,17 +197,21 @@ const Cases = () => {
     formConfig.setValue("attachments", attachments);
   }, [attachments, formConfig]);
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const [dragOver, setDragOver] = useState(false);
 
-    if (!file) return;
-
+  const processFiles = async (files: FileList | File[]) => {
+    const fileList = Array.from(files);
+    if (fileList.length === 0) return;
     setUploadError(null);
-
     try {
-      const uploaded = await uploadFile(file);
-      setAttachments((prev) => [...prev, uploaded]);
-      confirmationMessage("File uploaded successfully", "success");
+      for (const file of fileList) {
+        const uploaded = await uploadFile(file);
+        setAttachments((prev) => [...prev, uploaded]);
+      }
+      confirmationMessage(
+        fileList.length === 1 ? "File uploaded successfully" : `${fileList.length} files uploaded successfully`,
+        "success"
+      );
       setShowUploadModal(false);
     } catch (error: any) {
       const message = error?.message || "Unable to upload file.";
@@ -216,8 +220,34 @@ const Cases = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      event.target.value = "";
     }
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files?.length) return;
+    await processFiles(files);
+    event.target.value = "";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = e.dataTransfer.files;
+    if (!files?.length) return;
+    processFiles(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
   };
 
 
@@ -1078,15 +1108,22 @@ const Cases = () => {
         showHeader={false}
       >
         <div className="mx-auto text-center space-y-6">
-          <div className="border-2 border-dashed border-[#d6dde6] rounded-2xl p-8 bg-white flex flex-col items-center">
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-2xl p-8 bg-white flex flex-col items-center transition-colors ${
+              dragOver ? "border-[#0B75C9] bg-[#f0f8ff]" : "border-[#d6dde6]"
+            }`}
+          >
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Upload files to S3
+              Upload photos & files
             </h3>
             <p className="text-sm text-gray-600 mb-2">
-              Supported: Images (JPG, PNG, GIF), PDF, STL
+              Drag and drop files here or click to browse. You can select multiple files.
             </p>
-            <p className="text-sm text-gray-700 font-semibold mb-4">
-              We will request a signed URL and upload directly to S3.
+            <p className="text-sm text-gray-600 mb-4">
+              Supported: Images (JPG, PNG, GIF), PDF, STL
             </p>
             <div className="flex justify-center">
               <Button
@@ -1106,7 +1143,8 @@ const Cases = () => {
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl,image/*"
+                multiple
                 onChange={handleFileChange}
               />
             </div>
@@ -1116,7 +1154,7 @@ const Cases = () => {
             {!uploadError && uploading && (
               <p className="text-sm text-gray-600 mt-4">Uploading...</p>
             )}
-            <p className="text-xs text-gray-500 mt-4">Maximum Size: 25 MB</p>
+            <p className="text-xs text-gray-500 mt-4">Maximum Size: 25 MB per file</p>
           </div>
         </div>
       </Modal>

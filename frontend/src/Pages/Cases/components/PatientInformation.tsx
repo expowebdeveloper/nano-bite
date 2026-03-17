@@ -5,8 +5,6 @@ import Textarea from "../../../components/common/Textarea/Textarea";
 import Button from "../../../components/common/Buttons/Button";
 import {
   SEX_OPTIONS,
-  BRUXISM_OPTIONS,
-  SMILE_STYLE_OPTIONS,
   MIDLINE_OPTIONS,
   PHOTO_OPTIONS,
   SCAN_OPTIONS,
@@ -90,34 +88,11 @@ const PatientInformation = ({
               },
             }}
           />
-          <div className="w-full">
-            <CheckboxGroup
-              label="Bruxism"
-              fieldName="bruxism"
-              formConfig={formConfig}
-              options={BRUXISM_OPTIONS as unknown as string[]}
-              className="flex items-center gap-4 justify-start flex-nowrap"
-              rules={{
-                validate: (value: string[]) => {
-                  if (!value || value.length === 0) {
-                    return "Please select at least one option";
-                  }
-                  return true;
-                },
-              }}
-            />
-          </div>
         </div>
 
         <div className="space-y-3">
           <h2 className="text-base font-semibold text-gray-900">Esthetic Notes (If Applicable)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CheckboxGroup
-              label="Smile Style"
-              fieldName="smileStyle"
-              formConfig={formConfig}
-              options={SMILE_STYLE_OPTIONS as unknown as string[]}
-            />
             <CheckboxGroup
               label="Midline"
               fieldName="midline"

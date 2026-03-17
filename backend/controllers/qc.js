@@ -91,26 +91,35 @@ const createQcAccount = async (req, res) => {
       select: qcSelect,
     });
 
-    const recipientName = buildFullName(first_name, last_name, "there");
+    const recipientName = buildFullName(resolvedFirst, resolvedLast, "there") || "there";
     const encodedEmail = encodeURIComponent(email);
-    const passwordSetupLink = `${process.env.FRONTEND_URL}/set-password?email=${encodedEmail}&challenge=${resetPasswordToken}`;
+    const passwordSetupLink = `${process.env.FRONTEND_URL}set-password?email=${encodedEmail}&challenge=${resetPasswordToken}`;
 
     await sendEmail({
       to: email,
-      subject: "Set your QC account password",
+      subject: "Your NanoBite QC account – set your password",
       text: `Hi ${recipientName},
 
-An administrator has created a QC account for you on NanoBite.
-Please set your password using the link below:
+We're pleased to inform you that a Quality Control (QC) account has been created for you on NanoBite by the administrator.
+
+To get started, please use the link below to set your password and access your account:
+
 ${passwordSetupLink}
 
-If you were not expecting this email, you can safely ignore it.`,
+If you did not expect this email, no further action is required and you may safely disregard it.
+
+If you have any questions or need assistance, feel free to contact our support team.
+
+Best regards,
+NanoBite Team`,
       html: `
         <p>Hi ${recipientName},</p>
-        <p>An administrator has created a QC account for you on NanoBite.</p>
-        <p>Please click the link below to set your password and access your account:</p>
-        <p><a href="${passwordSetupLink}">${passwordSetupLink}</a></p>
-        <p>If you were not expecting this email, you can safely ignore it.</p>
+        <p>We're pleased to inform you that a Quality Control (QC) account has been created for you on NanoBite by the administrator.</p>
+        <p>To get started, please use the link below to set your password and access your account:</p>
+        <p><a href="${passwordSetupLink}">Set your password</a></p>
+        <p>If you did not expect this email, no further action is required and you may safely disregard it.</p>
+        <p>If you have any questions or need assistance, feel free to contact our support team.</p>
+        <p>Best regards,<br/>NanoBite Team</p>
       `,
     });
 

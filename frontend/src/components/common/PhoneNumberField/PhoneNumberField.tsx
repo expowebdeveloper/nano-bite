@@ -32,6 +32,7 @@ import ErrorMessage from "../ErrorMessage";
     formConfig,
     label,
     placeholder,
+    country,
     customClassInput = "!w-full !bg-transparent !rounded-lg !rounded-[8px] !p-2 text-black !h-[auto]",
     errorMsg,
     disableCountryCode = true,
@@ -50,8 +51,8 @@ import ErrorMessage from "../ErrorMessage";
     //   (state: any) => state.userProfile.userDetails
     // );
   
-    // State to track the selected country
-    const [selectedCountry, setSelectedCountry] = useState<CountryCode>();
+    // State to track the selected country (default USA)
+    const [selectedCountry, setSelectedCountry] = useState<CountryCode>(country || "US");
     // useEffect(() => {
     //   // Function to get country name from phone number
     //   if (country) {
@@ -63,65 +64,36 @@ import ErrorMessage from "../ErrorMessage";
     //   }
     // }, [country, userDetails.phone_number]);
   
-    const validatePhoneNumber = (value: string) => {
+    const validatePhoneNumber = (value: string): true | string => {
       const stringValue = (value || "").trim();
-  
-      // Get country calling code from libphonenumber-js
-      const phoneNumber = parsePhoneNumberFromString(
-        stringValue,
-        selectedCountry
-      );
-      const countryCallingCode = phoneNumber?.countryCallingCode || "";
-  
-      // if (!stringValue && isRequired) {
-      //   return "Phone number is required";
-      // }
-      // Only validate phone number format if a value is provided
-      if (stringValue) {
-        // Strip the country code if already present
-        const nationalNumber = stringValue.startsWith(`${countryCallingCode}`)
-          ? stringValue.replace(`${countryCallingCode}`, "")
-          : stringValue;
-  
-        // Validate the number format if user has entered something
-        const parsedNumber = parsePhoneNumberFromString(
-          nationalNumber,
-          selectedCountry
-        );
-        if (!parsedNumber?.isValid()) {
-          return "Invalid phone number";
-        }
-        if (shouldNotDuplicate && otherPhoneNumber.includes(stringValue)) {
-          return "Phone number already exists";
-        }
-      } else {
+
+      if (!stringValue) {
         if (isRequired) {
           return "Phone number is required";
         }
-        return "";
+        return true;
       }
-  
-      // if (!stringValue) {
-      //   console.log(isRequired, "isRequired", stringValue);
-      //   if (isRequired) {
-      //     return "Phone number is required";
-      //   }
-      //   return "";
-      // }
-  
-      // // Strip the country code if already present
-      // const nationalNumber = stringValue.startsWith(`${countryCallingCode}`)
-      //   ? stringValue.replace(`${countryCallingCode}`, "")
-      //   : stringValue;
-  
-      // // Re-validate using the extracted national number
-      // const parsedNumber = parsePhoneNumberFromString(
-      //   nationalNumber,
-      //   selectedCountry
-      // );
-      // return parsedNumber && parsedNumber.isValid()
-      //   ? true
-      //   : "Invalid phone number";
+
+      // Try strict validation with selected country first
+      const withPlus = stringValue.startsWith("+") ? stringValue : `+${stringValue}`;
+      const parsedNumber = parsePhoneNumberFromString(withPlus, selectedCountry);
+      if (parsedNumber?.isValid()) {
+        if (shouldNotDuplicate && otherPhoneNumber.includes(stringValue)) {
+          return "Phone number already exists";
+        }
+        return true;
+      }
+
+      // Fallback: accept if value has 10–15 digits (avoids rejecting valid numbers libphonenumber doesn't recognize)
+      const digitsOnly = stringValue.replace(/\D/g, "");
+      if (digitsOnly.length >= 10 && digitsOnly.length <= 15) {
+        if (shouldNotDuplicate && otherPhoneNumber.includes(stringValue)) {
+          return "Phone number already exists";
+        }
+        return true;
+      }
+
+      return "Invalid phone number";
     };
   
     return (

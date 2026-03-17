@@ -9,11 +9,17 @@ import caseRoutes from "./routes/cases.js";
 import uploadRoutes from "./routes/uploads.js";
 import userRoutes from "./routes/user.js";
 import chatRoutes from "./routes/chat.js";
+import paymentRoutes from "./routes/payments.js";
+import { handleStripeWebhook } from "./controllers/payments.js";
 import cors from "cors";
 import { createDefaultAdmin, createDefaultDentist } from "./DefaultUser/DefaultUser.js";
 import { setupSocketIO } from "./socket.js";
 
 app.use(cors("*"));
+
+// Stripe webhook needs raw body for signature verification (must be before express.json())
+app.post("/api/payments/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
+app.post("/payments/webhook", express.raw({ type: "application/json" }), handleStripeWebhook);
 
 // Connect to database
 connectDB();
@@ -38,6 +44,8 @@ app.use("/api/users", userRoutes);
 app.use("/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/chat", chatRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/payments", paymentRoutes);
 
 // Basic route
 app.get("/", (req, res) => {

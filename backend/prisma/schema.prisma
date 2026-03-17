@@ -179,9 +179,21 @@ model CaseRecord {
   createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])
 
   activities            ActivityLog[]
+  payments              Payment[]
 
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  caseId          String
+  caseRecord      CaseRecord @relation(fields: [caseId], references: [caseId])
+  amountInCents   Int
+  currency        String   @default("usd")
+  stripeSessionId String?  @unique
+  paidById        String?
+  createdAt       DateTime @default(now())
 }
 
 model ActivityLog {
@@ -223,6 +235,7 @@ model DentistProfile {
   clinicName               String?
   clinicPhone              String?
   clinicAddress            String?
+  clinicCountry            String?
   clinicState              String?
   clinicCity               String?
   zipcode                  String?

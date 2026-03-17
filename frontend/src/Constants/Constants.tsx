@@ -36,8 +36,6 @@ export const ITEMS_PER_PAGE = 10;
 
 // Cases form option sets
 export const SEX_OPTIONS = ["M", "F", "Other"] as const;
-export const BRUXISM_OPTIONS = ["None", "Mild", "Moderate", "Severe"] as const;
-export const SMILE_STYLE_OPTIONS = ["Natural", "Enhanced", "White"] as const;
 export const MIDLINE_OPTIONS = ["Facial", "Existing"] as const;
 export const PHOTO_OPTIONS = [
   "Full Face Smile",
@@ -216,8 +214,6 @@ export type CaseFormValues = {
   age: string;
   sex: string[];
   dueDate: string;
-  bruxism: string[];
-  smileStyle: string[];
   midline: string[];
   estheticNotes: string;
   photos: string[];
@@ -335,8 +331,6 @@ export const CASE_FORM_DEFAULT_VALUES: CaseFormValues = {
   age: "",
   sex: [],
   dueDate: "",
-  bruxism: [],
-  smileStyle: [],
   midline: [],
   estheticNotes: "",
   photos: [],
@@ -486,7 +480,7 @@ export const SIDE_BAR_ITEMS = [
     allowedRoles: ["ADMIN"],
   },
   {
-    name: "Setting",
+    name: "Profile",
     url: "/setting",
     icon: () => <Settings className="w-5 h-5" />,
     allowedRoles: ["ADMIN", "Dentist", "Designer", "QC"],

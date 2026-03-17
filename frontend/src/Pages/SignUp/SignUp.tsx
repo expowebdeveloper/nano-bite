@@ -107,6 +107,7 @@ export const Signup = () => {
   const watchRole = watch("role");
 
   const onSubmit = (data: FormValues) => {
+
     // Phone number from PhoneNumberField already includes country code with +
     // So we can use it directly
     const phone_number = data.phone || "";
@@ -163,6 +164,7 @@ export const Signup = () => {
 
     // Call the signup mutation
     if (data.role === "Dentist") {
+      console.log("OOO", data.role)
       // For Dentist, navigate to clinic information page with step query param
       setStep("2");
     } else {
@@ -186,7 +188,20 @@ export const Signup = () => {
         <div className="md:w-1/2 m-6 pr-5">
           <SignUpHeader />
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit(onSubmit, (errors) => {
+                console.log("SignUp validation errors:", errors);
+                const firstError = Object.keys(errors || {})[0];
+                if (firstError) {
+                  const el = document.querySelector(`[name="${firstError}"]`);
+                  el?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+                }
+              })();
+            }}
+            className="space-y-4"
+          >
             <RoleSection
               setValue={(role) => setValue("role", role)}
               currentRole={watchRole}
@@ -343,7 +358,17 @@ export const Signup = () => {
             />
 
             <Button
-              btnType="submit"
+              btnType="button"
+              btnClick={() =>
+                handleSubmit(onSubmit, (errors) => {
+                  console.log("SignUp validation errors:", errors);
+                  const firstError = Object.keys(errors || {})[0];
+                  if (firstError) {
+                    const el = document.querySelector(`[name="${firstError}"]`);
+                    el?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+                  }
+                })()
+              }
               btnText={
                 signup.isPending
                   ? "Creating Account..."

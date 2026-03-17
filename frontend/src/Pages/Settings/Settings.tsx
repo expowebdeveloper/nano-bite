@@ -3,12 +3,12 @@ import { useForm } from "react-hook-form";
 import Input from "../../components/common/Input/Input";
 import Button from "../../components/common/Buttons/Button";
 import CheckboxGroup from "../../components/common/CheckboxGroup/CheckboxGroup";
+import CountryFlagSelect from "../../components/common/CountryList";
 import useUser from "../../hooks/useUser";
 import type { UserProfile } from "../../interfaces/types";
 
 const PREFERRED_CONTACT_OPTIONS = ["Phone", "Text", "Email"];
 const SPECIALTY_OPTIONS = ["GP", "Prosthodontist", "Oral Surgeon", "Others"];
-const PREFERRED_FILE_TRANSFER_OPTIONS = ["Cloud Shared Folder"];
 
 const defaultProfile: Partial<UserProfile> = {
   fullName: "",
@@ -31,6 +31,7 @@ const defaultProfile: Partial<UserProfile> = {
   clinicName: "",
   clinicPhone: "",
   clinicAddress: "",
+  clinicCountry: "",
   clinicState: "",
   clinicCity: "",
   zipcode: "",
@@ -74,6 +75,7 @@ const Settings = () => {
       clinicName: dp.clinicName ?? p.clinicName ?? "",
       clinicPhone: dp.clinicPhone ?? p.clinicPhone ?? "",
       clinicAddress: dp.clinicAddress ?? p.clinicAddress ?? "",
+      clinicCountry: dp.clinicCountry ?? p.clinicCountry ?? "",
       clinicState: dp.clinicState ?? p.clinicState ?? "",
       clinicCity: dp.clinicCity ?? p.clinicCity ?? "",
       zipcode: dp.zipcode ?? p.zipcode ?? "",
@@ -106,6 +108,7 @@ const Settings = () => {
       clinicName: values.clinicName,
       clinicPhone: values.clinicPhone,
       clinicAddress: values.clinicAddress,
+      clinicCountry: values.clinicCountry,
       clinicState: values.clinicState,
       clinicCity: values.clinicCity,
       zipcode: values.zipcode,
@@ -121,7 +124,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6 md:p-8">
       <div className="mx-auto max-w-3xl space-y-8">
-        <h1 className="text-2xl font-bold text-gray-900">Profile &amp; Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
 
         {profileQuery.isLoading && (
           <p className="text-sm text-gray-600">Loading profile...</p>
@@ -155,33 +158,18 @@ const Settings = () => {
                     <Input label="Clinic Name" fieldName="clinicName" formConfig={formConfig} placeholder="Clinic Name" />
                     <Input label="Clinic Phone" fieldName="clinicPhone" formConfig={formConfig} placeholder="Clinic Phone" />
                     <Input label="Clinic Address" fieldName="clinicAddress" formConfig={formConfig} placeholder="Address" className="md:col-span-2" />
+                    <CountryFlagSelect fieldName="clinicCountry" label="Country" formConfig={formConfig} customClass="white-text" isRequired={false} />
                     <Input label="State" fieldName="clinicState" formConfig={formConfig} placeholder="State" />
                     <Input label="City" fieldName="clinicCity" formConfig={formConfig} placeholder="City" />
                     <Input label="Zip Code (clinic)" fieldName="zipcode" formConfig={formConfig} placeholder="Zip Code" />
-                    <Input label="Scanner Type" fieldName="scannerType" formConfig={formConfig} placeholder="Scanner Type" className="md:col-span-2" />
-                  </div>
-                  <div className="mt-4">
-                    <CheckboxGroup
-                      label="Preferred file transfer"
-                      fieldName="preferredFileTransfer"
-                      formConfig={formConfig}
-                      options={PREFERRED_FILE_TRANSFER_OPTIONS}
-                      className="flex gap-4"
-                    />
                   </div>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Team &amp; preferences</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Team contact</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input label="Assistant Name" fieldName="assistantName" formConfig={formConfig} placeholder="Assistant Name" />
                     <Input label="Assistant Phone" fieldName="assistantPhone" formConfig={formConfig} placeholder="Assistant Phone" />
-                    <Input label="Office Manager" fieldName="officeManager" formConfig={formConfig} placeholder="Office Manager" />
-                    <Input label="Office Manager Phone" fieldName="officeManagerPhone" formConfig={formConfig} placeholder="Office Manager Phone" />
-                    <Input label="Who Approves Designs" fieldName="whoApprovesDesigns" formConfig={formConfig} placeholder="Who Approves Designs" className="md:col-span-2" />
-                    <Input label="Contact Time Window" fieldName="contactTimeWindow" formConfig={formConfig} placeholder="Contact Time Window" />
-                    <Input label="Standard Occlusal Preference" fieldName="standardOcclusalPreference" formConfig={formConfig} placeholder="Occlusal Preference" />
-                    <Input label="Standard Shades Used" fieldName="standardShadesUsed" formConfig={formConfig} placeholder="Shades Used" className="md:col-span-2" />
                   </div>
                 </div>
 

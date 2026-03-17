@@ -53,8 +53,6 @@ export const stringFields = [
 
 export const arrayFields = [
   "sex",
-  "bruxism",
-  "smileStyle",
   "midline",
   "photos",
   "scans",

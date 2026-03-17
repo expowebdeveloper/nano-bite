@@ -119,7 +119,6 @@ const validatePayload = (body) => {
   requireText("caseType", "caseType");
 
   requireArray("sex", "sex");
-  requireArray("bruxism", "bruxism");
   requireArray("photos", "photos");
   requireArray("scans", "scans");
 

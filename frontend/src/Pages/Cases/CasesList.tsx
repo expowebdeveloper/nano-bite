@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, Eye, Plus, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TableWrapper from "../../components/common/Table/TableWrapper";
 import Pagination from "../../components/common/Pagination/Pagination";
@@ -208,19 +208,6 @@ const CasesList = () => {
                             className="inline-flex items-center gap-2 underline rounded-lg px-2 py-2 text-sm"
                           >
                             Assign Designer & QC
-                          </button>
-                        )}
-                        {user?.role === "Dentist" && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              // TODO: Implement delete functionality
-                            }}
-                            className="p-2 rounded-lg text-[#dc2626] hover:bg-[#ffdcdc] transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
                           </button>
                         )}
                       </div>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
 interface SignUpFormData {
   // Step 1: Basic Information
@@ -19,6 +19,7 @@ interface SignUpFormData {
   clinicName: string;
   clinicPhone: string;
   clinicAddress: string;
+  clinicCountry: string;
   clinicState: string;
   clinicCity: string;
   zipcode: string;
@@ -59,6 +60,7 @@ const defaultFormData: SignUpFormData = {
   clinicName: "",
   clinicPhone: "",
   clinicAddress: "",
+  clinicCountry: "",
   clinicState: "",
   clinicCity: "",
   zipcode: "",
@@ -76,26 +78,9 @@ const defaultFormData: SignUpFormData = {
 
 const SignUpContext = createContext<SignUpContextType | undefined>(undefined);
 
-const STORAGE_KEY = "nanobite_signup_data";
-
 export const SignUpProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [formData, setFormData] = useState<SignUpFormData>(() => {
-    // Load from localStorage on mount
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        return { ...defaultFormData, ...JSON.parse(saved) };
-      } catch {
-        return defaultFormData;
-      }
-    }
-    return defaultFormData;
-  });
-
-  // Save to localStorage whenever formData changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-  }, [formData]);
+  // No localStorage: refresh gives a fresh form so entered data is not shown after reload
+  const [formData, setFormData] = useState<SignUpFormData>(defaultFormData);
 
   const updateFormData = useCallback((data: Partial<SignUpFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -103,7 +88,6 @@ export const SignUpProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const resetFormData = useCallback(() => {
     setFormData(defaultFormData);
-    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
   const getStepData = useCallback((step: number): Partial<SignUpFormData> => {
@@ -128,6 +112,7 @@ export const SignUpProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           clinicName: formData.clinicName,
           clinicPhone: formData.clinicPhone,
           clinicAddress: formData.clinicAddress,
+          clinicCountry: formData.clinicCountry,
           clinicState: formData.clinicState,
           clinicCity: formData.clinicCity,
           zipcode: formData.zipcode,
