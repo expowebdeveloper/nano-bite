@@ -29,9 +29,9 @@ const StlModel = ({ geometry, radius, resetKey }: StlModelProps) => {
   return (
     <mesh ref={meshRef} geometry={geometry} castShadow receiveShadow>
       <meshStandardMaterial
-        color="#e0e0e0"
-        roughness={0.5}
-        metalness={0.05}
+        color="#7ec8e3"
+        roughness={0.35}
+        metalness={0.1}
         side={THREE.DoubleSide}
       />
     </mesh>
@@ -185,7 +185,7 @@ export const StlViewer = ({ url, fileName }: StlViewerProps) => {
             {/* Rim light from behind */}
             <directionalLight position={[0, -1, -2]} intensity={0.3} />
             {/* Top light */}
-            <hemisphereLight args={["#ffffff", "#d0d0d0", 0.6]} />
+            <hemisphereLight args={["#dff0ff", "#b0d4ee", 0.8]} />
 
             <StlModel geometry={geometry} radius={boundingRadius} resetKey={resetKey} />
 
