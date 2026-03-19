@@ -93,8 +93,10 @@ const useCases = (params?: CasesListParams) => {
     queryKey: ["cases", page, limit, search],
     queryFn: async () => {
       let url = "/cases";
-      if (["ADMIN", "QC"].includes(user?.role)) {
+      if (user?.role === "ADMIN") {
         url = "/cases/admin/all";
+      } else if (user?.role === "QC") {
+        url = "/cases/qc";
       } else if (user?.role === "Designer") {
         url = "/cases/designer";
       }

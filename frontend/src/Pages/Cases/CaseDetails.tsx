@@ -686,7 +686,7 @@ Upload File
               Upload files to S3
             </h3>
             <p className="text-sm text-gray-600 mb-2">
-              Supported: Images (JPG, PNG, GIF), PDF, STL
+              Supported: Images (JPG, PNG, GIF), PDF, STL, 7-Zip
             </p>
             <p className="text-sm text-gray-700 font-semibold mb-4">
               We will request a signed URL and upload directly to S3.
@@ -713,7 +713,7 @@ Upload File
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl,.7z,.zip"
                 onChange={handleFileChange}
               />
             </div>
@@ -723,7 +723,7 @@ Upload File
             {!uploadError && uploading && (
               <p className="text-sm text-gray-600 mt-4">Uploading...</p>
             )}
-            <p className="text-xs text-gray-500 mt-4">Maximum Size: 25 MB</p>
+            <p className="text-xs text-gray-500 mt-4">Maximum Size: 500 MB</p>
           </div>
         </div>
       </Modal>

@@ -7,6 +7,21 @@ export function getDmRoomId(userId1, userId2) {
   return `dm_${a}_${b}`;
 }
 
+function parseDmRoomId(roomId) {
+  if (!roomId || typeof roomId !== "string" || !roomId.startsWith("dm_")) return null;
+  const parts = roomId.slice(3).split("_");
+  return parts.length >= 2 ? [parts[0], parts[1]] : null;
+}
+
+function isDentistDesignerPair(roleA, roleB) {
+  const a = roleA || "";
+  const b = roleB || "";
+  return (
+    (a === "Dentist" && b === "Designer") ||
+    (a === "Designer" && b === "Dentist")
+  );
+}
+
 export const chatController = {
   getMessageHistory: async (req, res) => {
     try {
@@ -26,11 +41,23 @@ export const chatController = {
         return res.status(401).json({ success: false, message: "Unauthorized" });
       }
 
-      const prefix = "dm_";
-      const parts = roomId.startsWith(prefix) ? roomId.slice(prefix.length).split("_") : [];
-      const userIds = parts.length >= 2 ? [parts[0], parts[1]] : [];
+      const userIds = parseDmRoomId(roomId) ?? [];
       if (userIds.length < 2 || !userIds.includes(currentUserId)) {
         return res.status(403).json({ success: false, message: "Access denied to this room" });
+      }
+
+      // Block Dentist <-> Designer rooms (even if someone crafts roomId manually)
+      const [userAId, userBId] = userIds;
+      const users = await prisma.user.findMany({
+        where: { id: { in: [userAId, userBId] } },
+        select: { id: true, role: true },
+      });
+      if (users.length === 2) {
+        const roleA = users.find((u) => u.id === userAId)?.role;
+        const roleB = users.find((u) => u.id === userBId)?.role;
+        if (isDentistDesignerPair(roleA, roleB)) {
+          return res.status(403).json({ success: false, message: "Chat is not available between Dentist and Designer" });
+        }
       }
 
       const where = { roomId };
@@ -60,6 +87,16 @@ export const chatController = {
       });
 
       const ordered = messages.reverse();
+
+      // Mark room as read for current user
+      await prisma.chatRoomRead.upsert({
+        where: {
+          userId_roomId: { userId: currentUserId, roomId },
+        },
+        create: { userId: currentUserId, roomId, lastReadAt: new Date() },
+        update: { lastReadAt: new Date() },
+      });
+
       res.status(200).json({
         success: true,
         data: ordered,
@@ -85,8 +122,9 @@ export const chatController = {
         where: { id: currentUserId },
         select: { role: true },
       });
-      if (!me || (me.role !== "ADMIN" && me.role !== "QC")) {
-        return res.status(403).json({ success: false, message: "Only Admin and QC can use chat" });
+      const allowedRoles = ["ADMIN", "QC", "Dentist", "Designer"];
+      if (!me || !allowedRoles.includes(me.role)) {
+        return res.status(403).json({ success: false, message: "Chat is not available for your role" });
       }
 
       const where = {
@@ -95,9 +133,13 @@ export const chatController = {
         id: { not: currentUserId },
       };
       if (me.role === "ADMIN") {
-        where.role = "QC";
-      } else {
-        where.role = "ADMIN";
+        where.role = { in: ["QC", "Dentist", "Designer"] };
+      } else if (me.role === "QC") {
+        where.role = { in: ["ADMIN", "Dentist", "Designer"] };
+      } else if (me.role === "Dentist") {
+        where.role = { in: ["ADMIN", "QC"] };
+      } else if (me.role === "Designer") {
+        where.role = { in: ["ADMIN", "QC"] };
       }
 
       const partners = await prisma.user.findMany({
@@ -113,7 +155,30 @@ export const chatController = {
         orderBy: { fullName: "asc" },
       });
 
-      res.status(200).json({ success: true, data: partners });
+      // Unread count per partner: messages in room sent by the other user after our lastReadAt
+      const readRecords = await prisma.chatRoomRead.findMany({
+        where: { userId: currentUserId },
+        select: { roomId: true, lastReadAt: true },
+      });
+      const readMap = Object.fromEntries(readRecords.map((r) => [r.roomId, r.lastReadAt]));
+
+      const partnersWithUnread = await Promise.all(
+        partners.map(async (p) => {
+          const roomId = getDmRoomId(currentUserId, p.id);
+          if (!roomId) return { ...p, unreadCount: 0 };
+          const lastReadAt = readMap[roomId] || new Date(0);
+          const unreadCount = await prisma.chatMessage.count({
+            where: {
+              roomId,
+              senderId: p.id,
+              createdAt: { gt: lastReadAt },
+            },
+          });
+          return { ...p, unreadCount };
+        })
+      );
+
+      res.status(200).json({ success: true, data: partnersWithUnread });
     } catch (error) {
       console.error("Get chat partners error:", error);
       res.status(500).json({

@@ -38,6 +38,7 @@ createdCases CaseRecord[] @relation("CreatedBy")
   resetPasswordExpires DateTime?
   dentistProfile      DentistProfile?
   chatMessages        ChatMessage[]
+  chatRoomReads       ChatRoomRead[]
 }
 
 enum Role {
@@ -215,6 +216,14 @@ model ChatMessage {
   sender   User     @relation(fields: [senderId], references: [id])
   content  String
   createdAt DateTime @default(now())
+}
+
+model ChatRoomRead {
+  userId    String   // user who read
+  roomId    String   // dm_xxx_yyy
+  lastReadAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([userId, roomId])
 }
 
 model DentistProfile {

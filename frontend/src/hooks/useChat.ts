@@ -25,6 +25,7 @@ export type ChatPartner = {
   last_name?: string | null;
   email: string;
   role: string;
+  unreadCount?: number;
 };
 
 /** Build the same DM room id as the backend (order-independent). */
@@ -48,12 +49,12 @@ export function useChatPartners() {
       const res = await request.get("/chat/partners");
       return res.data?.data ?? [];
     },
-    enabled: !!user?.token && (user?.role === "ADMIN" || user?.role === "QC"),
+    enabled: !!user?.token && ["ADMIN", "QC", "Dentist", "Designer"].includes(user?.role ?? ""),
     refetchOnWindowFocus: false,
   });
 }
 
-export function useChat(selectedRoomId: string | null) {
+export function useChat(selectedRoomId: string | null, onNewMessageInOtherRoom?: () => void) {
   const { user } = useSelector((state: any) => state.user);
   const { request } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -61,9 +62,11 @@ export function useChat(selectedRoomId: string | null) {
   const [connected, setConnected] = useState(false);
   const [sending, setSending] = useState(false);
   const token = user?.token;
-  const currentUserId = user?.userId;
+  const currentUserId = user?.userId ?? user?.id;
   const selectedRoomIdRef = useRef(selectedRoomId);
   selectedRoomIdRef.current = selectedRoomId;
+  const onNewMessageRef = useRef(onNewMessageInOtherRoom);
+  onNewMessageRef.current = onNewMessageInOtherRoom;
 
   const { data: historyData, refetch: refetchHistory } = useQuery({
     queryKey: ["chat", "messages", token, selectedRoomId],
@@ -102,8 +105,11 @@ export function useChat(selectedRoomId: string | null) {
     s.on("connect_error", () => setConnected(false));
 
     s.on("new_message", (msg: ChatMessage) => {
+      const currentRoom = selectedRoomIdRef.current;
+      if (msg.roomId !== currentRoom) {
+        onNewMessageRef.current?.();
+      }
       setMessages((prev) => {
-        const currentRoom = selectedRoomIdRef.current;
         if (msg.roomId !== currentRoom || prev.some((m) => m.id === msg.id))
           return prev;
         return [...prev, msg];
@@ -156,5 +162,6 @@ export function useChat(selectedRoomId: string | null) {
     sendMessage,
     refetchHistory,
     currentUserId,
+    historyLoaded: !!selectedRoomId && Array.isArray(historyData),
   };
 }

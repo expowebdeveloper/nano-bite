@@ -77,7 +77,6 @@ const useUser = () => {
     },
     onSuccess: (data) => {
       confirmationMessage("Password reset link sent! Please check your email.", "success");
-      navigate("/set-password");
       console.log("Password reset link sent:", data);
     },
     onError: (error: any) => {

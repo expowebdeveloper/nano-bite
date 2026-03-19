@@ -1,13 +1,15 @@
-import {  useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Send } from "lucide-react";
 import { useChat, useChatPartners, getDmRoomId, type ChatPartner } from "../../hooks/useChat";
 
 const Messages = () => {
   const { user } = useSelector((state: any) => state.user);
-  const canAccessMessages = user?.role === "ADMIN" || user?.role === "QC";
-  const currentUserId = user?.userId as string | undefined;
+  const queryClient = useQueryClient();
+  const canAccessMessages = ["ADMIN", "QC", "Dentist", "Designer"].includes(user?.role ?? "");
+  const currentUserId = (user?.userId ?? user?.id) as string | undefined;
 
   const { data: partners = [], isLoading: partnersLoading } = useChatPartners();
   const [selectedPartner, setSelectedPartner] = useState<ChatPartner | null>(null);
@@ -15,9 +17,19 @@ const Messages = () => {
     ? getDmRoomId(currentUserId, selectedPartner.id)
     : null;
 
-  const { messages, connected, sending, sendMessage, currentUserId: chatUserId } = useChat(selectedRoomId);
+  const { messages, connected, sending, sendMessage, currentUserId: chatUserId, historyLoaded } = useChat(
+    selectedRoomId,
+    () => queryClient.invalidateQueries({ queryKey: ["chat", "partners"] })
+  );
   const [input, setInput] = useState("");
   const listEndRef = useRef<HTMLDivElement>(null);
+
+  // Refetch partners when current room is marked read (history loaded) so unread counts update
+  useEffect(() => {
+    if (selectedPartner && historyLoaded) {
+      queryClient.invalidateQueries({ queryKey: ["chat", "partners"] });
+    }
+  }, [selectedPartner?.id, historyLoaded, queryClient]);
 
   // useEffect(() => {
   //   listEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -66,12 +78,18 @@ const Messages = () => {
   return (
     <div className="min-h-screen bg-[#fbfeff] p-4 md:p-8">
       <div className="mx-auto max-w-5xl flex gap-4 h-[calc(100vh-6rem)] min-h-[500px]">
-        {/* Sidebar: list of QC (for Admin) or Admin (for QC) */}
+        {/* Sidebar: partners depend on role (Admin→QC, QC→Admin/Dentist/Designer, Dentist/Designer→QC) */}
         <div className="w-64 shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col">
           <div className="px-4 py-3 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-700">Chat with</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              {user?.role === "ADMIN" ? "Select a QC user" : "Select an Admin"}
+              {user?.role === "ADMIN"
+                ? "Select QC, Dentist, or Designer"
+                : user?.role === "QC"
+                  ? "Select Admin, Dentist, or Designer"
+                  : user?.role === "Dentist"
+                    ? "Select Admin or QC"
+                    : "Select Admin or QC"}
             </p>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -91,8 +109,22 @@ const Messages = () => {
                       isSelected ? "bg-[#e8f4ff] border-l-4 border-l-[#2B89D2]" : ""
                     }`}
                   >
-                    <p className="font-medium text-gray-900 truncate">{partnerDisplayName(p)}</p>
-                    <p className="text-xs text-gray-500 truncate">{p.email}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 truncate">{partnerDisplayName(p)}</p>
+                        <p className="text-xs text-gray-500 truncate">{p.email}</p>
+                        {p.role && (
+                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[#e0f0ff] text-[#1e6bb8]">
+                            {p.role}
+                          </span>
+                        )}
+                      </div>
+                      {(p.unreadCount ?? 0) > 0 && (
+                        <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center rounded-full text-xs font-semibold bg-[#2B89D2] text-white">
+                          {p.unreadCount! > 99 ? "99+" : p.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               })
@@ -106,9 +138,16 @@ const Messages = () => {
             <div>
               {selectedPartner ? (
                 <>
-                  <h1 className="text-lg font-bold text-gray-900">
-                    {partnerDisplayName(selectedPartner)}
-                  </h1>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-lg font-bold text-gray-900">
+                      {partnerDisplayName(selectedPartner)}
+                    </h1>
+                    {selectedPartner.role && (
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e0f0ff] text-[#1e6bb8]">
+                        {selectedPartner.role}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500">{selectedPartner.email}</p>
                 </>
               ) : (
@@ -183,9 +222,9 @@ const Messages = () => {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type a message…"
-                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B89D2] focus:border-transparent"
-                  disabled={!connected || sending}
+                  placeholder={connected ? "Type a message…" : "Connecting…"}
+                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B89D2] focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  disabled={sending}
                   maxLength={2000}
                 />
                 <button

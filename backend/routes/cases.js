@@ -25,7 +25,8 @@ router.post("/:caseId/assign",authenticate,requireAdminOrQc, casesController.ass
 );
 router.get("/", authenticate, casesController.listCases);
 router.get("/calendar", authenticate, casesController.getCalendarCases);
-router.get("/admin/all", authenticate,requireAdminOrQc, casesController.listAllCasesForAdmin);
+router.get("/admin/all", authenticate, requireAdmin, casesController.listAllCasesForAdmin);
+router.get("/qc", authenticate, casesController.listCasesForQc);
 router.get("/designer", authenticate, casesController.listCasesForDesigner);
 router.get("/:caseId", authenticate, casesController.getCase);
 router.patch("/:caseId/status", authenticate, casesController.updateCaseStatus);

@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma.js";
 
 export const listAllUsers = async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
+    const rows = await prisma.user.findMany({
       where: { isDeleted: false },
       select: {
         id: true,
@@ -16,8 +16,19 @@ export const listAllUsers = async (req, res) => {
         isEmailVerified: true,
         createdAt: true,
         phone_number: true,
+        resetPasswordToken: true,
       },
       orderBy: { createdAt: "desc" },
+    });
+    const users = rows.map((u) => {
+      const { resetPasswordToken, ...rest } = u;
+      const accountStatus =
+        u.role === "QC"
+          ? resetPasswordToken
+            ? "Pending setup"
+            : "Active"
+          : null;
+      return { ...rest, accountStatus };
     });
     res.json({ success: true, data: users });
   } catch (error) {

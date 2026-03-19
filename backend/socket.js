@@ -14,6 +14,15 @@ function userAllowedInRoom(userId, roomId) {
   return ids && ids.includes(userId);
 }
 
+function isDentistDesignerPair(roleA, roleB) {
+  const a = roleA || "";
+  const b = roleB || "";
+  return (
+    (a === "Dentist" && b === "Designer") ||
+    (a === "Designer" && b === "Dentist")
+  );
+}
+
 export function setupSocketIO(httpServer) {
   const io = new Server(httpServer, {
     cors: { origin: "*" },
@@ -42,8 +51,9 @@ export function setupSocketIO(httpServer) {
       where: { id: userId },
       select: { id: true, fullName: true, email: true, role: true },
     });
-    if (!user || (user.role !== "ADMIN" && user.role !== "QC")) {
-      return next(new Error("Only Admin and QC can use chat"));
+    const chatRoles = ["ADMIN", "QC", "Dentist", "Designer"];
+    if (!user || !chatRoles.includes(user.role)) {
+      return next(new Error("Chat is not available for your role"));
     }
     socket.userId = user.id;
     socket.user = user;
@@ -51,13 +61,34 @@ export function setupSocketIO(httpServer) {
   });
 
   io.on("connection", (socket) => {
-    socket.on("join_room", (roomId, callback) => {
-      if (!roomId || !userAllowedInRoom(socket.userId, roomId)) {
-        callback?.({ success: false, message: "Invalid or unauthorized room" });
-        return;
+    socket.on("join_room", async (roomId, callback) => {
+      try {
+        if (!roomId || !userAllowedInRoom(socket.userId, roomId)) {
+          callback?.({ success: false, message: "Invalid or unauthorized room" });
+          return;
+        }
+
+        const ids = parseDmRoomId(roomId);
+        const otherUserId = ids?.find((id) => id !== socket.userId) ?? null;
+        if (!otherUserId) {
+          callback?.({ success: false, message: "Invalid room" });
+          return;
+        }
+
+        const other = await prisma.user.findUnique({
+          where: { id: otherUserId },
+          select: { role: true },
+        });
+        if (isDentistDesignerPair(socket.user?.role, other?.role)) {
+          callback?.({ success: false, message: "Chat is not available between Dentist and Designer" });
+          return;
+        }
+
+        socket.join(roomId);
+        callback?.({ success: true });
+      } catch (err) {
+        callback?.({ success: false, message: "Failed to join room" });
       }
-      socket.join(roomId);
-      callback?.({ success: true });
     });
 
     socket.on("leave_room", (roomId) => {
@@ -85,6 +116,19 @@ export function setupSocketIO(httpServer) {
         return;
       }
       try {
+        const ids = parseDmRoomId(roomId);
+        const otherUserId = ids?.find((id) => id !== socket.userId) ?? null;
+        if (otherUserId) {
+          const other = await prisma.user.findUnique({
+            where: { id: otherUserId },
+            select: { role: true },
+          });
+          if (isDentistDesignerPair(socket.user?.role, other?.role)) {
+            callback?.({ success: false, message: "Chat is not available between Dentist and Designer" });
+            return;
+          }
+        }
+
         const message = await prisma.chatMessage.create({
           data: {
             roomId,

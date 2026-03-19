@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/common/Buttons/Button";
 import Input from "../../components/common/Input/Input";
 import main from "../../assets/images/main2.png";
@@ -13,6 +13,7 @@ interface FormValues {
 }
 
 export const ResetPassword = () => {
+  const navigate = useNavigate();
   const { resetPassword } = useUser();
   const formConfig = useForm<FormValues>({
     defaultValues: {
@@ -26,15 +27,14 @@ export const ResetPassword = () => {
     const resetPasswordPayload: ResetPasswordRequest = {
       email: data.email,
     };
-
-    // Call the resetPassword mutation
     resetPassword.mutate(resetPasswordPayload);
   };
+
+  const showSuccessScreen = resetPassword.isSuccess && !resetPassword.isPending;
 
   return (
     <>
       {resetPassword.isPending && <ScreenLoader isLoading={resetPassword.isPending} />}
-      {/* <div className="h-full bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4"> */}
       <div className="w-full bg-white gap-5 min-h-screen rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
       {/* Left Section */}
       <div
@@ -65,16 +65,33 @@ export const ResetPassword = () => {
             <img src={logo} className="mx-auto w-40 h-40 object-contain" />
           </div>
 
-          <h3 className="text-3xl font-semibold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5]">
-          Reset Your Password
-          </h3>
+          {showSuccessScreen ? (
+            <div className="space-y-6 flex-1">
+              <h3 className="text-3xl font-semibold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5]">
+                Check your email
+              </h3>
+              <p className="text-[#6C6C6C] text-sm">
+                If an account exists for that email, we have sent a password reset link. You can reset your password from there.
+              </p>
+              <p className="text-[#6C6C6C] text-sm">
+                If you don't see the email, check your spam folder.
+              </p>
+              <Button
+                btnType="button"
+                btnClick={() => navigate("/login")}
+                btnText="Return to login"
+                customClass="w-full h-[52px] rounded-[10px] shadow-[0px_6px_18px_#006bc933] bg-[linear-gradient(90deg,rgba(59,166,229,1)_0%,rgba(11,117,201,1)_100%)] [font-family:'Inter_Tight',Helvetica] font-medium text-white text-base hover:opacity-90 transition-opacity"
+              />
+            </div>
+          ) : (
+            <>
+              <h3 className="text-3xl font-semibold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5]">
+                Reset Your Password
+              </h3>
           <p className="text-[#6C6C6C] text-sm mb-5">
           Enter your registered email and we’ll send you a secure reset link.
           </p>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 flex-1">
-          
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 flex-1">
 
           <Input
             label="Email Address"
@@ -111,9 +128,12 @@ export const ResetPassword = () => {
               Login
             </Link>
           </p>
-        </form>
+              </form>
+            </>
+          )}
+        </div>
 
-        <p className="text-left text-[14px] text-[#797979] mb-14">
+        <p className="text-left text-[14px] text-[#797979] mb-14 mt-auto">
           © 2025 NanoBite. All rights reserved.
         </p>
       </div>

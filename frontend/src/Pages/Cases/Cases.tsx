@@ -1123,7 +1123,7 @@ const Cases = () => {
               Drag and drop files here or click to browse. You can select multiple files.
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              Supported: Images (JPG, PNG, GIF), PDF, STL
+              Supported: Images (JPG, PNG, GIF), PDF, STL, 7-Zip
             </p>
             <div className="flex justify-center">
               <Button
@@ -1143,7 +1143,7 @@ const Cases = () => {
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl,image/*"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.stl,.7z,.zip,image/*"
                 multiple
                 onChange={handleFileChange}
               />
@@ -1154,7 +1154,7 @@ const Cases = () => {
             {!uploadError && uploading && (
               <p className="text-sm text-gray-600 mt-4">Uploading...</p>
             )}
-            <p className="text-xs text-gray-500 mt-4">Maximum Size: 25 MB per file</p>
+            <p className="text-xs text-gray-500 mt-4">Maximum Size: 500 MB per file</p>
           </div>
         </div>
       </Modal>

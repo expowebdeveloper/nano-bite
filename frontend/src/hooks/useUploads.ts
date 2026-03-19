@@ -10,6 +10,14 @@ const inferCategory = (file: File): CaseAttachmentType | null => {
   if (file.type.startsWith("image/")) return "photo";
   if (file.type === "application/pdf" || extension === "pdf") return "pdf";
   if (extension === "stl") return "stl";
+  if (
+    extension === "7z" ||
+    file.type === "application/x-7z-compressed" ||
+    extension === "zip" ||
+    file.type === "application/zip" ||
+    file.type === "application/x-zip-compressed"
+  )
+    return "archive";
 
   return null;
 };
@@ -25,7 +33,7 @@ const useUploads = () => {
     mutationFn: async (file: File): Promise<CaseAttachment> => {
       const category = inferCategory(file);
       if (!category) {
-        throw new Error("Unsupported file type. Use images, PDF, or STL.");
+        throw new Error("Unsupported file type. Use images, PDF, STL, 7-Zip, or ZIP.");
       }
 
       const presignResponse = await request.post("/uploads/presign", {

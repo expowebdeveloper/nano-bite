@@ -6,13 +6,15 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const allowedAttachmentTypes = ["stl", "photo", "pdf", "prescription"];
+const allowedAttachmentTypes = ["stl", "photo", "pdf", "prescription", "archive"];
 
+const FIVE_HUNDRED_MB = 500 * 1024 * 1024;
 const attachmentTypeLimits = {
-  stl: 200 * 1024 * 1024, // 200MB
-  photo: 25 * 1024 * 1024, // 25MB
-  pdf: 25 * 1024 * 1024, // 25MB
-  prescription: 25 * 1024 * 1024, // 25MB
+  stl: FIVE_HUNDRED_MB,
+  photo: FIVE_HUNDRED_MB,
+  pdf: FIVE_HUNDRED_MB,
+  prescription: FIVE_HUNDRED_MB,
+  archive: FIVE_HUNDRED_MB, // 7z and other archives
 };
 
 const requiredEnv = ["AWS_REGION", "AWS_S3_BUCKET"];

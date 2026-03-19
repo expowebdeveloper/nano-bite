@@ -11,13 +11,15 @@ const allowedCaseTypes = [
   "Partial Denture",
 ];
 
-const allowedAttachmentTypes = ["stl", "photo", "pdf", "prescription"];
+const allowedAttachmentTypes = ["stl", "photo", "pdf", "prescription", "archive"];
 
+const FIVE_HUNDRED_MB = 500 * 1024 * 1024;
 const attachmentTypeLimits = {
-  stl: 200 * 1024 * 1024, // 200MB
-  photo: 25 * 1024 * 1024, // 25MB
-  pdf: 25 * 1024 * 1024, // 25MB
-  prescription: 25 * 1024 * 1024, // 25MB
+  stl: FIVE_HUNDRED_MB,
+  photo: FIVE_HUNDRED_MB,
+  pdf: FIVE_HUNDRED_MB,
+  prescription: FIVE_HUNDRED_MB,
+  archive: FIVE_HUNDRED_MB,
 };
 
 const hasText = (value) => typeof value === "string" && value.trim().length > 0;
@@ -164,6 +166,25 @@ const validatePayload = (body) => {
 
 const createCase = async (req, res) => {
   try {
+    const userId = req.user?.data?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized. Please log in again.",
+      });
+    }
+
+    const creator = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (!creator) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found. Please log in again.",
+      });
+    }
+
     const errors = validatePayload(req.body);
 
     if (errors.length > 0) {
@@ -210,7 +231,8 @@ const createCase = async (req, res) => {
     payload.attachments = attachments;
     payload.caseId = generateCaseId();
     payload.status = "Submitted";
-    payload.createdById = req.user?.data?.id ?? null;
+    payload.createdById = creator.id;
+    payload.cloudFolderLink = normalizeString(req.body.cloudFolderLink);
 
     const dentalCase = await prisma.caseRecord.create({
       data: payload,
@@ -533,8 +555,10 @@ export const casesController = {
       const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
       let where = {};
-      if (me.role === "ADMIN" || me.role === "QC") {
+      if (me.role === "ADMIN") {
         where = {};
+      } else if (me.role === "QC") {
+        where = { assignedToQcId: userId };
       } else if (me.role === "Designer") {
         where = { assignedToDesignerId: userId };
       } else {
@@ -551,6 +575,56 @@ export const casesController = {
     } catch (error) {
       console.error("Calendar cases error:", error);
       res.status(500).json({ success: false, message: "Failed to fetch calendar cases", error: error.message });
+    }
+  },
+
+  listCasesForQc: async (req, res) => {
+    try {
+      const qcId = req.user.data.id;
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+      const search = (req.query.search || "").trim().toLowerCase();
+      const skip = (page - 1) * limit;
+
+      const where = { assignedToQcId: qcId };
+      if (search) {
+        where.OR = [
+          { caseId: { contains: search, mode: "insensitive" } },
+          { patientName: { contains: search, mode: "insensitive" } },
+          { caseType: { contains: search, mode: "insensitive" } },
+          { status: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      const [cases, total] = await Promise.all([
+        prisma.caseRecord.findMany({
+          where,
+          orderBy: { assignedAt: "desc" },
+          skip,
+          take: limit,
+        }),
+        prisma.caseRecord.count({ where }),
+      ]);
+
+      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+        prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
+        prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+      ]);
+      return res.json({
+        success: true,
+        data: cases,
+        total,
+        submittedCount,
+        inDesignCount,
+        completedCount,
+      });
+    } catch (error) {
+      console.error("Get QC cases error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch QC cases",
+      });
     }
   },
 

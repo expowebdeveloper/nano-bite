@@ -19,9 +19,10 @@ type ListUser = {
   isEmailVerified: boolean;
   createdAt: string;
   phone_number?: string | null;
+  accountStatus?: string | null;
 };
 
-const TABLE_HEADER = ["Full name", "Email", "Role", "Status", "Created"];
+const TABLE_HEADER = ["Full name", "Email", "Role", "Status", "Platform status", "Created"];
 
 const Users = () => {
   const { user } = useSelector((state: any) => state.user);
@@ -138,6 +139,21 @@ const Users = () => {
                       >
                         {u.isActive ? "Active" : "Inactive"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {u.role === "QC" && u.accountStatus ? (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            u.accountStatus === "Active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {u.accountStatus === "Active" ? "Joined" : "Pending setup"}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
                       {created || "—"}

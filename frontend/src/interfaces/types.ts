@@ -70,7 +70,7 @@ export type Login = {
     standardShadesUsed: string;
   }
 
-  export type CaseAttachmentType = "stl" | "photo" | "pdf" | "prescription";
+  export type CaseAttachmentType = "stl" | "photo" | "pdf" | "prescription" | "archive";
 
   export interface CaseAttachment {
     type: CaseAttachmentType;
