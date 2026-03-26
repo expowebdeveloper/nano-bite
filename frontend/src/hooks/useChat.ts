@@ -116,6 +116,11 @@ export function useChat(selectedRoomId: string | null, onNewMessageInOtherRoom?:
       });
     });
 
+    s.on("message_revoked", (payload: { id: string }) => {
+      if (!payload?.id) return;
+      setMessages((prev) => prev.filter((m) => m.id !== payload.id));
+    });
+
     setSocket(s);
     return () => {
       s.removeAllListeners();
@@ -146,10 +151,11 @@ export function useChat(selectedRoomId: string | null, onNewMessageInOtherRoom?:
           "send_message",
           { content: trimmed, roomId: selectedRoomId },
           (ack: { success?: boolean }) => {
-            setSending(false);
             resolve(ack?.success ?? false);
           }
         );
+        // Server broadcasts new_message before DB write; re-enable input immediately.
+        setSending(false);
       });
     },
     [socket, selectedRoomId]

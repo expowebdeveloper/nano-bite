@@ -39,8 +39,17 @@ export async function createCheckoutSession(req, res) {
       return res.status(400).json({ success: false, message: "Case must be Ready or Completed to pay" });
     }
 
-    const amount = Math.max(100, Math.round(Number(amountInCents) || 10000)); // min $1, default $100
+    // amountInCents is already in cents (Stripe `unit_amount` expects cents).
+    // Do NOT force a $1 minimum, otherwise $0.10 (10 cents) becomes $1.00.
+    const rawAmountInCents = amountInCents ?? 10000;
+    const amount = Math.max(1, Math.round(Number(rawAmountInCents)));
     const baseUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:5173";
+
+    // Use case owner's email so the post-purchase invoice has a Customer to attach to.
+    const caseOwner = await prisma.user.findUnique({
+      where: { id: record.createdById },
+      select: { email: true },
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -60,6 +69,15 @@ export async function createCheckoutSession(req, res) {
       mode: "payment",
       success_url: successUrl || `${baseUrl}/cases/${caseId}?payment=success`,
       cancel_url: cancelUrl || `${baseUrl}/cases/${caseId}?payment=cancelled`,
+      customer_creation: "if_required",
+      customer_email: caseOwner?.email ?? undefined,
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          // lets us find the Payment row later from webhook(s)
+          metadata: { caseId: record.caseId },
+        },
+      },
       metadata: {
         caseId: record.caseId,
       },
@@ -102,31 +120,83 @@ export async function handleStripeWebhook(req, res) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     const caseId = session.metadata?.caseId;
-    if (caseId) {
-      try {
-        const caseRecord = await prisma.caseRecord.findUnique({
-          where: { caseId },
-          select: { createdById: true },
-        });
-        await prisma.caseRecord.update({
-          where: { caseId },
-          data: { isPaid: true },
-        });
-        const amountInCents = session.amount_total ?? 0;
-        const currency = (session.currency || "usd").toLowerCase();
-        await prisma.payment.create({
-          data: {
-            caseId,
-            amountInCents: Number(amountInCents),
-            currency,
-            stripeSessionId: session.id,
-            paidById: caseRecord?.createdById ?? null,
-          },
-        });
-        console.log("Case marked as paid and payment recorded:", caseId);
-      } catch (e) {
-        console.error("Failed to mark case paid or record payment:", e);
+    if (!caseId) return res.status(200).send();
+
+    try {
+      const caseRecord = await prisma.caseRecord.findUnique({
+        where: { caseId },
+        select: { createdById: true },
+      });
+
+      // Ensure the case is visible as paid.
+      await prisma.caseRecord.update({
+        where: { caseId },
+        data: { isPaid: true },
+      });
+
+      const amountInCents = session.amount_total ?? 0;
+      const currency = (session.currency || "usd").toLowerCase();
+
+      // When invoice creation is enabled, Checkout Session should contain `invoice` (invoice id)
+      // but it can be null briefly, so we safely handle both cases.
+      const invoiceId =
+        typeof session.invoice === "string"
+          ? session.invoice
+          : session.invoice?.id;
+
+      let invoiceUrl = null;
+      if (invoiceId) {
+        const invoice = await stripe.invoices.retrieve(invoiceId);
+        invoiceUrl = invoice?.hosted_invoice_url ?? null;
       }
+
+      await prisma.payment.upsert({
+        where: { stripeSessionId: session.id },
+        update: {
+          paidById: caseRecord?.createdById ?? null,
+          amountInCents: Number(amountInCents),
+          currency,
+          invoiceId: invoiceId ?? undefined,
+          invoiceUrl: invoiceUrl ?? undefined,
+        },
+        create: {
+          caseId,
+          amountInCents: Number(amountInCents),
+          currency,
+          stripeSessionId: session.id,
+          paidById: caseRecord?.createdById ?? null,
+          invoiceId: invoiceId ?? null,
+          invoiceUrl: invoiceUrl ?? null,
+        },
+      });
+
+      console.log("Case marked as paid and payment recorded:", caseId);
+    } catch (e) {
+      console.error("Failed to mark case paid or record payment:", e);
+    }
+  } else if (event.type === "invoice.paid") {
+    // Fallback: if invoice isn't immediately available on checkout.session.completed,
+    // we still fill invoice fields once Stripe confirms the invoice is paid.
+    const invoice = event.data.object;
+    const invoiceId = invoice?.id;
+    const caseId = invoice?.metadata?.caseId;
+    if (!invoiceId || !caseId) return res.status(200).send();
+
+    try {
+      const invoiceUrl = invoice?.hosted_invoice_url ?? null;
+      await prisma.payment.updateMany({
+        where: {
+          caseId,
+          // only fill if missing (avoid overwriting if it already exists)
+          invoiceId: null,
+        },
+        data: {
+          invoiceId,
+          invoiceUrl,
+        },
+      });
+    } catch (e) {
+      console.error("Failed to update invoice fields:", e);
     }
   }
 
@@ -138,12 +208,18 @@ export async function handleStripeWebhook(req, res) {
  */
 export async function getTransactions(req, res) {
   try {
+    const userRole = req.user?.data?.role;
+    const userId = req.user?.data?.id;
+
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
     const skip = (page - 1) * limit;
 
+    const whereClause = userRole === "ADMIN" ? {} : { paidById: userId };
+
     const [payments, total] = await Promise.all([
       prisma.payment.findMany({
+        where: whereClause,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -153,7 +229,7 @@ export async function getTransactions(req, res) {
           },
         },
       }),
-      prisma.payment.count(),
+      prisma.payment.count({ where: whereClause }),
     ]);
 
     return res.status(200).json({
@@ -174,7 +250,13 @@ export async function getTransactions(req, res) {
  */
 export async function getBalance(req, res) {
   try {
+    const userRole = req.user?.data?.role;
+    const userId = req.user?.data?.id;
+
+    const whereClause = userRole === "ADMIN" ? {} : { paidById: userId };
+
     const result = await prisma.payment.aggregate({
+      where: whereClause,
       _sum: { amountInCents: true },
       _count: { id: true },
     });

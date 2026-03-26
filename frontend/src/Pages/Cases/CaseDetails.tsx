@@ -12,10 +12,11 @@ import { useSelector } from "react-redux";
 import { ChangeEvent } from "react";
 import { StlViewer } from "../../components/common/StlViewer/StlViewer";
 import type { CaseAttachment, CaseRecord } from "../../interfaces/types";
+import { calculateDenturePrice, formValuesToPricingInput } from "../../utils/denturePricing";
 
 
 const CaseDetails = () => {
-    const { user } = useSelector((state: any) => state.user);
+  const { user } = useSelector((state: any) => state.user);
 
   const { caseId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,26 +30,67 @@ const CaseDetails = () => {
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, caseId, queryClient, setSearchParams]);
-      const {
-  caseDetailsQuery,
-  updateCaseStatus,
-  designerAttachmentsQuery,
-  uploadDesignerAttachments,
-} = useCases();
+  const {
+    caseDetailsQuery,
+    updateCaseStatus,
+    designerAttachmentsQuery,
+    uploadDesignerAttachments,
+  } = useCases();
 
-const { uploadFile, uploading, getDownloadUrl } = useUploads();
+  const { uploadFile, uploading, getDownloadUrl } = useUploads();
   const { createCheckoutSession } = usePayment();
-const { data: designerAttachmentsData } =
-  designerAttachmentsQuery(caseId);
+  const { data: designerAttachmentsData } =
+    designerAttachmentsQuery(caseId);
 
   const { data, isLoading, error } = caseDetailsQuery(caseId);
   const record = data as CaseRecord | undefined;
+
+  // Stripe amount must match the same pricing logic shown to the lab owner.
+  // Without this, the UI estimate can be $160 but Stripe charges $100 (hardcoded).
+  const denturePricingForPayment = useMemo(() => {
+    if (!record) return null;
+    if (record.caseType !== "Digital Complete Denture" && record.caseType !== "Partial Denture") {
+      return null;
+    }
+
+    const selectedOption =
+      record.caseType === "Partial Denture"
+        ? "Partial Denture"
+        : (Array.isArray(record.overdentureImplantLocations)
+          ? record.overdentureImplantLocations.length > 0
+          : !!record.overdentureImplantLocations) ? "Overdenture" : "Full Denture";
+
+    const input = formValuesToPricingInput(
+      {
+        dueDate: record.dueDate,
+        dentureArch: record.dentureArch,
+        hasExistingDenture: record.hasExistingDenture,
+        overdentureRelineArch: record.overdentureRelineArch,
+        overdentureImplantLocations: record.overdentureImplantLocations,
+        partialType: record.partialType,
+        partialMaterial: record.partialMaterial,
+        dentureBiteAdjustment: record.dentureBiteAdjustment,
+        dentureMidlineCorrection: record.dentureMidlineCorrection,
+        dentureWantsDesignPreview: record.dentureWantsDesignPreview,
+        dentureDesignPreviewAddOns: record.dentureDesignPreviewAddOns,
+        dentureOtherDetails: record.dentureOtherDetails,
+      },
+      selectedOption
+    );
+
+    const pricing = calculateDenturePrice(input);
+    const totalCents = Math.round(pricing.total * 100);
+    return {
+      pricing,
+      totalCents,
+    };
+  }, [record]);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadError, setUploadError] = useState<string | null>(null);
-    const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
-    const [qcComment, setQcComment] = useState("");
-    const [stlUrls, setStlUrls] = useState<Record<string, string>>({});
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<CaseAttachment[]>([]);
+  const [qcComment, setQcComment] = useState("");
+  const [stlUrls, setStlUrls] = useState<Record<string, string>>({});
 
   const allAttachments = [
     ...(record?.attachments || []),
@@ -82,10 +124,10 @@ const { data: designerAttachmentsData } =
   }, [record?.attachments, designerAttachmentsData?.designersAttachments, attachments]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
-    
+
 
     if (!file) return;
 
@@ -120,47 +162,47 @@ const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     }
   };
 
-const getNextStatus = (currentStatus?: string) => {
-  switch (currentStatus) {
-    case "Assigned":
-      return "In Design";
-    case "In Design":
-      return "QC";
-    case "QC":
-      return "Ready";
+  const getNextStatus = (currentStatus?: string) => {
+    switch (currentStatus) {
+      case "Assigned":
+        return "In Design";
+      case "In Design":
+        return "QC";
+      case "QC":
+        return "Ready";
       // case "In Design":
       // return "Assigned";
-    default:
-      return null;
-  }
-};
+      default:
+        return null;
+    }
+  };
 
-const handleUpdateStatus = () => {
-  if (!record?.caseId) return;
+  const handleUpdateStatus = () => {
+    if (!record?.caseId) return;
 
-  const nextStatus = getNextStatus(record.status);
-  if (!nextStatus) return;
+    const nextStatus = getNextStatus(record.status);
+    if (!nextStatus) return;
 
-  updateCaseStatus.mutate({
-    caseId: record.caseId,
-    status: nextStatus,
-  });
-};
-
-const handleQcDecision = async (decision: "approve" | "reject") => {
-  if (!record?.caseId) return;
-  const targetStatus = decision === "approve" ? "Ready" : "In Design";
-  try {
-    await updateCaseStatus.mutateAsync({
+    updateCaseStatus.mutate({
       caseId: record.caseId,
-      status: targetStatus,
-      qcComment: qcComment.trim(),
+      status: nextStatus,
     });
-    setQcComment("");
-  } catch {
-    // errors handled in mutation
-  }
-};
+  };
+
+  const handleQcDecision = async (decision: "approve" | "reject") => {
+    if (!record?.caseId) return;
+    const targetStatus = decision === "approve" ? "Ready" : "In Design";
+    try {
+      await updateCaseStatus.mutateAsync({
+        caseId: record.caseId,
+        status: targetStatus,
+        qcComment: qcComment.trim(),
+      });
+      setQcComment("");
+    } catch {
+      // errors handled in mutation
+    }
+  };
 
 
 
@@ -384,56 +426,56 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
   };
 
   const getStatusButtonText = (status?: string) => {
-  switch (status) {
-    case "Assigned":
-      return "Start In Design";
-    case "In Design":
-      return "Send to QC";
-    default:
-      return "";
-  }
-};
+    switch (status) {
+      case "Assigned":
+        return "Start In Design";
+      case "In Design":
+        return "Send to QC";
+      default:
+        return "";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6 space-y-6">
       <div className="flex items-center justify-between">
-         <div className="flex items-center gap-4 ">
-           <Link
-          to="/dashboard"
-          className="text-sm text-[#0B75C9] bg-blue-100 rounded-full p-3"
-        >
-                                   <ArrowLeft className="w-5 h-5 text-[#2B89D2]" />
+        <div className="flex items-center gap-4 ">
+          <Link
+            to="/dashboard"
+            className="text-sm text-[#0B75C9] bg-blue-100 rounded-full p-3"
+          >
+            <ArrowLeft className="w-5 h-5 text-[#2B89D2]" />
 
-        </Link>
-        
-       
-        <div>
-          
-          <h1 className="text-2xl font-bold text-gray-900">Case Details</h1>
-          <p className="text-sm text-gray-600">Case ID: {caseId}</p>
-        </div>
+          </Link>
+
+
+          <div>
+
+            <h1 className="text-2xl font-bold text-gray-900">Case Details</h1>
+            <p className="text-sm text-gray-600">Case ID: {caseId}</p>
+          </div>
         </div>
         <div className="flex justify-center items-center gap-6">
-         <span className="px-3 py-1 rounded-full bg-[#e8f4ff] text-[#0B75C9] font-semibold">
-                {record?.status}
+          <span className="px-3 py-1 rounded-full bg-[#e8f4ff] text-[#0B75C9] font-semibold">
+            {record?.status}
           </span>
-          
-                            {user?.role === "Designer" && (record?.status === "Assigned" || record?.status === "In Design") && (
-                              <button
-                                className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100"
-                                onClick={handleUpdateStatus}
-                              >
-                                {getStatusButtonText(record?.status)}
-                              </button>
-                            )}
-                            {user?.role === "Designer" && record?.status === "QC" && (
-                              <span className="text-sm text-gray-600">Pending QC review</span>
-                            )}
 
-              
-       
+          {user?.role === "Designer" && (record?.status === "Assigned" || record?.status === "In Design") && (
+            <button
+              className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100"
+              onClick={handleUpdateStatus}
+            >
+              {getStatusButtonText(record?.status)}
+            </button>
+          )}
+          {user?.role === "Designer" && record?.status === "QC" && (
+            <span className="text-sm text-gray-600">Pending QC review</span>
+          )}
+
+
+
         </div>
-        
+
       </div>
 
       <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
@@ -446,7 +488,7 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
         {!isLoading && record && (
           <>
             <div className="flex flex-wrap gap-4 text-sm text-gray-700">
-             
+
               <span>Type: {record.caseType || "—"}</span>
               <span>Due: {record.dueDate || "—"}</span>
               {record.createdBy?.fullName && (
@@ -514,6 +556,22 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
               )}
             </div>
 
+            {(user.role === "Dentist" || user.role === "ADMIN") &&
+              record.isPaid &&
+              record.payments?.[0]?.invoiceUrl && (
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-900">Invoice</h3>
+                  <a
+                    href={record.payments[0]!.invoiceUrl as string}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-[#0B75C9] hover:underline font-medium"
+                  >
+                    View invoice PDF
+                  </a>
+                </div>
+              )}
+
             {/* Delivered files (QC-approved): Dentist can preview always; download only after payment */}
             {user.role === "Dentist" && (record.status === "Ready" || record.status === "Completed") && (
               <div className="space-y-3">
@@ -528,7 +586,7 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
                       onClick={() =>
                         createCheckoutSession.mutate({
                           caseId: record.caseId,
-                          amountInCents: 10000,
+                          amountInCents: denturePricingForPayment?.totalCents ?? 10000,
                           successUrl: `${window.location.origin}/cases/${record.caseId}?payment=success`,
                           cancelUrl: `${window.location.origin}/cases/${record.caseId}?payment=cancelled`,
                         })
@@ -537,7 +595,9 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2B89D2] text-white hover:bg-[#2369a8] disabled:opacity-60 text-sm font-medium"
                     >
                       <Lock size={16} />
-                      {createCheckoutSession.isPending ? "Redirecting to payment..." : "Pay now ($100)"}
+                      {createCheckoutSession.isPending
+                        ? "Redirecting to payment..."
+                        : `Pay now ($${((denturePricingForPayment?.totalCents ?? 10000) / 100).toFixed(2)})`}
                     </button>
                   </div>
                 )}
@@ -580,17 +640,17 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
                     {(designerAttachmentsData?.designersAttachments ?? []).filter(
                       (f: CaseAttachment) => f.type === "stl" && stlUrls[f.key]
                     ).length > 0 && (
-                      <div className="space-y-2 mt-4">
-                        <h4 className="text-sm font-semibold text-gray-700">3D preview</h4>
-                        {(designerAttachmentsData?.designersAttachments ?? [])
-                          .filter((file: CaseAttachment) => file.type === "stl" && stlUrls[file.key])
-                          .map((file: CaseAttachment) => (
-                            <div key={`delivered-stl-${file.key}`} className="mt-2">
-                              <StlViewer url={stlUrls[file.key]} fileName={file.name} />
-                            </div>
-                          ))}
-                      </div>
-                    )}
+                        <div className="space-y-2 mt-4">
+                          <h4 className="text-sm font-semibold text-gray-700">3D preview</h4>
+                          {(designerAttachmentsData?.designersAttachments ?? [])
+                            .filter((file: CaseAttachment) => file.type === "stl" && stlUrls[file.key])
+                            .map((file: CaseAttachment) => (
+                              <div key={`delivered-stl-${file.key}`} className="mt-2">
+                                <StlViewer url={stlUrls[file.key]} fileName={file.name} />
+                              </div>
+                            ))}
+                        </div>
+                      )}
                   </>
                 ) : (
                   <p className="text-sm text-gray-600">No delivered files yet.</p>
@@ -660,14 +720,14 @@ const handleQcDecision = async (decision: "approve" | "reject") => {
                 </button>
               </div>
             )}
-         {(record.status === "In Design"||record.status === "QC" )&& <button
-className="px-14 py-3 rounded-md border border-[#2B89D2] 
+            {(record.status === "In Design" || record.status === "QC") && <button
+              className="px-14 py-3 rounded-md border border-[#2B89D2] 
         text-[#2B89D2] bg-transparent opacity-100
         hover:bg-[#2B89D2] hover:text-white transition"
-        onClick={() => setShowUploadModal(true)}
->
-Upload File
-</button>}
+              onClick={() => setShowUploadModal(true)}
+            >
+              Upload File
+            </button>}
           </>
         )}
       </div>

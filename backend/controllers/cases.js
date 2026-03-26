@@ -795,6 +795,18 @@ export const casesController = {
 
       const record = await prisma.caseRecord.findUnique({
         where: { caseId },
+        include: {
+          payments: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              invoiceId: true,
+              invoiceUrl: true,
+              createdAt: true,
+            },
+          },
+        },
       });
 
       if (!record) {

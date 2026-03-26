@@ -477,7 +477,7 @@ export const SIDE_BAR_ITEMS = [
     name: "Payments",
     url: "/payments",
     icon: () => <Banknote className="w-5 h-5" />,
-    allowedRoles: ["ADMIN"],
+    allowedRoles: ["ADMIN", "Dentist"],
   },
   {
     name: "Profile",

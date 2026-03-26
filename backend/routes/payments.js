@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 router.post("/create-checkout-session", authenticate, createCheckoutSession);
-router.get("/transactions", authenticate, requireAdmin, getTransactions);
-router.get("/balance", authenticate, requireAdmin, getBalance);
+router.get("/transactions", authenticate, getTransactions);
+router.get("/balance", authenticate, getBalance);
 
 export default router;

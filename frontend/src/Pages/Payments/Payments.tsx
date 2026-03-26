@@ -1,7 +1,10 @@
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
-import { DollarSign, FileText } from "lucide-react";
+import { DollarSign, FileText, AlertCircle } from "lucide-react";
 import { useAdminPayments } from "../../hooks/usePayment";
+import useCases from "../../hooks/useCases";
+import { calculateDenturePrice, formValuesToPricingInput } from "../../utils/denturePricing";
+import { useMemo } from "react";
 import Pagination from "../../components/common/Pagination/Pagination";
 import usePagination from "../../hooks/usePagination";
 import { ITEMS_PER_PAGE } from "../../Constants/Constants";
@@ -17,7 +20,48 @@ const Payments = () => {
   const transactions = txData?.data ?? [];
   const totalTransactions = txData?.total ?? 0;
 
-  if (!isAdmin) {
+  const isDentist = user?.role === "Dentist";
+  const { casesListQuery } = useCases({ page: 1, limit: 1000 });
+
+  const amountDue = useMemo(() => {
+    if (!casesListQuery.data?.data) return 0;
+
+    let total = 0;
+    casesListQuery.data.data.forEach((record: any) => {
+      // Amount is due if the case is unpaid and ready/completed.
+      if (!record.isPaid && (record.status === "Ready" || record.status === "Completed") && (record.caseType === "Digital Complete Denture" || record.caseType === "Partial Denture")) {
+        const selectedOption =
+          record.caseType === "Partial Denture"
+            ? "Partial Denture"
+            : (Array.isArray(record.overdentureImplantLocations)
+              ? record.overdentureImplantLocations.length > 0
+              : !!record.overdentureImplantLocations) ? "Overdenture" : "Full Denture";
+
+        const input = formValuesToPricingInput(
+          {
+            dueDate: record.dueDate,
+            dentureArch: record.dentureArch,
+            hasExistingDenture: record.hasExistingDenture,
+            overdentureRelineArch: record.overdentureRelineArch,
+            overdentureImplantLocations: record.overdentureImplantLocations,
+            partialType: record.partialType,
+            partialMaterial: record.partialMaterial,
+            dentureBiteAdjustment: record.dentureBiteAdjustment,
+            dentureMidlineCorrection: record.dentureMidlineCorrection,
+            dentureWantsDesignPreview: record.dentureWantsDesignPreview,
+            dentureDesignPreviewAddOns: record.dentureDesignPreviewAddOns,
+            dentureOtherDetails: record.dentureOtherDetails,
+          },
+          selectedOption
+        );
+        const pricing = calculateDenturePrice(input);
+        total += pricing.total;
+      }
+    });
+    return total;
+  }, [casesListQuery.data]);
+
+  if (!isAdmin && !isDentist) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -26,28 +70,52 @@ const Payments = () => {
       <div className="mx-auto max-w-6xl space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
 
-        {/* Balance card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <DollarSign className="w-6 h-6 text-[#0B75C9]" />
-            <h2 className="text-lg font-semibold text-gray-900">Balance</h2>
-          </div>
-          {balanceQuery.isLoading && (
-            <p className="text-sm text-gray-500">Loading balance...</p>
-          )}
-          {balanceQuery.isError && (
-            <p className="text-sm text-red-600">Failed to load balance.</p>
-          )}
-          {balance && !balanceQuery.isLoading && (
-            <div className="flex flex-wrap items-baseline gap-4">
-              <span className="text-3xl font-bold text-gray-900">
-                ${balance.totalAmount}
-              </span>
-              <span className="text-sm text-gray-500">
-                {balance.transactionCount} transaction{balance.transactionCount !== 1 ? "s" : ""} total
-              </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Total Paid card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-6 h-6 text-[#0B75C9]" />
+              <h2 className="text-lg font-semibold text-gray-900">Total Paid</h2>
             </div>
-          )}
+            {balanceQuery.isLoading && (
+              <p className="text-sm text-gray-500">Loading balance...</p>
+            )}
+            {balanceQuery.isError && (
+              <p className="text-sm text-red-600">Failed to load balance.</p>
+            )}
+            {balance && !balanceQuery.isLoading && (
+              <div className="flex flex-wrap items-baseline gap-4">
+                <span className="text-3xl font-bold text-gray-900">
+                  ${balance.totalAmount}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {balance.transactionCount} transaction{balance.transactionCount !== 1 ? "s" : ""} total
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Amount Due card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Total Amount Due</h2>
+            </div>
+            {casesListQuery.isLoading ? (
+              <p className="text-sm text-gray-500">Loading amount due...</p>
+            ) : casesListQuery.isError ? (
+              <p className="text-sm text-red-600">Failed to load amount due.</p>
+            ) : (
+              <div className="flex flex-wrap items-baseline gap-4">
+                <span className="text-3xl font-bold text-gray-900 flex items-center">
+                  ${amountDue.toFixed(2)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  from unpaid Ready/Completed cases
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Transactions table */}
@@ -75,6 +143,7 @@ const Payments = () => {
                       <th className="text-left py-3 font-semibold text-gray-700">Case ID</th>
                       <th className="text-left py-3 font-semibold text-gray-700">Patient</th>
                       <th className="text-left py-3 font-semibold text-gray-700">Type</th>
+                      <th className="text-left py-3 font-semibold text-gray-700">Invoice</th>
                       <th className="text-right py-3 font-semibold text-gray-700">Amount</th>
                     </tr>
                   </thead>
@@ -84,9 +153,9 @@ const Payments = () => {
                         <td className="py-3 text-gray-700">
                           {tx.createdAt
                             ? new Date(tx.createdAt).toLocaleString(undefined, {
-                                dateStyle: "short",
-                                timeStyle: "short",
-                              })
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })
                             : "—"}
                         </td>
                         <td className="py-3 text-gray-700 font-mono">{tx.caseId}</td>
@@ -95,6 +164,20 @@ const Payments = () => {
                         </td>
                         <td className="py-3 text-gray-700">
                           {tx.caseRecord?.caseType ?? "—"}
+                        </td>
+                        <td className="py-3 text-gray-700">
+                          {tx.invoiceUrl ? (
+                            <a
+                              href={tx.invoiceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[#0B75C9] hover:underline font-medium"
+                            >
+                              View Invoice
+                            </a>
+                          ) : (
+                            "—"
+                          )}
                         </td>
                         <td className="py-3 text-right font-medium text-gray-900">
                           ${((tx.amountInCents || 0) / 100).toFixed(2)}

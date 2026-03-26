@@ -193,6 +193,8 @@ model Payment {
   amountInCents   Int
   currency        String   @default("usd")
   stripeSessionId String?  @unique
+  invoiceId       String?  @unique
+  invoiceUrl      String?
   paidById        String?
   createdAt       DateTime @default(now())
 }

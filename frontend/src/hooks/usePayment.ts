@@ -15,6 +15,8 @@ export type PaymentTransaction = {
   amountInCents: number;
   currency: string;
   stripeSessionId: string | null;
+  invoiceId: string | null;
+  invoiceUrl: string | null;
   paidById: string | null;
   createdAt: string;
   caseRecord?: {

@@ -1,7 +1,7 @@
+import { randomUUID } from "crypto";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { prisma } from "./lib/prisma.js";
-import { getDmRoomId } from "./controllers/chat.js";
 
 function parseDmRoomId(roomId) {
   if (!roomId || !roomId.startsWith("dm_")) return null;
@@ -85,6 +85,9 @@ export function setupSocketIO(httpServer) {
         }
 
         socket.join(roomId);
+        // Cache other user's role so send_message skips a DB round-trip on every message (big on EC2 + remote DB).
+        if (!socket.chatOtherRoleByRoom) socket.chatOtherRoleByRoom = Object.create(null);
+        socket.chatOtherRoleByRoom[roomId] = other?.role ?? null;
         callback?.({ success: true });
       } catch (err) {
         callback?.({ success: false, message: "Failed to join room" });
@@ -92,7 +95,10 @@ export function setupSocketIO(httpServer) {
     });
 
     socket.on("leave_room", (roomId) => {
-      if (roomId) socket.leave(roomId);
+      if (roomId) {
+        socket.leave(roomId);
+        delete socket.chatOtherRoleByRoom?.[roomId];
+      }
     });
 
     socket.on("send_message", async (payload, callback) => {
@@ -119,37 +125,71 @@ export function setupSocketIO(httpServer) {
         const ids = parseDmRoomId(roomId);
         const otherUserId = ids?.find((id) => id !== socket.userId) ?? null;
         if (otherUserId) {
-          const other = await prisma.user.findUnique({
-            where: { id: otherUserId },
-            select: { role: true },
-          });
-          if (isDentistDesignerPair(socket.user?.role, other?.role)) {
+          let otherRole = socket.chatOtherRoleByRoom?.[roomId];
+          if (otherRole === undefined) {
+            const other = await prisma.user.findUnique({
+              where: { id: otherUserId },
+              select: { role: true },
+            });
+            otherRole = other?.role ?? null;
+            if (!socket.chatOtherRoleByRoom) socket.chatOtherRoleByRoom = Object.create(null);
+            socket.chatOtherRoleByRoom[roomId] = otherRole;
+          }
+          if (isDentistDesignerPair(socket.user?.role, otherRole)) {
             callback?.({ success: false, message: "Chat is not available between Dentist and Designer" });
             return;
           }
         }
 
-        const message = await prisma.chatMessage.create({
-          data: {
-            roomId,
-            senderId: socket.userId,
-            content: trimmed,
+        // Pre-generate id so we can broadcast immediately (instant UX) then persist the same row.
+        const id = randomUUID();
+        const createdAt = new Date().toISOString();
+        const optimistic = {
+          id,
+          roomId,
+          senderId: socket.userId,
+          content: trimmed,
+          createdAt,
+          sender: {
+            id: socket.user.id,
+            fullName: socket.user.fullName,
+            email: socket.user.email,
+            role: socket.user.role,
           },
-          include: {
-            sender: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-                role: true,
+        };
+
+        io.to(roomId).emit("new_message", optimistic);
+
+        let message;
+        try {
+          message = await prisma.chatMessage.create({
+            data: {
+              id,
+              roomId,
+              senderId: socket.userId,
+              content: trimmed,
+            },
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                  role: true,
+                },
               },
             },
-          },
-        });
-        io.to(roomId).emit("new_message", message);
+          });
+        } catch (dbErr) {
+          console.error("Chat save error:", dbErr);
+          io.to(roomId).emit("message_revoked", { id, roomId });
+          callback?.({ success: false, message: "Failed to send message" });
+          return;
+        }
+
         callback?.({ success: true, data: message });
       } catch (err) {
-        console.error("Chat save error:", err);
+        console.error("Chat send error:", err);
         callback?.({ success: false, message: "Failed to send message" });
       }
     });

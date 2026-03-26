@@ -124,6 +124,12 @@ export type Login = {
     caseId: string;
     status: string;
     isPaid?: boolean;
+    payments?: Array<{
+      id?: string;
+      invoiceId?: string | null;
+      invoiceUrl?: string | null;
+      createdAt?: string;
+    }>;
     caseType?: string;
     doctorSignature?: string;
     date?: string;

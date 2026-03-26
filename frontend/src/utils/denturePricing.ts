@@ -47,6 +47,7 @@ export interface DenturePricingInput {
   overdentureRelineArch?: string;
   /** Partial: ["Acrylic"] | ["Cast Metal"] etc. */
   partialType?: string[];
+  partialMaterial?: string;
   /** Setup / modification add-ons (bite, midline, design preview, etc.) */
   hasSetupOrModification?: boolean;
   /** Due date ISO string to derive rush */
@@ -119,14 +120,35 @@ export function calculateDenturePrice(input: DenturePricingInput): DenturePricin
   }
 
   // Partial Denture
-  if (option === "Partial Denture" && input.partialType?.length) {
-    const firstType = input.partialType[0];
-    const price = firstType && DENTURE_PRICES.partial[firstType] != null
-      ? DENTURE_PRICES.partial[firstType]
-      : DENTURE_PRICES.partial.Acrylic;
+  if (option === "Partial Denture") {
+    let price = DENTURE_PRICES.partial.Acrylic;
+    let label = "Acrylic Partial Design";
+
+    if (input.partialMaterial) {
+      const material = input.partialMaterial;
+      if (material === "Titanium Metal" || material === "Chrome Cobalt Metal") {
+        price = DENTURE_PRICES.partial["Cast Metal"];
+        label = `${material} Partial Design`;
+      } else if (material === "TCS / Valplast" || material === "Duraflex" || material === "Acetal") {
+        price = DENTURE_PRICES.partial.Flexible;
+        label = `${material} Partial Design`;
+      } else if (material === "Acrylic") {
+        price = DENTURE_PRICES.partial.Acrylic;
+        label = "Acrylic Partial Design";
+      } else {
+        label = `${material} Partial Design`;
+      }
+    } else if (input.partialType?.length) {
+      const firstType = input.partialType[0];
+      price = firstType && DENTURE_PRICES.partial[firstType] != null
+        ? DENTURE_PRICES.partial[firstType]
+        : DENTURE_PRICES.partial.Acrylic;
+      label = `${firstType || "Acrylic"} Partial Design`;
+    }
+
     subtotal += price;
     breakdown.push({
-      label: `${firstType || "Acrylic"} Partial Design`,
+      label,
       amount: price,
     });
   }
@@ -168,6 +190,7 @@ export function formValuesToPricingInput(values: {
   overdentureRelineArch?: string;
   overdentureImplantLocations?: unknown[];
   partialType?: string[];
+  partialMaterial?: string;
   dentureBiteAdjustment?: string;
   dentureMidlineCorrection?: string;
   dentureWantsDesignPreview?: boolean;
@@ -188,6 +211,7 @@ export function formValuesToPricingInput(values: {
     isOverdentureCase: selectedOption === "Overdenture" && (values.overdentureImplantLocations?.length ?? 0) > 0,
     overdentureRelineArch: values.overdentureRelineArch || undefined,
     partialType: values.partialType,
+    partialMaterial: values.partialMaterial,
     hasSetupOrModification: hasModification,
     dueDate: values.dueDate || undefined,
   };
