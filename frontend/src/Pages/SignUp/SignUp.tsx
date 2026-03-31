@@ -16,6 +16,7 @@ import PasswordField from "../../components/common/PasswordField/PasswordField";
 import AuthLink from "../../components/common/AuthLink/AuthLink";
 import { useSignUp } from "../../contexts/SignUpContext";
 import { useEffect, useRef } from "react";
+import { dynamicYear } from "../../utils/footer";
 
 interface FormValues {
   fullName: string;
@@ -182,7 +183,7 @@ export const Signup = () => {
     <>
       {signup.isPending && <ScreenLoader isLoading={signup.isPending} />}
       {/* <div className="h-full bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4"> */}
-      <div className="w-full bg-white gap-5 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      <div className="w-full bg-white gap-5 rounded-3xl overflow-hidden flex flex-col md:flex-row">
         <SignUpLeftSection />
 
         <div className="md:w-1/2 m-6 pr-5">
@@ -390,7 +391,7 @@ export const Signup = () => {
             )}
 
             <p className="text-left text-[14px] text-[#797979] mt-4">
-              © 2025 NanoBite, All right reserved
+              © {dynamicYear()} NanoBite, All right reserved
             </p>
           </form>
         </div>

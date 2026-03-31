@@ -12,6 +12,7 @@ import { useSignUp } from "../../contexts/SignUpContext";
 import useUser from "../../hooks/useUser";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
 import { DentistSignupPayload, TeamContactsFormValues } from "../../interfaces/types";
+import { dynamicYear } from "../../utils/footer";
 
 const TeamContacts = () => {
   const [, setStep] = useQueryState("step");
@@ -221,7 +222,7 @@ const TeamContacts = () => {
   return (
     <>
       {signup.isPending && <ScreenLoader isLoading={signup.isPending} />}
-      <div className="w-full bg-white gap-5 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+      <div className="w-full bg-white gap-5 rounded-3xl overflow-hidden flex flex-col md:flex-row">
         <SignUpLeftSection />
 
         <div className="md:w-1/2 m-6 pr-5">
@@ -332,7 +333,7 @@ const TeamContacts = () => {
             </div>
 
             <p className="text-left text-[14px] text-[#797979] mt-4">
-              © 2025 NanoBite, All right reserved
+              © {dynamicYear()} NanoBite, All right reserved
             </p>
           </form>
         </div>

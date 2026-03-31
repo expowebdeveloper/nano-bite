@@ -9,6 +9,7 @@ import logo from "../../assets/images/logo.png";
 import useUser from "../../hooks/useUser";
 import { Login } from "../../interfaces/types";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
+import { dynamicYear } from "../../utils/footer";
 
 interface FormValues {
   email: string;
@@ -159,7 +160,7 @@ export const LoginPage = () => {
           </form>
 
           <p className="text-left text-[14px] text-[#797979] mb-14">
-            © 2025 NanoBite. All rights reserved.
+            © {dynamicYear()} NanoBite. All rights reserved.
           </p>
         </div>
       </div>

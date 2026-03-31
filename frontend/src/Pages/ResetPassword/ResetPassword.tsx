@@ -7,6 +7,7 @@ import logo from "../../assets/images/logo.png";
 import useUser from "../../hooks/useUser";
 import { ResetPasswordRequest } from "../../interfaces/types";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
+import { dynamicYear } from "../../utils/footer";
 
 interface FormValues {
   email: string;
@@ -134,7 +135,7 @@ export const ResetPassword = () => {
         </div>
 
         <p className="text-left text-[14px] text-[#797979] mb-14 mt-auto">
-          © 2025 NanoBite. All rights reserved.
+          © {dynamicYear()} NanoBite. All rights reserved.
         </p>
       </div>
       </div>

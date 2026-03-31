@@ -9,6 +9,7 @@ import logo from "../../assets/images/logo.png";
 import useUser from "../../hooks/useUser";
 import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
 import { passwordRules } from "../../Constants/Constants";
+import { dynamicYear } from "../../utils/footer";
 
 interface FormValues {
   password: string;
@@ -177,7 +178,7 @@ export const SetPassword = () => {
         </form>
 
         <p className="text-left text-[14px] text-[#797979] mb-14">
-          © 2025 NanoBite. All rights reserved.
+          © {dynamicYear()} NanoBite. All rights reserved.
         </p>
       </div>
       </div>
