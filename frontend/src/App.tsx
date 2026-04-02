@@ -18,6 +18,8 @@ import QualityControl from "./Pages/QualityControl/QualityControl";
 import Users from "./Pages/Users/Users";
 import Payments from "./Pages/Payments/Payments";
 import CaseDetails from "./Pages/Cases/CaseDetails";
+import Landing from "./Pages/Landing/Landing";
+import PricingGuide from "./Pages/Dashboard/PricingGuide";
 
 function App() {
   return (
@@ -37,7 +39,7 @@ function App() {
       <Routes>
         {/* Public Routes - Redirect to dashboard if already authenticated */}
         <Route element={<PublicRoute />}>
-
+          <Route path="/landing" element={<Landing/>}/>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpFlow />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -58,6 +60,7 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/setting" element={<Settings />} />
+          <Route path="/pricing" element={<PricingGuide/>}/>
         </Route>
 
         {/* Default route - Redirect to dashboard if authenticated, else to login */}
