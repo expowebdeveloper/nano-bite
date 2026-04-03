@@ -555,6 +555,38 @@ const CaseDetails = () => {
                 <p className="text-sm text-gray-600">No attachments</p>
               )}
             </div>
+            {/*   QC can also see the documents attached by the designer*/}
+            {(user.role === "QC" || user.role === "Dentist") &&
+              (designerAttachmentsData?.designersAttachments?.length ?? 0) > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Designer Uploaded Files
+                  </h3>
+
+                  <ul className="space-y-3">
+                    {designerAttachmentsData.designersAttachments.map((file) => (
+                      <li
+                        key={file.key}
+                        className="flex items-center justify-between text-sm text-gray-800"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="inline-flex rounded-full bg-[#e8f4ff] px-2 py-1 text-[11px] font-semibold uppercase text-[#0B75C9]">
+                            {file.type}
+                          </span>
+                          <span className="truncate">{file.name}</span>
+                        </div>
+
+                        <button
+                          onClick={() => handleDownload(file.key)}
+                          className="text-[#0B75C9] hover:underline"
+                        >
+                          View / Download
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
             {(user.role === "Dentist" || user.role === "ADMIN") &&
               record.isPaid &&

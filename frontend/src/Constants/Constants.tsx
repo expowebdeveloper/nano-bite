@@ -1,4 +1,4 @@
-import { Banknote, Calendar, Edit, LayoutDashboard, MessageSquareMore, Settings, ShieldCheck, Users } from "lucide-react";
+import { Banknote, Calendar, Edit, LayoutDashboard, MessageSquareMore, Settings, ShieldCheck, Users ,DollarSign} from "lucide-react";
 import { ValidationRule } from "../interfaces/interfaces";
 import type { CaseAttachment } from "../interfaces/types";
 
@@ -484,5 +484,11 @@ export const SIDE_BAR_ITEMS = [
     url: "/setting",
     icon: () => <Settings className="w-5 h-5" />,
     allowedRoles: ["ADMIN", "Dentist", "Designer", "QC"],
+  },
+  {
+    name: "Pricing Guide",
+    url: "/pricing",
+    icon: () => <DollarSign className="w-5 h-5" />,
+    allowedRoles: ["Dentist"],
   },
 ];
