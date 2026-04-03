@@ -564,7 +564,7 @@ const CaseDetails = () => {
                   </h3>
 
                   <ul className="space-y-3">
-                    {designerAttachmentsData.designersAttachments.map((file) => (
+                    {designerAttachmentsData.designersAttachments.map((file:any) => (
                       <li
                         key={file.key}
                         className="flex items-center justify-between text-sm text-gray-800"

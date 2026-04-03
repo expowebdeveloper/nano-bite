@@ -109,7 +109,7 @@
 // };
 
 // export default PricingGuide;
-import React from "react";
+
 
 const PRICING_DATA = [
   {
