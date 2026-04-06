@@ -92,10 +92,43 @@ const CaseDetails = () => {
   const [qcComment, setQcComment] = useState("");
   const [stlUrls, setStlUrls] = useState<Record<string, string>>({});
 
+  const filteredDesignerAttachments = useMemo(() => {
+    const all = designerAttachmentsData?.designersAttachments || [];
+    // Combine with current session attachments and unique by key
+    const combined = [...all, ...attachments];
+    const unique = Array.from(new Map(combined.map((item: any) => [item.key, item])).values());
+
+    return unique.filter((file: any) => {
+      const isQcFile = file.uploadedByRole === "QC";
+      const isDesignerFile = !file.uploadedByRole || file.uploadedByRole === "Designer";
+
+      if (user?.role === "Designer") {
+        if (isDesignerFile) return true;
+        // Designer sees QC file only if rejected (status is In Design)
+        if (isQcFile && record?.status === "In Design") return true;
+        return false;
+      }
+
+      if (user?.role === "Dentist") {
+        // Dentist sees files only when case is Ready/Completed
+        if (record?.status === "Ready" || record?.status === "Completed") {
+          return true; // Both designer and QC files are visible to Dentist once ready
+        }
+        return false;
+      }
+
+      if (user?.role === "QC") {
+        return true; // QC sees everything
+      }
+
+      // ADMIN or others see everything by default
+      return true;
+    });
+  }, [designerAttachmentsData?.designersAttachments, attachments, user?.role, record?.status]);
+
   const allAttachments = [
     ...(record?.attachments || []),
-    ...(designerAttachmentsData?.designersAttachments || []),
-    ...attachments,
+    ...filteredDesignerAttachments,
   ];
 
   useEffect(() => {
@@ -121,7 +154,7 @@ const CaseDetails = () => {
     };
     resolve();
     return () => { cancelled = true; };
-  }, [record?.attachments, designerAttachmentsData?.designersAttachments, attachments]);
+  }, [record?.attachments, filteredDesignerAttachments]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -135,11 +168,19 @@ const CaseDetails = () => {
 
     try {
       const uploaded = await uploadFile(file);
+      // Tag the file with the uploader's role
+      const taggedUploaded = { ...uploaded, uploadedByRole: user?.role };
+      
       const base =
         attachments.length > 0
           ? attachments
           : designerAttachmentsData?.designersAttachments || [];
-      const nextAttachments = [...base, uploaded];
+      
+      // Merge and unique by key to prevent replication
+      const combined = [...base, taggedUploaded];
+      const nextAttachments = Array.from(
+        new Map(combined.map((item: any) => [item.key, item])).values()
+      );
 
       if (caseId) {
         await uploadDesignerAttachments.mutateAsync({
@@ -148,7 +189,7 @@ const CaseDetails = () => {
         });
       }
 
-      setAttachments(nextAttachments);
+      setAttachments(nextAttachments as CaseAttachment[]);
       confirmationMessage("File uploaded successfully", "success");
       setShowUploadModal(false);
     } catch (error: any) {
@@ -556,15 +597,16 @@ const CaseDetails = () => {
               )}
             </div>
             {/*   QC can also see the documents attached by the designer*/}
-            {(user.role === "QC" || user.role === "Dentist") &&
-              (designerAttachmentsData?.designersAttachments?.length ?? 0) > 0 && (
+            {/*   QC sees the documents; Dentist sees them in a separate section below when ready */}
+            {user.role === "QC" &&
+              filteredDesignerAttachments.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-gray-900">
                     Designer Uploaded Files
                   </h3>
 
                   <ul className="space-y-3">
-                    {designerAttachmentsData.designersAttachments.map((file:any) => (
+                    {filteredDesignerAttachments.map((file: any) => (
                       <li
                         key={file.key}
                         className="flex items-center justify-between text-sm text-gray-800"
@@ -574,6 +616,9 @@ const CaseDetails = () => {
                             {file.type}
                           </span>
                           <span className="truncate">{file.name}</span>
+                          {file.uploadedByRole === "QC" && (
+                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded ml-1">QC File</span>
+                          )}
                         </div>
 
                         <button
@@ -633,10 +678,10 @@ const CaseDetails = () => {
                     </button>
                   </div>
                 )}
-                {(designerAttachmentsData?.designersAttachments?.length ?? 0) > 0 ? (
+                {filteredDesignerAttachments.length > 0 ? (
                   <>
                     <ul className="space-y-3">
-                      {(designerAttachmentsData?.designersAttachments ?? []).map((file: CaseAttachment) => (
+                      {filteredDesignerAttachments.map((file: CaseAttachment) => (
                         <li
                           key={file.key}
                           className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-800 border border-gray-100 rounded-xl p-3 bg-gray-50/50"
@@ -669,12 +714,12 @@ const CaseDetails = () => {
                         </li>
                       ))}
                     </ul>
-                    {(designerAttachmentsData?.designersAttachments ?? []).filter(
+                    {filteredDesignerAttachments.filter(
                       (f: CaseAttachment) => f.type === "stl" && stlUrls[f.key]
                     ).length > 0 && (
                         <div className="space-y-2 mt-4">
                           <h4 className="text-sm font-semibold text-gray-700">3D preview</h4>
-                          {(designerAttachmentsData?.designersAttachments ?? [])
+                          {filteredDesignerAttachments
                             .filter((file: CaseAttachment) => file.type === "stl" && stlUrls[file.key])
                             .map((file: CaseAttachment) => (
                               <div key={`delivered-stl-${file.key}`} className="mt-2">
@@ -820,13 +865,13 @@ const CaseDetails = () => {
         </div>
       </Modal>
       {/* {filesToShow && */}
-      {user.role === "Designer" && attachments.length > 0 && (
+      {user.role === "Designer" && filteredDesignerAttachments.length > 0 && (
         <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Uploaded files
           </h3>
           <ul className="space-y-3">
-            {attachments.map((item) => (
+            {filteredDesignerAttachments.map((item: any) => (
               <li
                 key={item.key}
                 className="flex items-center justify-between text-sm text-gray-800"
@@ -836,6 +881,9 @@ const CaseDetails = () => {
                     {item.type}
                   </span>
                   <span className="truncate">{item.name}</span>
+                  {item.uploadedByRole === "QC" && (
+                    <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded ml-1">QC Feedback</span>
+                  )}
                 </div>
                 <span className="text-gray-500">
                   {(item.size / (1024 * 1024)).toFixed(1)} MB
@@ -845,9 +893,9 @@ const CaseDetails = () => {
           </ul>
 
           {/* Inline STL 3D Previews for designer uploads */}
-          {attachments
-            .filter((item) => item.type === "stl" && stlUrls[item.key])
-            .map((item) => (
+          {filteredDesignerAttachments
+            .filter((item: any) => item.type === "stl" && stlUrls[item.key])
+            .map((item: any) => (
               <div key={`stl-designer-${item.key}`} className="mt-4">
                 <StlViewer url={stlUrls[item.key]} fileName={item.name} />
               </div>

@@ -16,7 +16,7 @@ const Landing = () => {
     return (
         <div className="min-h-screen bg-white font-sans text-[#002b5c] selection:bg-blue-100">
             {/* Header / Navbar */}
-            <header className="flex items-center justify-between px-6 md:px-12 py-4 bg-white sticky top-0 z-50 shadow-sm border-b border-gray-50">
+            <header className="flex items-center justify-between px-6 md:px-12 py-4 bg-[#fbfaff] sticky top-0 z-50 shadow-sm border-b border-gray-50">
                 <div className="flex items-center">
                     <img
                         src={logo}
