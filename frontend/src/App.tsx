@@ -37,9 +37,11 @@ function App() {
         pauseOnHover
       />
       <Routes>
+        {/* Unrestricted Routes */}
+        <Route path="/landing" element={<Landing />} />
+
         {/* Public Routes - Redirect to dashboard if already authenticated */}
         <Route element={<PublicRoute />}>
-          <Route path="/landing" element={<Landing/>}/>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpFlow />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -63,8 +65,8 @@ function App() {
           <Route path="/pricing" element={<PricingGuide/>}/>
         </Route>
 
-        {/* Default route - Redirect to dashboard if authenticated, else to login */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Default route - Redirect to landing */}
+        <Route path="/" element={<Navigate to="/landing" replace />} />
       </Routes>
     </NuqsAdapter>
   );
