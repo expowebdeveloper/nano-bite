@@ -1,5 +1,6 @@
 import React from "react";
 import logo from "../../assets/images/logo.png";
+import { useNavigate } from "react-router-dom";
 
 interface SignUpHeaderProps {
   title?: string;
@@ -10,9 +11,10 @@ const SignUpHeader: React.FC<SignUpHeaderProps> = ({
   title = "Create Your NanoBite Account",
   subtitle = "Join the next-gen platform for dental case management",
 }) => {
+  const navigate = useNavigate()
   return (
     <div className="mb-6">
-      <div className="flex justify-start mb-4">
+      <div className="flex justify-start mb-4 cursor-pointer" onClick ={()=>navigate("/")}>
         <img src={logo} className="w-40 h-40 object-contain" />
       </div>
 

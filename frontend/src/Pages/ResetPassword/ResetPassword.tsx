@@ -62,7 +62,7 @@ export const ResetPassword = () => {
       {/* Right Section */}
       <div className="md:w-1/2 m-6 pr-5 pt-10 flex flex-col min-h-full">
         <div className="mb-2 py-8">
-          <div className="flex justify-self-start">
+          <div className="flex justify-self-start cursor-pointer" onClick ={()=>navigate("/")}>
             <img src={logo} className="mx-auto w-40 h-40 object-contain" />
           </div>
 

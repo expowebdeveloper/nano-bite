@@ -1,7 +1,7 @@
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/common/Buttons/Button";
 import Input from "../../components/common/Input/Input";
 import main from "../../assets/images/main2.png";
@@ -18,6 +18,7 @@ interface FormValues {
 
 export const LoginPage = () => {
   const { login } = useUser();
+  const navigate = useNavigate()
   const formConfig = useForm<FormValues>({
     defaultValues: {
       email: "",
@@ -68,7 +69,7 @@ export const LoginPage = () => {
         {/* Right Section */}
         <div className="md:w-1/2 m-6 pr-5 pt-10 flex flex-col min-h-full">
           <div className="mb-2 ">
-            <div className="flex justify-self-start">
+            <div className="flex justify-self-start cursor-pointer" onClick ={()=>navigate("/")}>
               <img src={logo} className="mx-auto w-40 h-40 object-contain" />
             </div>
 
