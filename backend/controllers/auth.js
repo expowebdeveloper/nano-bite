@@ -110,7 +110,7 @@ const signup = async (req, res) => {
         address: true,
         state: true,
         country: true,
-        role:true,
+        role: true,
         city: true,
         zipCode: true,
         createdAt: true,
@@ -194,7 +194,7 @@ const login = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    if(!user?.isActive){
+    if (!user?.isActive) {
       return res
         .status(401)
         .json({ success: false, message: "User is Inactive, Contact your Administrator" });
@@ -214,7 +214,7 @@ const login = async (req, res) => {
     }
     const token = jwt.sign(
       {
-        data: { id: user.id, email: user.email },
+        data: { id: user.id, email: user.email, role: user.role },
       },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
@@ -226,7 +226,7 @@ const login = async (req, res) => {
         success: true,
         message: "Login successful",
         access_token: token,
-        user: { id: user.id, email: user.email, fullName: user.fullName, role:user.role },
+        user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role },
       });
   } catch (error) {
     console.error("Login error:", error);
@@ -267,22 +267,22 @@ const resetPassword = async (req, res) => {
     const resetPasswordLink = `${process.env.FRONTEND_URL}set-password?email=${encodedEmail}&challenge=${challenge}`;
     console.log(`Password reset link for ${email}: ${resetPasswordLink}`);
 
-     // Define mail options
-        const mailOptions = {
-          to: email,
-          subject: 'Reset Password',
-          text: `A password reset was requested for your account. Use the link below to reset your password.\n\n${resetPasswordLink}\n\nIf you did not request this, please ignore this email.`,
-          html: `
+    // Define mail options
+    const mailOptions = {
+      to: email,
+      subject: 'Reset Password',
+      text: `A password reset was requested for your account. Use the link below to reset your password.\n\n${resetPasswordLink}\n\nIf you did not request this, please ignore this email.`,
+      html: `
             <p>Dear ${user.name || 'User'},</p>
             <p>A password reset was requested for your account. Click the link below to reset your password:</p>
             <p><a href="${resetPasswordLink}">${resetPasswordLink}</a></p>
             <p>If the link doesn't work, copy and paste it into your browser.</p>
             <p><strong>If you did not request this, please ignore this email.</strong></p>
           `,
-        };
-    
-        await sendEmail(mailOptions);
-    
+    };
+
+    await sendEmail(mailOptions);
+
     res
       .status(200)
       .json({

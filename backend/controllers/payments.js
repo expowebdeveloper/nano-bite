@@ -224,8 +224,16 @@ export async function getTransactions(req, res) {
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
+          paidBy: {
+            select: { fullName: true },
+          },
           caseRecord: {
-            select: { caseId: true, patientName: true, caseType: true, status: true },
+            select: {
+              caseId: true,
+              patientName: true,
+              caseType: true,
+              status: true,
+            },
           },
         },
       }),

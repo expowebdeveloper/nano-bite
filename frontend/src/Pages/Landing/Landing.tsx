@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import section1Bg from "../../assets/images/section1.png";
 import section2Bg from "../../assets/images/section2.png";
@@ -22,17 +22,33 @@ const Landing = () => {
                         src={logo}
                         alt="NANO BITE"
                         className="h-12 md:h-16 w-auto cursor-pointer"
-                        onClick={() => navigate("/")}
+                        onClick={() => {
+                            if (window.location.pathname === "/" || window.location.pathname === "/landing") {
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                            } else {
+                                navigate("/");
+                            }
+                        }}
                     />
                 </div>
 
                 <nav className="hidden md:flex items-center gap-12 text-[#1a1a1a]">
-                    <a href="/" className="hover:text-blue-600 transition-colors">Home</a>
+                    <Link
+                        to="/"
+                        className="hover:text-blue-600 transition-colors"
+                        onClick={() => {
+                            if (window.location.pathname === "/" || window.location.pathname === "/landing") {
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                            }
+                        }}
+                    >
+                        Home
+                    </Link>
                     <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</a>
                     <button
                         onClick={() => navigate("/login")}
                         className="bg-[#4a80e6] text-white px-6 py-2.5 rounded-lg text-base md:text-lg font-semibold hover:bg-blue-700 transition-all shadow-md active:scale-95"
-                        // className="bg-[#4a80e6] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition active:scale-95"
+                    // className="bg-[#4a80e6] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition active:scale-95"
                     >
                         Login
                     </button>
@@ -74,14 +90,14 @@ const Landing = () => {
                             <button
                                 onClick={() => navigate("/signup")}
                                 className="text-white px-5 py-2.5 bg-gradient-to-b from-[#4c81df] to-[#3060d6] rounded-lg text-base xl:text-[20px] hover:shadow-md transition-all active:scale-95"
-                                // className="bg-[#4a80e6] text-white px-12 py-4 rounded-lg text-xl md:text-2xl font-bold border-2 border-transparent hover:bg-blue-700 transition-all shadow-xl hover:shadow-blue-200 active:scale-95"
+                            // className="bg-[#4a80e6] text-white px-12 py-4 rounded-lg text-xl md:text-2xl font-bold border-2 border-transparent hover:bg-blue-700 transition-all shadow-xl hover:shadow-blue-200 active:scale-95"
                             >
                                 Start a Case
                             </button>
                             <button
                                 onClick={() => navigate("/login")}
                                 className="bg-transparent border border-[#ccc] text-[#999] px-5 py-2.5 rounded-lg text-base xl:text-[20px] transition-all hover:bg-[rgba(255,255,255,.7)] hover:shadow-md transitions-all duration-300 active:scale-95"
-                                // className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 text-gray-500 px-12 py-4 rounded-lg text-xl md:text-2xl font-medium hover:bg-white hover:border-gray-300 transition-all active:scale-95"
+                            // className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 text-gray-500 px-12 py-4 rounded-lg text-xl md:text-2xl font-medium hover:bg-white hover:border-gray-300 transition-all active:scale-95"
                             >
                                 Login
                             </button>
@@ -95,7 +111,7 @@ const Landing = () => {
             </section>
 
             {/* Section 2: Cards Section */}
-            <section className="w-full py-12 md:py-[60px] bg-white">
+            <section id="how-it-works" className="w-full py-12 md:py-[60px] bg-white">
                 {/* Background image for section 2 */}
                 {/* <img
                     src={section2Bg}
@@ -188,8 +204,8 @@ const Landing = () => {
 
                         <button
                             onClick={() => navigate("/cases")}
-                        className="text-white px-5 py-2.5 bg-gradient-to-b from-[#4c81df] to-[#3060d6] rounded-lg text-base md:text-[20px] hover:shadow-md transition-all active:scale-95"
-                            // className="bg-[#4a80e6] text-white px-14 py-5 rounded-2xl text-xl md:text-2xl font-bold hover:bg-blue-700 transition-all shadow-2xl hover:shadow-blue-300 active:scale-95"
+                            className="text-white px-5 py-2.5 bg-gradient-to-b from-[#4c81df] to-[#3060d6] rounded-lg text-base md:text-[20px] hover:shadow-md transition-all active:scale-95"
+                        // className="bg-[#4a80e6] text-white px-14 py-5 rounded-2xl text-xl md:text-2xl font-bold hover:bg-blue-700 transition-all shadow-2xl hover:shadow-blue-300 active:scale-95"
                         >
                             Upload Case Now
                         </button>
@@ -200,7 +216,18 @@ const Landing = () => {
             {/* Basic Footer */}
             <footer className="py-12 bg-white border-t border-gray-100 text-center">
                 <div className="flex flex-col items-center gap-4">
-                    <img src={logo} alt="NANO BITE" className="h-10 w-auto opacity-50 grayscale hover:grayscale-0 transition cursor-pointer" onClick={() => navigate("/")} />
+                    <img
+                        src={logo}
+                        alt="NANO BITE"
+                        className="h-10 w-auto opacity-50 grayscale hover:grayscale-0 transition cursor-pointer"
+                        onClick={() => {
+                            if (window.location.pathname === "/" || window.location.pathname === "/landing") {
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                            } else {
+                                navigate("/");
+                            }
+                        }}
+                    />
                     <p className="text-sm text-gray-400">© {new Date().getFullYear()} Nano Bite. All rights reserved.</p>
                 </div>
             </footer>

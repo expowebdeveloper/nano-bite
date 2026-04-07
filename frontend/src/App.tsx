@@ -38,6 +38,7 @@ function App() {
       />
       <Routes>
         {/* Unrestricted Routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/landing" element={<Landing />} />
 
         {/* Public Routes - Redirect to dashboard if already authenticated */}
@@ -62,11 +63,11 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/setting" element={<Settings />} />
-          <Route path="/pricing" element={<PricingGuide/>}/>
+          <Route path="/pricing" element={<PricingGuide />} />
         </Route>
 
-        {/* Default route - Redirect to landing */}
-        <Route path="/" element={<Navigate to="/landing" replace />} />
+        {/* Default route - Redirect to root */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </NuqsAdapter>
   );

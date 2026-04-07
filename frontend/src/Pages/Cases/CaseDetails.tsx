@@ -170,12 +170,12 @@ const CaseDetails = () => {
       const uploaded = await uploadFile(file);
       // Tag the file with the uploader's role
       const taggedUploaded = { ...uploaded, uploadedByRole: user?.role };
-      
+
       const base =
         attachments.length > 0
           ? attachments
           : designerAttachmentsData?.designersAttachments || [];
-      
+
       // Merge and unique by key to prevent replication
       const combined = [...base, taggedUploaded];
       const nextAttachments = Array.from(
@@ -503,10 +503,11 @@ const CaseDetails = () => {
 
           {user?.role === "Designer" && (record?.status === "Assigned" || record?.status === "In Design") && (
             <button
-              className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100"
+              className="px-10 py-3 top-[94px] left-[1681px] rounded-md text-white bg-[#2B89D2] opacity-100 disabled:opacity-60"
               onClick={handleUpdateStatus}
+              disabled={updateCaseStatus.isPending}
             >
-              {getStatusButtonText(record?.status)}
+              {updateCaseStatus.isPending ? "Updating..." : getStatusButtonText(record?.status)}
             </button>
           )}
           {user?.role === "Designer" && record?.status === "QC" && (

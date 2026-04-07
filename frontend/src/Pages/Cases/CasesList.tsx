@@ -56,8 +56,13 @@ const CasesList = () => {
       caseId: showAddModal.caseID,
       designerId: selectedDesignerId,
       qcId: selectedQcId,
+    }, {
+      onSuccess: () => {
+        setShowAddModal({ open: false, caseID: "" });
+        setSelectedDesignerId("");
+        setSelectedQcId("");
+      }
     });
-    setShowAddModal({ open: false, caseID: "" });
   };
 
   const formatDate = (dateString?: string) => {
@@ -143,14 +148,13 @@ const CasesList = () => {
                 </td>
               </tr>
             ) : cases.length ? (
-              cases.map((caseItem:any, index:number) => {
+              cases.map((caseItem: any, index: number) => {
                 const isStriped = index % 2 === 0;
                 return (
                   <tr
                     key={caseItem.caseId || caseItem.id}
-                    className={`${
-                      isStriped ? "bg-[#F6FDFF]" : "bg-[#fafafa]"
-                    } hover:bg-[#eef7ff] transition-colors`}
+                    className={`${isStriped ? "bg-[#F6FDFF]" : "bg-[#fafafa]"
+                      } hover:bg-[#eef7ff] transition-colors`}
                   >
                     <td className="px-4 py-3 text-[15px] text-gray-800 font-medium">
                       {caseItem.caseId || "—"}
@@ -196,20 +200,27 @@ const CasesList = () => {
                         >
                           <Edit size={16} />
                         </button>
-                        {caseItem.status !== "Assigned" && user?.role === "ADMIN" && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowAddModal({
-                                open: true,
-                                caseID: caseItem.caseId || caseItem.id,
-                              })
-                            }
-                            className="inline-flex items-center gap-2 underline rounded-lg px-2 py-2 text-sm"
-                          >
-                            Assign Designer & QC
-                          </button>
-                        )}
+                       {(user?.role === "ADMIN" && !["Assigned", "QC", "Ready", "completed"].includes(caseItem.status)) &&(
+  <button
+    type="button"
+    disabled={caseItem.status === "Assigned"}
+    onClick={() =>
+      setShowAddModal({
+        open: true,
+        caseID: caseItem.caseId || caseItem.id,
+      })
+    }
+    className={`inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm ${
+      caseItem.status === "Assigned"
+        ? "text-green-500 cursor-not-allowed"
+        : "underline"
+    }`}
+  >
+    {caseItem.status === "Assigned"
+      ? "Assigned Designer & QC"
+      : "Assign Designer & QC"}
+  </button>
+)}
                       </div>
                     </td>
                   </tr>

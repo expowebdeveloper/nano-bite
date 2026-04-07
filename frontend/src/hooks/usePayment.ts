@@ -18,6 +18,9 @@ export type PaymentTransaction = {
   invoiceId: string | null;
   invoiceUrl: string | null;
   paidById: string | null;
+  paidBy?: {
+    fullName: string | null;
+  };
   createdAt: string;
   caseRecord?: {
     caseId: string;

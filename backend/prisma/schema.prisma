@@ -23,6 +23,7 @@ createdCases CaseRecord[] @relation("CreatedBy")
   designerCases CaseRecord[] @relation("AssignedDesigner")
   qcCases       CaseRecord[] @relation("AssignedQc")
   assignedByMe  CaseRecord[] @relation("AssignedBy")
+  paymentsPaid  Payment[]    @relation("PaidBy")
 
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -196,6 +197,7 @@ model Payment {
   invoiceId       String?  @unique
   invoiceUrl      String?
   paidById        String?
+  paidBy          User?    @relation("PaidBy", fields: [paidById], references: [id])
   createdAt       DateTime @default(now())
 }
 

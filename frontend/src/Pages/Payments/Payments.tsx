@@ -140,6 +140,7 @@ const Payments = () => {
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-3 font-semibold text-gray-700">Date</th>
+                      {isAdmin && <th className="text-left py-3 font-semibold text-gray-700">Paid by</th>}
                       <th className="text-left py-3 font-semibold text-gray-700">Case ID</th>
                       <th className="text-left py-3 font-semibold text-gray-700">Patient</th>
                       <th className="text-left py-3 font-semibold text-gray-700">Type</th>
@@ -158,6 +159,11 @@ const Payments = () => {
                             })
                             : "—"}
                         </td>
+                        {isAdmin && (
+                          <td className="py-3 text-gray-700">
+                            {tx.paidBy?.fullName ?? "—"}
+                        </td>
+                        )}
                         <td className="py-3 text-gray-700 font-mono">{tx.caseId}</td>
                         <td className="py-3 text-gray-700">
                           {tx.caseRecord?.patientName ?? "—"}
