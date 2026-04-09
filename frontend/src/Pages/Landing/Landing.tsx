@@ -1,10 +1,14 @@
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
-import section1Bg from "../../assets/images/section1.png";
+// import section1Bg from "../../assets/images/section1.png";
+import section1Bg from "../../assets/images/background.png";
 import section2Bg from "../../assets/images/section2.png";
 import icon1 from "../../assets/images/icon1.png";
 import icon2 from "../../assets/images/icon2.png";
 import icon3 from "../../assets/images/icon3.webp";
+import image1 from '../../assets/images/image1.png';
+// import image2 from '../../assets/images/image2.jpeg';
+import image2 from '../../assets/images/image2.png';
 
 /**
  * Landing Page component for Nano Bite.
@@ -74,10 +78,29 @@ const Landing = () => {
 
                 />
 
+
+                            {/* Left Image */}
+                            <img
+                                src={image2}
+                                alt="Left Design"
+                                // className="absolute left-0 md:left-10 xl:left-20 top-0 w-[80px] md:w-[120px] xl:w-[160px]"
+                                className="absolute top-0 left-0 w-[45%]"
+                            />
+
+                            {/* Right Image */}
+                            <img
+                                src={image1}
+                                alt="Right Design"
+                                className="absolute top-0 right-0 w-[55%]"
+                            // className="absolute right-0 md:right-10 xl:right-20 top-0 w-[80px] md:w-[120px] xl:w-[160px]"
+                            />
+
+
                 {/* CONTENT OVER IMAGE - ABSOLUTE POSITIONING AS REQUESTED */}
                 {/* <div className="absolute inset-0 flex flex-col items-center justify-end md:justify-center pb-12 md:pb-0 px-4"> */}
                 <div className="absolute inset-0 flex flex-col items-center justify-end px-4 pb-7 xl:pb-[50px]">
                     <div className="bg-white/10 backdrop-blur-[2px] md:p-6 rounded-3xl text-center">
+                        
                         <h1 className="text-[30px] md:text-[50px] xl:text-[80px] font-serif text-[#002b5c] mb-3 xl:mb-6 tracking-tight">
                             We design. You print.
                         </h1>
