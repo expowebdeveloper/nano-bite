@@ -68,7 +68,7 @@ const Landing = () => {
             </header>
 
             {/* Section 1: Hero Section */}
-            <section className="relative w-full overflow-hidden flex flex-col items-center">
+            <section className="relative w-full overflow-hidden flex flex-col items-center max-h-[1300px]" >
                 {/* The background image for section 1 */}
                 <img
                     src={section1Bg}
@@ -98,7 +98,7 @@ const Landing = () => {
 
                 {/* CONTENT OVER IMAGE - ABSOLUTE POSITIONING AS REQUESTED */}
                 {/* <div className="absolute inset-0 flex flex-col items-center justify-end md:justify-center pb-12 md:pb-0 px-4"> */}
-                <div className="absolute inset-0 flex flex-col items-center justify-end px-4 pb-7 xl:pb-[50px]">
+                <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-7 xl:pb-[50px] pt-[40vw]">
                     <div className="bg-white/10 backdrop-blur-[2px] md:p-6 rounded-3xl text-center">
                         
                         <h1 className="text-[30px] md:text-[50px] xl:text-[80px] font-serif text-[#002b5c] mb-3 xl:mb-6 tracking-tight">

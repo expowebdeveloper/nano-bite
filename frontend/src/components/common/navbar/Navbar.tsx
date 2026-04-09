@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import CommonDropDown from "../Dropdown/Dropdown";
 import { LogOut, User } from "lucide-react";
 import ScreenLoader from "../ScreenLoader/ScreenLoader";
@@ -14,7 +14,7 @@ const NavBar = ({ handleCollapseSidebar }: { handleCollapseSidebar: () => void }
   const dispatch = useDispatch();
   const { user } = useSelector((state: any) => state.user);
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -61,7 +61,7 @@ const NavBar = ({ handleCollapseSidebar }: { handleCollapseSidebar: () => void }
     setLoader(true);
     dispatch(loginUser(null));
     localStorage.clear();
-    window.location.href = "/login";
+    navigate("/login");
     // setToggleDropDown(false)
     // fetchAPICall({
     //   endPoint: LOG_OUT_URL,
