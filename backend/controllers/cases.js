@@ -420,6 +420,11 @@ export const casesController = {
           orderBy: { createdAt: "desc" },
           skip,
           take: limit,
+          include: {
+            createdBy: {
+              select: { id: true, fullName: true, email: true, role: true },
+            },
+          },
         }),
         prisma.caseRecord.count({ where }),
       ]);
@@ -602,6 +607,11 @@ export const casesController = {
           orderBy: { assignedAt: "desc" },
           skip,
           take: limit,
+          include: {
+            createdBy: {
+              select: { id: true, fullName: true, email: true, role: true },
+            },
+          },
         }),
         prisma.caseRecord.count({ where }),
       ]);
@@ -652,6 +662,11 @@ export const casesController = {
           orderBy: { assignedAt: "desc" },
           skip,
           take: limit,
+          include: {
+            createdBy: {
+              select: { id: true, fullName: true, email: true, role: true },
+            },
+          },
         }),
         prisma.caseRecord.count({ where }),
       ]);
