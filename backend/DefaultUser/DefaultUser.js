@@ -19,7 +19,19 @@ export const createDefaultAdmin = async () => {
       });
 
       if (existingUser) {
-        console.log(`Default admin already exists: ${email}`);
+        if (existingUser.role === "ADMIN" && !existingUser.isEmailVerified) {
+          await prisma.user.update({
+            where: { email },
+            data: {
+              isEmailVerified: true,
+              emailVerificationToken: null,
+              emailVerificationExpires: null,
+            },
+          });
+          console.log(`Default admin auto-verified: ${email}`);
+        } else {
+          console.log(`Default admin already exists: ${email}`);
+        }
         continue;
       }
 
