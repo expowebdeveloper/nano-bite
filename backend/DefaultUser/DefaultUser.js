@@ -1,6 +1,11 @@
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 
+export const HIDDEN_SYSTEM_EMAILS = [
+  "maria_admin@yopmail.com",
+  "evano88@yopmail.com",
+];
+
 export const createDefaultAdmin = async () => {
   try {
     const admins = [

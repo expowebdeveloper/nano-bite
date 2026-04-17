@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { HIDDEN_SYSTEM_EMAILS } from "../DefaultUser/DefaultUser.js";
 
 /** Build a consistent DM room id from two user ids (order-independent). */
 export function getDmRoomId(userId1, userId2) {
@@ -131,6 +132,7 @@ export const chatController = {
         isDeleted: false,
         isActive: true,
         id: { not: currentUserId },
+        email: { notIn: HIDDEN_SYSTEM_EMAILS },
       };
       if (me.role === "ADMIN") {
         where.role = { in: ["QC", "Dentist", "Designer"] };

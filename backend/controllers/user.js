@@ -1,10 +1,14 @@
 // import { prisma } from "../prisma";
 import { prisma } from "../lib/prisma.js";
+import { HIDDEN_SYSTEM_EMAILS } from "../DefaultUser/DefaultUser.js";
 
 export const listAllUsers = async (req, res) => {
   try {
     const rows = await prisma.user.findMany({
-      where: { isDeleted: false },
+      where: {
+        isDeleted: false,
+        email: { notIn: HIDDEN_SYSTEM_EMAILS },
+      },
       select: {
         id: true,
         email: true,
