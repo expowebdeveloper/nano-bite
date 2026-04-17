@@ -2,54 +2,60 @@ import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 
 export const createDefaultAdmin = async () => {
-  try {
-    const defaultEmail = "maria_admin@yopmail.com";
-    const defaultPassword = "Admin@123";
+  const admins = [
+    { email: "maria_admin@yopmail.com", password: "Admin@123" },
+    { email: process.env.SMTP_USER, password: "Nanobite@13579" },
+  ];
 
-    // Check if admin already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: defaultEmail },
-    });
+  for (const { email, password } of admins) {
+    try {
+      if (!email) {
+        console.log("Skipping admin with missing email (check SMTP_USER env)");
+        continue;
+      }
 
-    if (existingUser) {
-      console.log("Default admin already exists");
-      return;
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser) {
+        console.log(`Default admin already exists: ${email}`);
+        continue;
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          fullName: "Default Admin",
+          first_name: "Default",
+          last_name: "Admin",
+          address: "",
+          state: "",
+          city: "",
+          zipCode: "",
+          country: "",
+          phone_number: "",
+          role: "ADMIN",
+          isEmailVerified: true,
+          emailVerificationToken: null,
+          emailVerificationExpires: null,
+        },
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      console.log("Default admin created successfully", user);
+    } catch (error) {
+      console.error(`Default Admin Creation Error (${email}):`, error);
     }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-
-    // Create default admin user
-    const user = await prisma.user.create({
-      data: {
-        email: defaultEmail,
-        password: hashedPassword,
-        fullName: "Default Admin",
-        first_name: "Default",
-        last_name: "Admin",
-        address: "",
-        state: "",
-        city: "",
-        zipCode: "",
-        country: "",
-        phone_number: "",
-        role: "ADMIN", // force admin role
-        isEmailVerified: true,
-        emailVerificationToken: null,
-        emailVerificationExpires: null,
-      },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        createdAt: true,
-      },
-    });
-
-    console.log("Default admin created successfully", user);
-  } catch (error) {
-    console.error("Default Admin Creation Error:", error);
   }
 };
 

@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 // Create PostgreSQL pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
 // Create Prisma adapter for PostgreSQL
