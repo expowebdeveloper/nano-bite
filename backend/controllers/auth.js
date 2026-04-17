@@ -202,6 +202,7 @@ const login = async (req, res) => {
         .status(401)
         .json({ success: false, message: "User is Inactive, Contact your Administrator" });
     }
+    console.log("user>>", user)
     if (user?.role !== "ADMIN" && !user.isEmailVerified) {
       return res.status(403).json({
         success: false,
