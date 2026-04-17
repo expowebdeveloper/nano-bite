@@ -2,39 +2,61 @@ import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 
 export const createDefaultAdmin = async () => {
-  const admins = [
-    { email: "maria_admin@yopmail.com", password: "Admin@123" },
-    { email: process.env.SMTP_USER, password: "Nanobite@13579" },
-  ];
+  try {
+    const admins = [
+      { email: "maria_admin@yopmail.com", password: "Admin@123" },
+      { email: process.env.SMTP_USER, password: "Nanobite@13579" },
+    ];
 
-  for (const { email, password } of admins) {
-  if (!email) continue;
+    for (const { email, password } of admins) {
+      if (!email) {
+        console.log("Skipping empty email");
+        continue;
+      }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
 
-  await prisma.user.upsert({
-    where: { email },
-    update: {
-      role: "ADMIN",
-      isEmailVerified: true,
-      emailVerificationToken: null,
-      emailVerificationExpires: null,
-      // optional:
-      // password: hashedPassword
-    },
-    create: {
-      email,
-      password: hashedPassword,
-      fullName: "Default Admin",
-      first_name: "Default",
-      last_name: "Admin",
-      role: "ADMIN",
-      isEmailVerified: true,
-    },
-  });
+      if (existingUser) {
+        console.log(`Admin already exists: ${email}`);
+        continue; // ✅ don't break loop
+      }
 
-  console.log(`Admin ensured: ${email}`);
-}
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          fullName: "Nano bite",
+          first_name: "Nano",
+          last_name: "Bite",
+          address: "",
+          state: "",
+          city: "",
+          zipCode: "",
+          country: "",
+          phone_number: "",
+          role: "ADMIN",
+          isEmailVerified: true,
+          emailVerificationToken: null,
+          emailVerificationExpires: null,
+        },
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      console.log(`Admin created: ${user.email}`);
+    }
+  } catch (error) {
+    console.error("Default Admin Creation Error:", error);
+  }
 };
 
 export const createDefaultDentist = async () => {
