@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
   onPageChange: (selectedItem: { selected: number }) => void;
+  onItemsPerPageChange?: (limit: number) => void;
   totalData: number;
   itemsPerPage: number;
   currentPage: number;
@@ -10,6 +11,7 @@ interface PaginationProps {
 
 const Pagination = ({
   onPageChange,
+  onItemsPerPageChange,
   totalData,
   itemsPerPage,
   currentPage,
@@ -17,7 +19,23 @@ const Pagination = ({
   const totalPages = Math.ceil(totalData / itemsPerPage);
   const shouldShowPagination = totalData > itemsPerPage;
   return (
-    <>
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center gap-2 text-sm text-gray-600">
+        <span>Show</span>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => onItemsPerPageChange?.(Number(e.target.value))}
+          className="rounded border border-gray-300 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#2B89D2]/30"
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={25}>25</option>
+          <option value={50}>50</option>
+        </select>
+        <span>items per page</span>
+      </div>
+
       {shouldShowPagination && (
         <ReactPaginate
           previousLabel={<ChevronLeft size={18} />}
@@ -33,7 +51,7 @@ const Pagination = ({
           forcePage={currentPage - 1}
         />
       )}
-    </>
+    </div>
   );
 };
 

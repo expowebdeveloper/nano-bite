@@ -161,7 +161,10 @@ This link will expire in 24 hours. If you did not create this account, you can s
       html: `
         <p>Hi ${fullName || "there"},</p>
         <p>Thanks for creating an account on NanoBite. Please verify your email address by clicking the link below:</p>
-        <p><a href="${verificationLink}">${verificationLink}</a></p>
+        <p style="text-align:left; margin:24px 0;">
+          <a href="${verificationLink}" style="background-color:#0b6b8a; color:#ffffff; padding:12px 28px; text-decoration:none; border-radius:6px; font-family:Arial, sans-serif; font-weight:bold; display:inline-block;">Verify Email</a>
+        </p>
+        <p style="font-size:12px; color:#666;">If the button above doesn't work, copy and paste this link into your browser:<br/>${verificationLink}</p>
         <p>This link will expire in 24 hours. If you did not create this account, you can ignore this email.</p>
       `,
     });
@@ -275,8 +278,10 @@ const resetPassword = async (req, res) => {
       html: `
             <p>Dear ${user.name || 'User'},</p>
             <p>A password reset was requested for your account. Click the link below to reset your password:</p>
-            <p><a href="${resetPasswordLink}">${resetPasswordLink}</a></p>
-            <p>If the link doesn't work, copy and paste it into your browser.</p>
+            <p style="text-align:center; margin:24px 0;">
+              <a href="${resetPasswordLink}" style="background-color:#0b6b8a; color:#ffffff; padding:12px 28px; text-decoration:none; border-radius:6px; font-family:Arial, sans-serif; font-weight:bold; display:inline-block;">Reset Password</a>
+            </p>
+            <p style="font-size:12px; color:#666;">If the button above doesn't work, copy and paste this link into your browser:<br/>${resetPasswordLink}</p>
             <p><strong>If you did not request this, please ignore this email.</strong></p>
           `,
     };

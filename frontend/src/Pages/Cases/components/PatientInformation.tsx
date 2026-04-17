@@ -1,8 +1,9 @@
-import { UseFormReturn } from "react-hook-form";
+import { Controller, UseFormReturn } from "react-hook-form";
 import Input from "../../../components/common/Input/Input";
 import CheckboxGroup from "../../../components/common/CheckboxGroup/CheckboxGroup";
 import Textarea from "../../../components/common/Textarea/Textarea";
 import Button from "../../../components/common/Buttons/Button";
+import ErrorMessage from "../../../components/common/ErrorMessage";
 import {
   SEX_OPTIONS,
   MIDLINE_OPTIONS,
@@ -50,26 +51,49 @@ const PatientInformation = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="w-full">
-            <CheckboxGroup
-              label="Sex"
-              fieldName="sex"
-              formConfig={formConfig}
-              options={SEX_OPTIONS as unknown as string[]}
-              className="flex items-center gap-4 justify-start flex-nowrap"
+            <label className="block text-sm font-semibold text-[#6C6C6C] mb-1">Gender</label>
+            <Controller
+              name="sex"
+              control={formConfig.control}
               rules={{
                 validate: (value: string[]) => {
                   if (!value || value.length === 0) {
-                    return "Please select at least one option";
+                    return "Please select an option";
                   }
                   return true;
                 },
               }}
+              render={({ field }) => {
+                const selected = Array.isArray(field.value) ? field.value[0] : field.value || "";
+                return (
+                  <select
+                    value={selected}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? [e.target.value] : [])
+                    }
+                    className="w-full h-[50px] bg-[#f2f6f8] rounded-2xl border border-solid border-[#dde4ec] [font-family:'Inter_Tight',Helvetica] font-normal text-[14px] text-[#6C6C6C] px-4"
+                  >
+                    <option value="">Select gender</option>
+                    {(SEX_OPTIONS as unknown as string[]).map((option) => {
+                      const label =
+                        option === "M" ? "Male" : option === "F" ? "Female" : option;
+                      return (
+                        <option key={option} value={option}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                );
+              }}
+            />
+            <ErrorMessage
+              errorMsg={
+                (formConfig.formState.errors.sex as { message?: string } | undefined)
+                  ?.message || ""
+              }
             />
           </div>
-
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Due Date"
             fieldName="dueDate"

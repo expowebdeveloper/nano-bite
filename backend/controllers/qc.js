@@ -57,9 +57,9 @@ const createQcAccount = async (req, res) => {
     const [splitFirst, splitLast] =
       providedFullName?.split(" ").length
         ? [
-            providedFullName.split(" ")[0],
-            providedFullName.split(" ").slice(1).join(" ").trim(),
-          ]
+          providedFullName.split(" ")[0],
+          providedFullName.split(" ").slice(1).join(" ").trim(),
+        ]
         : [null, null];
 
     const resolvedFirst = sanitizeString(first_name, splitFirst || "");
@@ -116,7 +116,10 @@ NanoBite Team`,
         <p>Hi ${recipientName},</p>
         <p>We're pleased to inform you that a Quality Control (QC) account has been created for you on NanoBite by the administrator.</p>
         <p>To get started, please use the link below to set your password and access your account:</p>
-        <p><a href="${passwordSetupLink}">Set your password</a></p>
+        <p style="text-align:left; margin:24px 0;">
+          <a href="${passwordSetupLink}" style="background-color:#0b6b8a; color:#ffffff; padding:12px 28px; text-decoration:none; border-radius:6px; font-family:Arial, sans-serif; font-weight:bold; display:inline-block;">Set Your Password</a>
+        </p>
+        <p style="font-size:12px; color:#666;">If the button above doesn't work, copy and paste this link into your browser:<br/>${passwordSetupLink}</p>
         <p>If you did not expect this email, no further action is required and you may safely disregard it.</p>
         <p>If you have any questions or need assistance, feel free to contact our support team.</p>
         <p>Best regards,<br/>NanoBite Team</p>

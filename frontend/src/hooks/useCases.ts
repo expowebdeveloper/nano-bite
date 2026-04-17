@@ -111,6 +111,10 @@ const useCases = (params?: CasesListParams) => {
         submittedCount: response.data?.submittedCount,
         inDesignCount: response.data?.inDesignCount,
         completedCount: response.data?.completedCount,
+        approvedCount: response.data?.approvedCount,
+        dentistCount: response.data?.dentistCount,
+        designerCount: response.data?.designerCount,
+        totalPaymentsCents: response.data?.totalPaymentsCents,
       };
     },
     refetchOnWindowFocus: false,

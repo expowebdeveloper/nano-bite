@@ -4,7 +4,7 @@ import { DollarSign, FileText, AlertCircle } from "lucide-react";
 import { useAdminPayments } from "../../hooks/usePayment";
 import useCases from "../../hooks/useCases";
 import { calculateDenturePrice, formValuesToPricingInput } from "../../utils/denturePricing";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Pagination from "../../components/common/Pagination/Pagination";
 import usePagination from "../../hooks/usePagination";
 import { ITEMS_PER_PAGE } from "../../Constants/Constants";
@@ -12,8 +12,9 @@ import { ITEMS_PER_PAGE } from "../../Constants/Constants";
 const Payments = () => {
   const { user } = useSelector((state: any) => state.user);
   const isAdmin = user?.role === "ADMIN";
-  const { page, onPageChange } = usePagination();
-  const { transactionsQuery, balanceQuery } = useAdminPayments(page, ITEMS_PER_PAGE);
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
+  const { page, onPageChange, setPage } = usePagination();
+  const { transactionsQuery, balanceQuery } = useAdminPayments(page, itemsPerPage);
 
   const balance = balanceQuery.data;
   const { data: txData, isLoading: txLoading, isError: txError } = transactionsQuery;
@@ -162,7 +163,7 @@ const Payments = () => {
                         {isAdmin && (
                           <td className="py-3 text-gray-700">
                             {tx.paidBy?.fullName ?? "—"}
-                        </td>
+                          </td>
                         )}
                         <td className="py-3 text-gray-700 font-mono">{tx.caseId}</td>
                         <td className="py-3 text-gray-700">
@@ -197,7 +198,11 @@ const Payments = () => {
                 <div className="mt-4">
                   <Pagination
                     totalData={totalTransactions}
-                    itemsPerPage={ITEMS_PER_PAGE}
+                    onItemsPerPageChange={(newLimit) => {
+                      setItemsPerPage(newLimit);
+                      setPage(1);
+                    }}
+                    itemsPerPage={itemsPerPage}
                     currentPage={page}
                     onPageChange={onPageChange}
                   />

@@ -255,6 +255,21 @@ const Cases = () => {
   const [editingFromReview, setEditingFromReview] = useState(false);
 
   const handleNext = async () => {
+    if (currentStep === 2 && !selectedOption) {
+      confirmationMessage("Please select an option before continuing.", "error");
+      return;
+    }
+    if (
+      currentStep === 3 &&
+      ["Full Denture", "Overdenture"].includes(selectedOption || "") &&
+      !watch("digitalType")?.[0]
+    ) {
+      confirmationMessage(
+        "Please select New Denture, Immediate Denture, or Denture Reline before continuing.",
+        "error"
+      );
+      return;
+    }
     const isValid = await trigger();
     if (isValid) {
       // If editing from review, return to the review step after one edit

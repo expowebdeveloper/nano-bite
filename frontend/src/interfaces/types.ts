@@ -246,4 +246,16 @@ export type Login = {
       fullName?: string;
       email?: string;
     } | null;
+    assignedToDesigner?: {
+      id: string;
+      fullName?: string;
+      email?: string;
+      role?: string;
+    } | null;
+    assignedToQc?: {
+      id: string;
+      fullName?: string;
+      email?: string;
+      role?: string;
+    } | null;
   }

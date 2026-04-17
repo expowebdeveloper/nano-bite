@@ -105,14 +105,13 @@ const Messages = () => {
                     key={p.id}
                     type="button"
                     onClick={() => setSelectedPartner(p)}
-                    className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-[#f0f7ff] transition-colors ${
-                      isSelected ? "bg-[#e8f4ff] border-l-4 border-l-[#2B89D2]" : ""
-                    }`}
+                    className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-[#f0f7ff] transition-colors ${isSelected ? "bg-[#e8f4ff] border-l-4 border-l-[#2B89D2]" : ""
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-gray-900 truncate">{partnerDisplayName(p)}</p>
-                        <p className="text-xs text-gray-500 truncate">{p.email}</p>
+                        {/* <p className="text-xs text-gray-500 truncate">{p.email}</p> */}
                         {p.role && (
                           <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[#e0f0ff] text-[#1e6bb8]">
                             {p.role}
@@ -148,7 +147,7 @@ const Messages = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">{selectedPartner.email}</p>
+                  {/* <p className="text-xs text-gray-500">{selectedPartner.email}</p> */}
                 </>
               ) : (
                 <h1 className="text-lg font-bold text-gray-500 flex items-center gap-2">
@@ -159,11 +158,10 @@ const Messages = () => {
             </div>
             {selectedPartner && (
               <span
-                className={`text-sm font-medium px-3 py-1 rounded-full ${
-                  connected
+                className={`text-sm font-medium px-3 py-1 rounded-full ${connected
                     ? "bg-green-100 text-green-700"
                     : "bg-gray-100 text-gray-600"
-                }`}
+                  }`}
               >
                 {connected ? "Connected" : "Connecting…"}
               </span>
@@ -186,11 +184,10 @@ const Messages = () => {
                       className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                          isMe
+                        className={`max-w-[80%] rounded-2xl px-4 py-2 ${isMe
                             ? "bg-[#2B89D2] text-white rounded-br-md"
                             : "bg-gray-100 text-gray-900 rounded-bl-md"
-                        }`}
+                          }`}
                       >
                         {!isMe && (
                           <p className="text-xs font-semibold text-gray-600 mb-0.5">
@@ -198,12 +195,11 @@ const Messages = () => {
                           </p>
                         )}
                         <p className="text-sm whitespace-pre-wrap break-words">
-                          {msg.content}
+                          {(msg.content || "").replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[email removed]")}
                         </p>
                         <p
-                          className={`text-xs mt-1 ${
-                            isMe ? "text-blue-100" : "text-gray-500"
-                          }`}
+                          className={`text-xs mt-1 ${isMe ? "text-blue-100" : "text-gray-500"
+                            }`}
                         >
                           {formatTime(msg.createdAt)}
                         </p>

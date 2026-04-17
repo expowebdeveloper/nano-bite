@@ -163,7 +163,7 @@ const CaseDueDates = () => {
                         className="block w-full text-left py-1 px-2 rounded hover:bg-gray-700 truncate"
                         onClick={() => navigate(`/cases/${c.caseId}`)}
                       >
-                        {c.patientName || c.caseId} · {c.status}
+                        {c.patientName || c.caseId} · {c.status === "QC" ? "QC Review" : c.status}
                       </button>
                     ))}
                   </div>

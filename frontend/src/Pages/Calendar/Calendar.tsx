@@ -233,7 +233,7 @@ const Calendar = () => {
                       <p className="text-xs text-gray-500 mt-0.5">ID: {c.caseId}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
-                          {c.status}
+                          {c.status === "QC" ? "QC Review" : c.status}
                         </span>
                         {c.caseType && (
                           <span className="text-xs text-gray-500 truncate">{c.caseType}</span>

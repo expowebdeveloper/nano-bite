@@ -514,11 +514,15 @@ export const casesController = {
         prisma.caseRecord.count({ where }),
       ]);
 
-      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+      const [submittedCount, inDesignCount, completedCount, dentistCount, designerCount, paymentsAgg] = await Promise.all([
         prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
         prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
         prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+        prisma.user.count({ where: { role: "Dentist", isDeleted: false } }),
+        prisma.user.count({ where: { role: "Designer", isDeleted: false } }),
+        prisma.payment.aggregate({ _sum: { amountInCents: true } }),
       ]);
+      const totalPaymentsCents = paymentsAgg._sum?.amountInCents ?? 0;
       res.status(200).json({
         success: true,
         data: cases,
@@ -526,6 +530,9 @@ export const casesController = {
         submittedCount,
         inDesignCount,
         completedCount,
+        dentistCount,
+        designerCount,
+        totalPaymentsCents,
       });
     } catch (error) {
       console.error("Admin list cases error:", error);
@@ -616,10 +623,13 @@ export const casesController = {
         prisma.caseRecord.count({ where }),
       ]);
 
-      const [submittedCount, inDesignCount, completedCount] = await Promise.all([
+      const [submittedCount, inDesignCount, completedCount, approvedCount] = await Promise.all([
         prisma.caseRecord.count({ where: { ...where, status: "Submitted" } }),
         prisma.caseRecord.count({ where: { ...where, status: "In Design" } }),
         prisma.caseRecord.count({ where: { ...where, status: "Completed" } }),
+        prisma.caseRecord.count({
+          where: { ...where, status: { in: ["Ready", "Completed"] } },
+        }),
       ]);
       return res.json({
         success: true,
@@ -628,6 +638,7 @@ export const casesController = {
         submittedCount,
         inDesignCount,
         completedCount,
+        approvedCount,
       });
     } catch (error) {
       console.error("Get QC cases error:", error);
@@ -820,6 +831,15 @@ export const casesController = {
               invoiceUrl: true,
               createdAt: true,
             },
+          },
+          assignedToDesigner: {
+            select: { id: true, fullName: true, email: true, role: true },
+          },
+          assignedToQc: {
+            select: { id: true, fullName: true, email: true, role: true },
+          },
+          createdBy: {
+            select: { id: true, fullName: true, email: true, role: true },
           },
         },
       });

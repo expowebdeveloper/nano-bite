@@ -29,6 +29,7 @@ const TABLE_HEADER = [
 
 const QualityControl = () => {
   const [search, setSearch] = useState("");
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const { page, onPageChange, setPage } = usePagination();
   const [showAddModal, setShowAddModal] = useState(false);
   const [qcUsers, setQcUsers] = useState<QcUser[]>([]);
@@ -64,9 +65,9 @@ const QualityControl = () => {
   }, [search, qcUsers]);
 
   const paginatedUsers = useMemo(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredUsers, page]);
+    const start = (page - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  }, [filteredUsers, page, itemsPerPage]);
 
   const totalData = filteredUsers.length;
 
@@ -100,10 +101,10 @@ const QualityControl = () => {
           last_name: values.fullName?.split(" ").slice(1).join(" ").trim() || "",
         },
         {
-        onSuccess: () => {
-          setShowAddModal(false);
-          setPage(1);
-          setSearch("");
+          onSuccess: () => {
+            setShowAddModal(false);
+            setPage(1);
+            setSearch("");
           },
         }
       );
@@ -124,9 +125,9 @@ const QualityControl = () => {
     <div className="min-h-screen bg-[#fbfeff] p-6">
       <h1 className="text-xl font-semibold text-gray-800 mb-4">QC Users</h1>
       <div className="bg-white rounded-3xl shadow-md border border-[#eaf4fb] p-6">
-      
+
         <div className="flex flex-wrap items-center justify-end gap-3 mb-4">
-        
+
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -217,7 +218,11 @@ const QualityControl = () => {
         <div className="mt-4">
           <Pagination
             onPageChange={onPageChange}
-            itemsPerPage={ITEMS_PER_PAGE}
+            onItemsPerPageChange={(newLimit) => {
+              setItemsPerPage(newLimit);
+              setPage(1);
+            }}
+            itemsPerPage={itemsPerPage}
             totalData={totalData}
             currentPage={page}
           />
@@ -243,23 +248,23 @@ const QualityControl = () => {
           initialValues={
             editUser
               ? {
-                  fullName:
-                    editUser.fullName ||
-                    [editUser.first_name, editUser.last_name]
-                      .filter(Boolean)
-                      .join(" ")
-                      .trim(),
-                  email: editUser.email || "",
-                  phone_number: editUser.phone_number || "",
-                  isActive: editUser.isActive ?? true,
-                }
+                fullName:
+                  editUser.fullName ||
+                  [editUser.first_name, editUser.last_name]
+                    .filter(Boolean)
+                    .join(" ")
+                    .trim(),
+                email: editUser.email || "",
+                phone_number: editUser.phone_number || "",
+                isActive: editUser.isActive ?? true,
+              }
               : undefined
           }
           mode={editUser ? "edit" : "add"}
         />
       </Modal>
-      </div>
-    );
-  };
-  
-  export default QualityControl;
+    </div>
+  );
+};
+
+export default QualityControl;

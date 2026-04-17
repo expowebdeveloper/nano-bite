@@ -208,21 +208,40 @@ const CaseDetails = () => {
       case "Assigned":
         return "In Design";
       case "In Design":
-        return "QC";
+        return "QC Review";
       case "QC":
+      case "QC Review":
         return "Ready";
-      // case "In Design":
-      // return "Assigned";
       default:
         return null;
     }
   };
+
+  const designerUploadedFiles = useMemo(
+    () =>
+      (designerAttachmentsData?.designersAttachments || []).filter(
+        (file: any) => !file.uploadedByRole || file.uploadedByRole === "Designer"
+      ),
+    [designerAttachmentsData?.designersAttachments]
+  );
 
   const handleUpdateStatus = () => {
     if (!record?.caseId) return;
 
     const nextStatus = getNextStatus(record.status);
     if (!nextStatus) return;
+
+    if (
+      user?.role === "Designer" &&
+      record.status === "In Design" &&
+      designerUploadedFiles.length === 0
+    ) {
+      confirmationMessage(
+        "Please upload at least one file before sending to QC.",
+        "error"
+      );
+      return;
+    }
 
     updateCaseStatus.mutate({
       caseId: record.caseId,
@@ -280,7 +299,7 @@ const CaseDetails = () => {
 
     addSection("Case", [
       { label: "Case ID", value: record.caseId },
-      { label: "Status", value: record.status },
+      { label: "Status", value: record.status === "QC" ? "QC Review" : record.status },
       { label: "Type", value: record.caseType },
       { label: "Due Date", value: record.dueDate },
       {
@@ -498,7 +517,7 @@ const CaseDetails = () => {
         </div>
         <div className="flex justify-center items-center gap-6">
           <span className="px-3 py-1 rounded-full bg-[#e8f4ff] text-[#0B75C9] font-semibold">
-            {record?.status}
+            {record?.status === "QC" ? "QC Review" : record?.status}
           </span>
 
           {user?.role === "Designer" && (record?.status === "Assigned" || record?.status === "In Design") && (
@@ -510,7 +529,7 @@ const CaseDetails = () => {
               {updateCaseStatus.isPending ? "Updating..." : getStatusButtonText(record?.status)}
             </button>
           )}
-          {user?.role === "Designer" && record?.status === "QC" && (
+          {user?.role === "Designer" && (record?.status === "QC" || record?.status === "QC Review") && (
             <span className="text-sm text-gray-600">Pending QC review</span>
           )}
 
@@ -535,6 +554,12 @@ const CaseDetails = () => {
               <span>Due: {record.dueDate || "—"}</span>
               {record.createdBy?.fullName && (
                 <span>Dentist: {record.createdBy.fullName}</span>
+              )}
+              {record.assignedToDesigner?.fullName && (
+                <span>Designer: {record.assignedToDesigner.fullName}</span>
+              )}
+              {record.assignedToQc?.fullName && (
+                <span>QC: {record.assignedToQc.fullName}</span>
               )}
               <span>Created: {record.createdAt ? new Date(record.createdAt).toLocaleString() : "—"}</span>
             </div>
@@ -599,11 +624,11 @@ const CaseDetails = () => {
             </div>
             {/*   QC can also see the documents attached by the designer*/}
             {/*   QC sees the documents; Dentist sees them in a separate section below when ready */}
-            {user.role === "QC" &&
+            {(user.role === "QC" || user.role === "ADMIN") &&
               filteredDesignerAttachments.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Designer Uploaded Files
+                    Designer / QC Uploaded Files
                   </h3>
 
                   <ul className="space-y-3">
@@ -619,6 +644,9 @@ const CaseDetails = () => {
                           <span className="truncate">{file.name}</span>
                           {file.uploadedByRole === "QC" && (
                             <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded ml-1">QC File</span>
+                          )}
+                          {(!file.uploadedByRole || file.uploadedByRole === "Designer") && (
+                            <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">Designer File</span>
                           )}
                         </div>
 
@@ -744,7 +772,7 @@ const CaseDetails = () => {
                 </p>
               </div>
             )}
-            {user.role === "QC" && record.status !== "Ready" && (
+            {user.role === "QC" && (record.status === "QC" || record.status === "QC Review") && (
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900">
                   QC Review
@@ -798,14 +826,18 @@ const CaseDetails = () => {
                 </button>
               </div>
             )}
-            {(record.status === "In Design" || record.status === "QC") && <button
-              className="px-14 py-3 rounded-md border border-[#2B89D2] 
+            {((record.status === "In Design" && user.role === "Designer") ||
+              ((record.status === "QC" || record.status === "QC Review") &&
+                (user.role === "Designer" || user.role === "QC"))) && (
+              <button
+                className="px-14 py-3 rounded-md border border-[#2B89D2]
         text-[#2B89D2] bg-transparent opacity-100
         hover:bg-[#2B89D2] hover:text-white transition"
-              onClick={() => setShowUploadModal(true)}
-            >
-              Upload File
-            </button>}
+                onClick={() => setShowUploadModal(true)}
+              >
+                Upload File
+              </button>
+            )}
           </>
         )}
       </div>

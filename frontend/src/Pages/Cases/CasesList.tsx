@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Eye, Plus, Search } from "lucide-react";
+import { Eye, Plus, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TableWrapper from "../../components/common/Table/TableWrapper";
 import Pagination from "../../components/common/Pagination/Pagination";
@@ -26,12 +26,13 @@ const TABLE_HEADER = [
 
 const CasesList = () => {
   const [search, setSearch] = useState("");
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
   const [showAddModal, setShowAddModal] = useState({ open: false, caseID: "" });
   const { page, onPageChange, setPage } = usePagination();
   const navigate = useNavigate();
   const { casesListQuery } = useCases({
     page,
-    limit: ITEMS_PER_PAGE,
+    limit: itemsPerPage,
     search: search.trim() || undefined,
   });
   const listResult = casesListQuery.data;
@@ -171,7 +172,7 @@ const CasesList = () => {
                           caseItem.status
                         )}`}
                       >
-                        {caseItem.status || "—"}
+                        {caseItem.status === "QC" ? "QC Review" : caseItem.status || "—"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
@@ -192,35 +193,37 @@ const CasesList = () => {
                         >
                           <Eye size={16} />
                         </Link>
-                        <button
+                        {/* <button
                           type="button"
                           onClick={() => navigate(`/cases/${caseItem.caseId || caseItem.id}`)}
                           className="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
                           title="Edit"
                         >
                           <Edit size={16} />
-                        </button>
-                       {(user?.role === "ADMIN" && !["Assigned", "QC", "Ready", "completed"].includes(caseItem.status)) &&(
-  <button
-    type="button"
-    disabled={caseItem.status === "Assigned"}
-    onClick={() =>
-      setShowAddModal({
-        open: true,
-        caseID: caseItem.caseId || caseItem.id,
-      })
-    }
-    className={`inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm ${
-      caseItem.status === "Assigned"
-        ? "text-green-500 cursor-not-allowed"
-        : "underline"
-    }`}
-  >
-    {caseItem.status === "Assigned"
-      ? "Assigned Designer & QC"
-      : "Assign Designer & QC"}
-  </button>
-)}
+                        </button> */}
+                        {user?.role === "ADMIN" && (
+                          ["Assigned", "In Design", "QC", "QC Review", "Ready", "Completed", "completed"].includes(caseItem.status) ? (
+                            <span
+                              className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-green-600 cursor-not-allowed"
+                              title="Case already assigned"
+                            >
+                              Assigned
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowAddModal({
+                                  open: true,
+                                  caseID: caseItem.caseId || caseItem.id,
+                                })
+                              }
+                              className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm underline"
+                            >
+                              Assign Designer & QC
+                            </button>
+                          )
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -243,7 +246,11 @@ const CasesList = () => {
         <div className="mt-4">
           <Pagination
             onPageChange={onPageChange}
-            itemsPerPage={ITEMS_PER_PAGE}
+            onItemsPerPageChange={(newLimit) => {
+              setItemsPerPage(newLimit);
+              setPage(1);
+            }}
+            itemsPerPage={itemsPerPage}
             totalData={totalData}
             currentPage={page}
           />

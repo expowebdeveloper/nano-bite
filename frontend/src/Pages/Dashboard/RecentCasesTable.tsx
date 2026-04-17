@@ -1,16 +1,17 @@
-import { Edit, EyeIcon, Trash2 } from "lucide-react";
+import { EyeIcon } from "lucide-react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import useCases from "../../hooks/useCases";
 import usePagination from "../../hooks/usePagination";
 import Pagination from "../../components/common/Pagination/Pagination";
-import { ITEMS_PER_PAGE } from "../../Constants/Constants";
+import { useState } from "react";
 
 const RecentCasesTable = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state: any) => state.user);
-  const { page, onPageChange } = usePagination();
-  const { casesListQuery } = useCases({ page, limit: ITEMS_PER_PAGE });
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const { page, onPageChange, setPage } = usePagination();
+  const { casesListQuery } = useCases({ page, limit: itemsPerPage });
   const listResult = casesListQuery.data;
   const cases = listResult?.data ?? [];
   const total = listResult?.total ?? 0;
@@ -49,7 +50,7 @@ const RecentCasesTable = () => {
                   </td>
                 </tr>
               ) : cases?.length > 0 ? (
-                cases.map((item?:any) => (
+                cases.map((item?: any) => (
                   <tr key={item.caseId} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.caseId}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{item.patientName || "—"}</td>
@@ -58,7 +59,7 @@ const RecentCasesTable = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-600">
-                        {item.status}
+                        {item.status === "QC" ? "QC Review" : item.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -69,12 +70,12 @@ const RecentCasesTable = () => {
                         >
                           <EyeIcon />
                         </Link>
-                        <button className="p-1 text-purple-600 hover:bg-purple-50 rounded transition-colors">
-                          <Edit size={18} />
-                        </button>
-                        <button className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors">
-                          <Trash2 size={18} />
-                        </button>
+                        {/* <button className="p-1 text-purple-600 hover:bg-purple-50 rounded transition-colors">
+                            <Edit size={18} />
+                          </button>
+                          <button className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors">
+                            <Trash2 size={18} />
+                          </button> */}
                       </div>
                     </td>
                   </tr>
@@ -93,7 +94,11 @@ const RecentCasesTable = () => {
       <div className="mt-4 px-4 pb-4">
         <Pagination
           onPageChange={onPageChange}
-          itemsPerPage={ITEMS_PER_PAGE}
+          onItemsPerPageChange={(newLimit) => {
+            setItemsPerPage(newLimit);
+            setPage(1);
+          }}
+          itemsPerPage={itemsPerPage}
           totalData={total}
           currentPage={page}
         />

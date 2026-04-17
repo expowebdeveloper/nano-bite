@@ -20,6 +20,11 @@ const Dashboard = () => {
   const submittedCount = listResult?.submittedCount ?? 0;
   const inDesignCount = listResult?.inDesignCount ?? 0;
   const completedCount = listResult?.completedCount ?? 0;
+  const approvedCount = listResult?.approvedCount ?? 0;
+  const dentistCount = listResult?.dentistCount ?? 0;
+  const designerCount = listResult?.designerCount ?? 0;
+  const totalPaymentsCents = listResult?.totalPaymentsCents ?? 0;
+  const totalPaymentsDisplay = `$${(totalPaymentsCents / 100).toFixed(2)}`;
 
   type CardConfig = {
     label: string;
@@ -39,14 +44,14 @@ const Dashboard = () => {
       { label: "Total Case", value: totalCases || 0, Icon: FileText },
       { label: "Total Pending", value: submittedCount || 0, Icon: Clock4 },
       { label: "Total Delivered", value: completedCount || 0, Icon: CheckCircle },
-      { label: "Total Doctors", value: 0, Icon: Users },
-      { label: "Total Designer", value: 0, Icon: Palette },
-      { label: "Total Payments", value: "$0", Icon: Receipt  },
+      { label: "Total Dentists", value: dentistCount || 0, Icon: Users },
+      { label: "Total Designer", value: designerCount || 0, Icon: Palette },
+      { label: "Total Payments", value: totalPaymentsDisplay, Icon: Receipt  },
     ],
     qc: [
       { label: "Assigned", value: totalCases || 0, Icon: FileText },
       { label: "In Review", value: inDesignCount || 0, Icon: ShieldCheck },
-      { label: "Approved", value: completedCount || 0, Icon: CheckCircle },
+      { label: "Approved", value: approvedCount || 0, Icon: CheckCircle },
     ],
     dentist: [
       { label: "Submitted", value: submittedCount || 0, Icon: FileText },

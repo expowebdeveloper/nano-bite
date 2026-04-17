@@ -22,14 +22,15 @@ type ListUser = {
   accountStatus?: string | null;
 };
 
-const TABLE_HEADER = ["Full name", "Email", "Role", "Status", "Platform status", "Created"];
+const TABLE_HEADER = ["Full name", "Email", "Role", "Status", /*"Platform status",*/ "Created"];
 
 const Users = () => {
   const { user } = useSelector((state: any) => state.user);
   const isAdmin = user?.role === "ADMIN";
   const { usersListQuery } = useUser();
   const [search, setSearch] = useState("");
-  const { page, onPageChange } = usePagination();
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
+  const { page, onPageChange, setPage } = usePagination();
 
   const { data: users = [], isLoading, isError } = usersListQuery;
 
@@ -50,9 +51,9 @@ const Users = () => {
   }, [users, search]);
 
   const paginatedUsers = useMemo(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredUsers, page]);
+    const start = (page - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  }, [filteredUsers, page, itemsPerPage]);
 
   const totalData = filteredUsers.length;
 
@@ -116,9 +117,8 @@ const Users = () => {
                 return (
                   <tr
                     key={u.id}
-                    className={`${
-                      isStriped ? "bg-[#F6FDFF]" : "bg-[#fafafa]"
-                    } hover:bg-[#eef7ff] transition-colors`}
+                    className={`${isStriped ? "bg-[#F6FDFF]" : "bg-[#fafafa]"
+                      } hover:bg-[#eef7ff] transition-colors`}
                   >
                     <td className="px-4 py-3 text-[15px] text-gray-800">
                       {displayName}
@@ -131,16 +131,15 @@ const Users = () => {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          u.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${u.isActive
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-600"
+                          }`}
                       >
                         {u.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    {/* <td className="px-4 py-3">
                       {u.role === "QC" && u.accountStatus ? (
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -154,7 +153,7 @@ const Users = () => {
                       ) : (
                         "—"
                       )}
-                    </td>
+                    </td> */}
                     <td className="px-4 py-3 text-[15px] text-gray-800">
                       {created || "—"}
                     </td>
@@ -177,7 +176,11 @@ const Users = () => {
         <div className="mt-4">
           <Pagination
             onPageChange={onPageChange}
-            itemsPerPage={ITEMS_PER_PAGE}
+            onItemsPerPageChange={(newLimit) => {
+              setItemsPerPage(newLimit);
+              setPage(1);
+            }}
+            itemsPerPage={itemsPerPage}
             totalData={totalData}
             currentPage={page}
           />
