@@ -97,7 +97,7 @@ const CasesList = () => {
     <div className="min-h-screen bg-[#fbfeff] p-6">
       <h1 className="text-xl font-semibold text-gray-800 mb-4">Cases</h1>
       <div className="bg-white rounded-3xl shadow-md border border-[#eaf4fb] p-6">
-        {casesListQuery.isLoading && <ScreenLoader isLoading={true} />}
+        {(casesListQuery.isFetching || assignCase.isPending) && <ScreenLoader isLoading={true} />}
 
         <div className="flex flex-wrap items-center justify-end gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -321,7 +321,6 @@ const CasesList = () => {
               btnText="Assign"
               customClass="px-14 py-3 bg-blue-600 text-white bg-[#C9C9C9] rounded-md "
               btnClick={handleAssign}
-              btnLoader={assignCase.isPending}
               disable={!selectedDesignerId || !selectedQcId || assignCase.isPending}
             />
           </div>

@@ -11,6 +11,7 @@ import { confirmationMessage } from "../../components/common/ToastMessage";
 import { useSelector } from "react-redux";
 import { ChangeEvent } from "react";
 import { StlViewer } from "../../components/common/StlViewer/StlViewer";
+import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
 import type { CaseAttachment, CaseRecord } from "../../interfaces/types";
 import { calculateDenturePrice, formValuesToPricingInput } from "../../utils/denturePricing";
 
@@ -42,7 +43,7 @@ const CaseDetails = () => {
   const { data: designerAttachmentsData } =
     designerAttachmentsQuery(caseId);
 
-  const { data, isLoading, error } = caseDetailsQuery(caseId);
+  const { data, isLoading, isFetching, error } = caseDetailsQuery(caseId);
   const record = data as CaseRecord | undefined;
 
   // Stripe amount must match the same pricing logic shown to the lab owner.
@@ -498,6 +499,13 @@ const CaseDetails = () => {
 
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6 space-y-6">
+      <ScreenLoader
+        isLoading={
+          updateCaseStatus.isPending ||
+          uploadDesignerAttachments.isPending ||
+          isFetching
+        }
+      />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 ">
           <Link

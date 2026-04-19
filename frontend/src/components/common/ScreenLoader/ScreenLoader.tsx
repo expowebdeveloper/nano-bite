@@ -12,8 +12,8 @@ const ScreenLoader = ({ isEdit = false, isLoading = false, zClass = "z-[60]" }: 
   return (
     <div
       className={`fixed inset-0 flex items-center justify-center ${zClass} ${
-        isEdit ? "bg-opacity-95" : "bg-opacity-75"
-      } bg-white z-50`}
+        isEdit ? "bg-white/70" : "bg-white/50"
+      } backdrop-blur-md z-50`}
     >
       <Loader />
     </div>
