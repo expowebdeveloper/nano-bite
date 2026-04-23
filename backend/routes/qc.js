@@ -11,6 +11,7 @@ router.post("/add", qcController.createQcAccount);
 router.get("/list", qcController.listQcAccounts);
 router.get("/:id", qcController.getQcAccountById);
 router.put("/update/:id", qcController.updateQcAccount);
+router.post("/:id/resend-password-link", qcController.resendPasswordSetupLink);
 router.delete("/delete/:id", qcController.deleteQcAccount);
 
 export default router;

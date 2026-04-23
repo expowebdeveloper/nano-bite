@@ -51,7 +51,7 @@ const Modal = ({
         )}
         <div className="p-6 relative">
           {children}
-          {loading && <ScreenLoader zClass="z-[70]" />}
+          <ScreenLoader isLoading={!!loading} zClass="z-[70]" />
         </div>
       </div>
     </div>

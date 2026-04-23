@@ -115,15 +115,7 @@ const AddQC = ({
         />
         <Button
           btnType="submit"
-          btnText={
-            loading
-              ? mode === "edit"
-                ? "Updating..."
-                : "Adding..."
-              : mode === "edit"
-                ? "Update QC"
-                : "Add QC"
-          }
+          btnText={mode === "edit" ? "Update QC" : "Add QC"}
           disable={loading}
           customClass="!py-3 !px-8 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white border-none"
           backGround={false}

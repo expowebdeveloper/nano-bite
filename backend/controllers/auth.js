@@ -279,7 +279,7 @@ const resetPassword = async (req, res) => {
       html: `
             <p>Dear ${user.name || 'User'},</p>
             <p>A password reset was requested for your account. Click the link below to reset your password:</p>
-            <p style="text-align:center; margin:24px 0;">
+            <p style="text-align:left; margin:24px 0;">
               <a href="${resetPasswordLink}" style="background-color:#0b6b8a; color:#ffffff; padding:12px 28px; text-decoration:none; border-radius:6px; font-family:Arial, sans-serif; font-weight:bold; display:inline-block;">Reset Password</a>
             </p>
             <p style="font-size:12px; color:#666;">If the button above doesn't work, copy and paste this link into your browser:<br/>${resetPasswordLink}</p>

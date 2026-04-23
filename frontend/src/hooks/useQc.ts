@@ -55,11 +55,30 @@ const useQC = () => {
           error?.response?.data?.message || error?.response?.data?.error || "Unable to delete QC"
         ),
     });
-  
+
+    const resendQcPasswordLink = useMutation({
+      mutationFn: async (id: string | number) =>
+        request.post(`/qc/${id}/resend-password-link`).then((res) => res.data),
+      onSuccess: (data: any) => {
+        confirmationMessage(
+          data?.message || "Password setup link resent successfully",
+          "success"
+        );
+        queryClient.invalidateQueries({ queryKey: ["qc-list"] });
+      },
+      onError: (error: any) =>
+        showErrorMessage(
+          error?.response?.data?.message ||
+            error?.response?.data?.error ||
+            "Unable to resend password setup link"
+        ),
+    });
+
     return {
       addQc,
       updateQc,
       deleteQc,
+      resendQcPasswordLink,
       qcList: qcListQuery.data,
       qcLoading: qcListQuery.isLoading,
       qcError: qcListQuery.error,

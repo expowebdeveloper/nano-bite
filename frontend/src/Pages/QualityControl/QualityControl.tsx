@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Edit, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, Plus, Search, Send, Trash2 } from "lucide-react";
 import TableWrapper from "../../components/common/Table/TableWrapper";
 import Pagination from "../../components/common/Pagination/Pagination";
 import ActionButton from "../../components/common/Buttons/ActionButton";
@@ -17,6 +17,7 @@ type QcUser = {
   email?: string;
   phone_number?: string;
   isActive?: boolean;
+  isEmailVerified?: boolean;
 };
 
 const TABLE_HEADER = [
@@ -34,8 +35,9 @@ const QualityControl = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [qcUsers, setQcUsers] = useState<QcUser[]>([]);
   const [editUser, setEditUser] = useState<QcUser | null>(null);
+  const [resendTarget, setResendTarget] = useState<QcUser | null>(null);
 
-  const { qcList, qcLoading, qcError, addQc, deleteQc, updateQc } = useQC();
+  const { qcList, qcLoading, qcError, addQc, deleteQc, updateQc, resendQcPasswordLink } = useQC();
 
   useEffect(() => {
     if (qcList?.data) {
@@ -121,6 +123,18 @@ const QualityControl = () => {
     setShowAddModal(true);
   };
 
+  const openResendConfirm = (user: QcUser) => {
+    if (!user?.id) return;
+    setResendTarget(user);
+  };
+
+  const confirmResendPasswordLink = () => {
+    if (!resendTarget?.id) return;
+    resendQcPasswordLink.mutate(resendTarget.id, {
+      onSuccess: () => setResendTarget(null),
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#fbfeff] p-6">
       <h1 className="text-xl font-semibold text-gray-800 mb-4">QC Users</h1>
@@ -189,6 +203,23 @@ const QualityControl = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
+                        {user.isEmailVerified ? (
+                          <button
+                            type="button"
+                            disabled
+                            title="QC has already setup the password"
+                            className="p-2 rounded-lg text-gray-300 cursor-not-allowed"
+                          >
+                            <Send size={16} />
+                          </button>
+                        ) : (
+                          <ActionButton
+                            icon={<Send size={16} />}
+                            btnText="Resend password setup link"
+                            btnClick={() => openResendConfirm(user)}
+                            customClass={`p-2 rounded-lg text-[#0b75c9] hover:bg-[#dbecfb] transition-colors ${!user.id || resendQcPasswordLink.isPending ? "opacity-50 cursor-not-allowed" : ""}`}
+                          />
+                        )}
                         <ActionButton
                           icon={<Edit size={16} />}
                           btnText="Edit"
@@ -262,6 +293,45 @@ const QualityControl = () => {
           }
           mode={editUser ? "edit" : "add"}
         />
+      </Modal>
+
+      <Modal
+        open={!!resendTarget}
+        onClose={() => {
+          if (resendQcPasswordLink.isPending) return;
+          setResendTarget(null);
+        }}
+        title="Resend Password Setup Link"
+        loading={resendQcPasswordLink.isPending}
+        widthClass="max-w-md"
+      >
+        <div className="space-y-5">
+          <p className="text-sm text-gray-700">
+            A new password setup link will be emailed to{" "}
+            <span className="font-semibold text-gray-900">
+              {resendTarget?.email || "this user"}
+            </span>
+            . Any previously sent link will be invalidated. Do you want to continue?
+          </p>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setResendTarget(null)}
+              disabled={resendQcPasswordLink.isPending}
+              className="h-10 px-5 rounded-xl border border-gray-200 bg-gray-100 text-sm text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmResendPasswordLink}
+              disabled={resendQcPasswordLink.isPending}
+              className="h-10 px-5 rounded-xl bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-sm font-semibold text-white hover:opacity-95 disabled:opacity-50"
+            >
+              Yes, Resend
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

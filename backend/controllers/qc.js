@@ -108,10 +108,7 @@ ${passwordSetupLink}
 
 If you did not expect this email, no further action is required and you may safely disregard it.
 
-If you have any questions or need assistance, feel free to contact our support team.
-
-Best regards,
-NanoBite Team`,
+If you have any questions or need assistance, feel free to contact our support team.`,
       html: `
         <p>Hi ${recipientName},</p>
         <p>We're pleased to inform you that a Quality Control (QC) account has been created for you on NanoBite by the administrator.</p>
@@ -122,7 +119,6 @@ NanoBite Team`,
         <p style="font-size:12px; color:#666;">If the button above doesn't work, copy and paste this link into your browser:<br/>${passwordSetupLink}</p>
         <p>If you did not expect this email, no further action is required and you may safely disregard it.</p>
         <p>If you have any questions or need assistance, feel free to contact our support team.</p>
-        <p>Best regards,<br/>NanoBite Team</p>
       `,
     });
 
@@ -319,6 +315,102 @@ const updateQcAccount = async (req, res) => {
   }
 };
 
+const resendPasswordSetupLink = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid QC account id.",
+      });
+    }
+
+    const qcAccount = await prisma.user.findFirst({
+      where: { id, role: "QC", isDeleted: false },
+      select: {
+        id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        fullName: true,
+        isEmailVerified: true,
+      },
+    });
+
+    if (!qcAccount) {
+      return res.status(404).json({
+        success: false,
+        message: "QC account not found.",
+      });
+    }
+
+    if (qcAccount.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "This user has already completed password setup.",
+      });
+    }
+
+    const resetPasswordToken = crypto.randomBytes(128).toString("hex");
+    const resetPasswordExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: qcAccount.id },
+      data: {
+        resetPasswordToken,
+        resetPasswordExpires,
+      },
+    });
+
+    const recipientName =
+      buildFullName(qcAccount.first_name, qcAccount.last_name, qcAccount.fullName) ||
+      "there";
+    const encodedEmail = encodeURIComponent(qcAccount.email);
+    const passwordSetupLink = `${process.env.FRONTEND_URL}set-password?email=${encodedEmail}&challenge=${resetPasswordToken}`;
+
+    await sendEmail({
+      to: qcAccount.email,
+      subject: "Your NanoBite QC account – set your password",
+      text: `Hi ${recipientName},
+
+A new password setup link has been generated for your NanoBite Quality Control (QC) account.
+
+Please use the link below to set your password and access your account:
+
+${passwordSetupLink}
+
+This link will expire in 24 hours. Any previously sent password setup links are no longer valid.
+
+If you did not expect this email, no further action is required and you may safely disregard it.
+
+If you have any questions or need assistance, feel free to contact our support team.`,
+      html: `
+        <p>Hi ${recipientName},</p>
+        <p>A new password setup link has been generated for your NanoBite Quality Control (QC) account.</p>
+        <p>Please use the link below to set your password and access your account:</p>
+        <p style="text-align:left; margin:24px 0;">
+          <a href="${passwordSetupLink}" style="background-color:#0b6b8a; color:#ffffff; padding:12px 28px; text-decoration:none; border-radius:6px; font-family:Arial, sans-serif; font-weight:bold; display:inline-block;">Set Your Password</a>
+        </p>
+        <p style="font-size:12px; color:#666;">If the button above doesn't work, copy and paste this link into your browser:<br/>${passwordSetupLink}</p>
+        <p>This link will expire in 24 hours. Any previously sent password setup links are no longer valid.</p>
+        <p>If you did not expect this email, no further action is required and you may safely disregard it.</p>
+        <p>If you have any questions or need assistance, feel free to contact our support team.</p>
+      `,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Password setup link has been resent to the user's email.",
+    });
+  } catch (error) {
+    console.error("Resend QC password setup link error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
 const deleteQcAccount = async (req, res) => {
   try {
     const { id } = req.params;
@@ -371,5 +463,6 @@ export const qcController = {
   getQcAccountById,
   updateQcAccount,
   deleteQcAccount,
+  resendPasswordSetupLink,
 };
 
