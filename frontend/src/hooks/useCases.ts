@@ -4,6 +4,7 @@ import { confirmationMessage } from "../components/common/ToastMessage";
 import { useShowErrorMessage } from "../components/common/ShowErrorMessage";
 import type { CaseRecord } from "../interfaces/types";
 import { useSelector } from "react-redux";
+import { CaseFormValues } from "../Constants/Constants";
 
 export type CasesListParams = {
   page?: number;
@@ -88,7 +89,23 @@ const useCases = (params?: CasesListParams) => {
       );
     },
   });
-
+  const updateCase = useMutation<any, any, { caseId: string } & CaseFormValues>({
+    mutationFn: async (payload) => {
+      const { caseId, ...data } = payload;
+      const response = await request.put(`/cases/${caseId}`, data)
+      return response.data;
+    },
+     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      confirmationMessage("Case updated successfully", "success");
+    },
+    onError: (error) => {
+      confirmationMessage(
+        error?.response?.data?.message || "Failed to update case",
+        "error"
+      );
+    },
+  });
   const casesListQuery = useQuery({
     queryKey: ["cases", page, limit, search],
     queryFn: async () => {
@@ -236,6 +253,7 @@ const useCases = (params?: CasesListParams) => {
 
   return {
     createCase,
+    updateCase,
     casesListQuery,
     calendarCasesQuery,
     caseDetailsQuery,

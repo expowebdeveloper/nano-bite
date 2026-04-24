@@ -252,7 +252,122 @@ const createCase = async (req, res) => {
     });
   }
 };
+const updateCase= async (req, res) => {
+  try {
+    const { caseId } = req.params;
+    const userId = req.user?.data?.id;
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized. Please log in again.",
+      });
+    }
+
+    if (!caseId) {
+      return res.status(400).json({
+        success: false,
+        message: "caseId is required.",
+      });
+    }
+
+    // Check case exists and belongs to user
+    const existingCase = await prisma.caseRecord.findUnique({
+      where: { caseId },
+      select: { id: true, createdById: true, status: true },
+    });
+
+    if (!existingCase) {
+      return res.status(404).json({
+        success: false,
+        message: "Case not found.",
+      });
+    }
+
+    // Only owner can edit
+    if (existingCase.createdById !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden. You can only edit your own cases.",
+      });
+    }
+
+    // Prevent editing if case is in Ready or Completed status
+    const nonEditableStatuses = ["QC", "QC Review", "Ready", "Completed"];
+    if (nonEditableStatuses.includes(existingCase.status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Case cannot be edited in "${existingCase.status}" status.`,
+      });
+    }
+
+    // Reuse same validation as createCase
+    const errors = validatePayload(req.body);
+    if (errors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed.",
+        errors,
+      });
+    }
+
+    // Build update payload same way as createCase
+    const payload = {};
+
+    stringFields.forEach((field) => {
+      payload[field] = normalizeString(req.body[field]);
+    });
+
+    arrayFields.forEach((field) => {
+      payload[field] = normalizeArray(req.body[field]);
+    });
+
+    numberArrayFields.forEach((field) => {
+      payload[field] = normalizeNumberArray(req.body[field]);
+    });
+
+    const booleanFields = [
+      "hasExistingDenture",
+      "isExactCopy",
+      "isImplantSupported",
+      "dentureWantsAddOns",
+      "dentureHasDiastema",
+      "dentureWantsDesignPreview",
+      "partialIsReplacement",
+      "overdentureUseSameImplantSystem",
+    ];
+
+    booleanFields.forEach((field) => {
+      if (typeof req.body[field] === "boolean") {
+        payload[field] = req.body[field];
+      }
+    });
+
+    const { attachments } = normalizeAttachments(req.body.attachments);
+    payload.attachments = attachments;
+    payload.cloudFolderLink = normalizeString(req.body.cloudFolderLink);
+    payload.updatedById = userId;
+
+    const updatedCase = await prisma.caseRecord.update({
+      where: { caseId },
+      data: payload,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Case updated successfully.",
+      data: updatedCase,
+    });
+
+  } catch (error) {
+    console.error("Update case error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Unable to update case.",
+      error: error.message,
+    });
+  }
+};
 const getDesignerAttachments = async (req, res) => {
   try {
     const { caseId } = req.params;
@@ -395,6 +510,7 @@ const uploadDesignerAttachments = async (req, res) => {
 
 export const casesController = {
   createCase,
+  updateCase,
   getDesignerAttachments,
   uploadDesignerAttachments,
   listCases: async (req, res) => {
@@ -422,6 +538,9 @@ export const casesController = {
           take: limit,
           include: {
             createdBy: {
+              select: { id: true, fullName: true, email: true, role: true },
+            },
+            updatedBy: {
               select: { id: true, fullName: true, email: true, role: true },
             },
           },
@@ -502,6 +621,14 @@ export const casesController = {
               },
             },
             createdBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+              },
+            },
+            updatedBy: {
               select: {
                 id: true,
                 fullName: true,
@@ -618,6 +745,9 @@ export const casesController = {
             createdBy: {
               select: { id: true, fullName: true, email: true, role: true },
             },
+            updatedBy: {
+              select: { id: true, fullName: true, email: true, role: true },
+            },
           },
         }),
         prisma.caseRecord.count({ where }),
@@ -675,6 +805,9 @@ export const casesController = {
           take: limit,
           include: {
             createdBy: {
+              select: { id: true, fullName: true, email: true, role: true },
+            },
+            updatedBy: {
               select: { id: true, fullName: true, email: true, role: true },
             },
           },

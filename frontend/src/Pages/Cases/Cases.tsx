@@ -51,7 +51,7 @@ import { OverdentureImplantLocationSelection } from "./components/Cases/Denture/
 import { OverdentureImplantDetails } from "./components/Cases/Denture/OverdentureImplantDetails";
 import { OverdentureRelineArchSelection } from "./components/Cases/Denture/OverdentureRelineArchSelection";
 import { OverdentureRelineAddedModal } from "./components/Cases/Denture/OverdentureRelineAddedModal";
-
+import { useParams } from "react-router-dom";
 // Import servicesData
 // const servicesData = [
 //   {
@@ -90,10 +90,16 @@ const Cases = () => {
   const [showOverdentureRelineAddedModal, setShowOverdentureRelineAddedModal] = useState(false);
   const { uploadFile, uploading } = useUploads();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { createCase } = useCases();
+  const { createCase ,updateCase} = useCases();
   const { profileQuery } = useUser();
   const navigate = useNavigate();
+  const {caseId}=useParams();
+  const isEditMode=Boolean(caseId);
+  const {caseDetailsQuery}=useCases();
+  const { data } = caseDetailsQuery(caseId);
 
+
+ 
   const showCloudFolderOption =
     (profileQuery.data as { dentistProfile?: { preferredFileTransfer?: string[] } } | undefined)
       ?.dentistProfile?.preferredFileTransfer?.includes("Cloud Shared Folder") ?? false;
@@ -108,6 +114,53 @@ const Cases = () => {
   });
 
   const { handleSubmit, watch, reset, trigger } = formConfig;
+
+  // Pre-fill form in edit mode
+  useEffect(() => {
+    if (isEditMode && data) {
+      // Create a clean copy for reset to avoid null issues
+      const formData = { ...data } as any;
+      if (formData.cloudFolderLink === null) delete formData.cloudFolderLink;
+      
+      reset(formData);
+      if (data.attachments) {
+        setAttachments(data.attachments);
+      }
+
+      // Determine selectedOption and selectedTeeth based on case data
+      if (data.caseType === "Single Crown / Onlay / Veneer") {
+        if (data.restorationTypes?.includes("Crown")) setSelectedOption("Crown");
+        else if (data.restorationTypes?.includes("Onlay")) setSelectedOption("Onlay");
+        else if (data.restorationTypes?.includes("Veneer")) setSelectedOption("Veneer");
+        else if (data.restorationTypes?.includes("Inlay")) setSelectedOption("Inlay");
+        else setSelectedOption("Crown");
+
+        if (data.toothType) {
+          const teeth = data.toothType.split(",").map(item => parseInt(item.trim())).filter(n => !isNaN(n));
+          setSelectedTeeth(teeth);
+        }
+      } else if (data.caseType === "Short-span Bridge") {
+        setSelectedOption("Bridge");
+        if (data.ponticTeeth) {
+          const teeth = data.ponticTeeth.split(",").map(item => parseInt(item.trim())).filter(n => !isNaN(n));
+          setSelectedTeeth(teeth);
+        }
+      } else if (data.caseType === "Implant Crown / Implant Bridge") {
+        if (data.implantRestoration?.some(r => r.includes("Crown"))) setSelectedOption("Implant Crown");
+        else if (data.implantRestoration?.some(r => r.includes("Bridge"))) setSelectedOption("Implant Bridge");
+        else setSelectedOption("Implant Crown");
+
+        if (data.implantTooth) {
+          const teeth = data.implantTooth.split(",").map(item => parseInt(item.trim())).filter(n => !isNaN(n));
+          setSelectedTeeth(teeth);
+        }
+      } else if (data.caseType === "Digital Complete Denture") {
+        setSelectedOption("Full Denture");
+      } else if (data.caseType === "Partial Denture") {
+        setSelectedOption("Partial Denture");
+      }
+    }
+  }, [isEditMode, data, reset]);
   const caseType = watch("caseType");
   const doctorSignature = watch("doctorSignature");
   const signatureDate = watch("date");
@@ -367,6 +420,17 @@ const Cases = () => {
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
+  useEffect(() => {
+    const teethStr = selectedTeeth.join(", ");
+    if (["Crown", "Inlay", "Onlay", "Veneer"].includes(selectedOption || "")) {
+      formConfig.setValue("toothType", teethStr);
+    } else if (selectedOption === "Bridge") {
+      formConfig.setValue("ponticTeeth", teethStr);
+    } else if (["Implant Crown", "Implant Bridge", "Surgical Guide"].includes(selectedOption || "")) {
+      formConfig.setValue("implantTooth", teethStr);
+    }
+  }, [selectedTeeth, selectedOption, formConfig]);
+
   /*
   useEffect(() => {
     if (!selectedOption) return;
@@ -402,6 +466,7 @@ const Cases = () => {
     }
   }, [selectedOption, formConfig]);
   */
+ 
 
   const getCaseTypeFromOption = (option: string | null) => {
     if (!option) return "Single Crown / Onlay / Veneer"; // Default fallback
@@ -440,9 +505,11 @@ const Cases = () => {
         attachments,
       };
 
-      await createCase.mutateAsync(payload);
-
-
+      if (isEditMode && caseId) {
+        await updateCase.mutateAsync({ caseId, ...payload });
+      } else {
+        await createCase.mutateAsync(payload);
+      }
 
       // For Overdenture Reline, show the "Added Overdenture Reline" modal after successful submission
       const dentureType = watch("digitalType")?.[0];
@@ -1013,6 +1080,7 @@ const Cases = () => {
           onPrevious={handleBack}
           onNext={handleNext}
           isSubmitting={createCase.isPending}
+          isEditMode={isEditMode}
         />
       </form>
 

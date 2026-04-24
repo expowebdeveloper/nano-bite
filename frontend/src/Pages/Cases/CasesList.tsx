@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, Plus, Search } from "lucide-react";
+import { Eye, Plus, Search,Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TableWrapper from "../../components/common/Table/TableWrapper";
 import Pagination from "../../components/common/Pagination/Pagination";
@@ -182,7 +182,12 @@ const CasesList = () => {
                       {caseItem.createdBy?.fullName || "—"}
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
-                      {formatDate(caseItem.updatedAt)}
+                      <div>{formatDate(caseItem.updatedAt)}</div>
+                      {caseItem.updatedBy?.email && (
+                        <div className="text-xs text-gray-500">
+                          ({caseItem.updatedBy.email})
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-3 flex-nowrap">
@@ -193,14 +198,22 @@ const CasesList = () => {
                         >
                           <Eye size={16} />
                         </Link>
-                        {/* <button
-                          type="button"
-                          onClick={() => navigate(`/cases/${caseItem.caseId || caseItem.id}`)}
-                          className="p-2 rounded-lg text-[#7c3aed] hover:bg-[#ebddff] transition-colors"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button> */}
+                        {user?.role==="Dentist" && (
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/cases/${caseItem.caseId || caseItem.id}/edit`)}
+                            disabled={["Ready", "Completed", "QC", "QC Review"].includes(caseItem.status)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              ["Ready", "Completed", "QC", "QC Review"].includes(caseItem.status)
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-[#7c3aed] hover:bg-[#ebddff]"
+                            }`}
+                            title={["Ready", "Completed", "QC", "QC Review"].includes(caseItem.status) ? "Cannot edit case in current status" : "Edit Case"}
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+                       
                         {user?.role === "ADMIN" && (
                           ["Assigned", "In Design", "QC", "QC Review", "Ready", "Completed", "completed"].includes(caseItem.status) ? (
                             <span
