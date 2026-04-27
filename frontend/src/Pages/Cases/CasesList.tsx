@@ -73,6 +73,9 @@ const CasesList = () => {
         year: "numeric",
         month: "short",
         day: "numeric",
+        hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
       });
     } catch {
       return "—";
@@ -183,11 +186,7 @@ const CasesList = () => {
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
                       <div>{formatDate(caseItem.updatedAt)}</div>
-                      {caseItem.updatedBy?.email && (
-                        <div className="text-xs text-gray-500">
-                          ({caseItem.updatedBy.email})
-                        </div>
-                      )}
+                  
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-3 flex-nowrap">
