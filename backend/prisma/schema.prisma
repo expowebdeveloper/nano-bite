@@ -18,7 +18,7 @@ model User {
   password            String
   role                Role     @default(Dentist)
 createdCases CaseRecord[] @relation("CreatedBy")
-
+  updatedCases CaseRecord[] @relation("UpdatedBy")
 
   designerCases CaseRecord[] @relation("AssignedDesigner")
   qcCases       CaseRecord[] @relation("AssignedQc")
@@ -179,6 +179,9 @@ model CaseRecord {
 
   createdById String?
   createdBy   User? @relation("CreatedBy", fields: [createdById], references: [id])
+
+  updatedById String?
+  updatedBy   User? @relation("UpdatedBy", fields: [updatedById], references: [id])
 
   activities            ActivityLog[]
   payments              Payment[]

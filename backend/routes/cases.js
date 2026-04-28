@@ -8,8 +8,8 @@ import { requireAdminOrQc } from "../middlewares/requireAdminOrQc.js";
 const router = express.Router();
 
 
-
 router.post("/", authenticate, casesController.createCase);
+router.put("/:caseId", authenticate, casesController.updateCase)
 router.post(
   "/designer-attachments",
   authenticate,
@@ -17,11 +17,11 @@ router.post(
 );
 router.get(
   "/:caseId/designer-attachments",
-  authenticate,casesController.
-  getDesignerAttachments
+  authenticate,
+  casesController.getDesignerAttachments
 );
 
-router.post("/:caseId/assign",authenticate,requireAdminOrQc, casesController.assignCaseToDesigner
+router.post("/:caseId/assign", authenticate, requireAdminOrQc, casesController.assignCaseToDesigner
 );
 router.get("/", authenticate, casesController.listCases);
 router.get("/calendar", authenticate, casesController.getCalendarCases);

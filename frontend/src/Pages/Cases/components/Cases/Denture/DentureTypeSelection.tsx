@@ -7,7 +7,7 @@ interface DentureTypeSelectionProps {
     formConfig: UseFormReturn<CaseFormValues>;
 }
 
-const DENTURE_OPTIONS = [
+export const DENTURE_OPTIONS = [
     {
         value: "Conventional", // Maps to "New Denture"
         title: "New Denture",
@@ -47,9 +47,11 @@ export const DentureTypeSelection = ({
                 render={({ field: { value, onChange } }) => (
                     <div className="space-y-4 max-w-2xl mt-8">
                         {DENTURE_OPTIONS.map((option) => {
-                            // value is string[] in type definition, but we treat it as single selection here
-                            // Check if the array contains the value
-                            const isSelected = value?.includes(option.value);
+                            // Single-select semantics: only the first array value is the active choice.
+                            // We check both the value and the title for backwards compatibility or mismatches.
+                            const isSelected = 
+                                value?.[0] === option.value || 
+                                value?.[0] === option.title;
 
                             return (
                                 <div

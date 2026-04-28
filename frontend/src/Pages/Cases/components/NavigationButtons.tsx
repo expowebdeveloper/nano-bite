@@ -6,6 +6,7 @@ interface NavigationButtonsProps {
   onPrevious: () => void;
   onNext: () => void;
   isSubmitting?: boolean;
+  isEditMode?: boolean;
 }
 
 const NavigationButtons = ({
@@ -14,6 +15,7 @@ const NavigationButtons = ({
   onPrevious,
   onNext,
   isSubmitting = false,
+  isEditMode = false,
 }: NavigationButtonsProps) => {
   // Show previous button: from step 2 onwards
   const showPrevious = currentStep > 1 && currentStep < totalSteps;
@@ -48,7 +50,7 @@ const NavigationButtons = ({
       {showSubmit && (
         <Button
           btnType="submit"
-          btnText={isSubmitting ? "Submitting..." : "Submit"}
+          btnText={isSubmitting ? "Submitting..." : isEditMode ? "Update" : "Submit"}
           disable={isSubmitting}
           customClass="w-[180px] h-[48px] rounded-lg bg-gradient-to-r from-[#0B75C9] to-[#3BA6E5] text-white font-semibold hover:shadow-lg transition-shadow disabled:opacity-50"
         />

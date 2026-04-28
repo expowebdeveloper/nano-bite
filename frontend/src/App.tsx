@@ -58,6 +58,7 @@ function App() {
           <Route path="/users" element={<Users />} />
           <Route path="/cases" element={<CasesList />} />
           <Route path="/cases/create" element={<Cases />} />
+          <Route path="/cases/:caseId/edit" element={<Cases />} />
           <Route path="/cases/:caseId" element={<CaseDetails />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/calendar" element={<Calendar />} />

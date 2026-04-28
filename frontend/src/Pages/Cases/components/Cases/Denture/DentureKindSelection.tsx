@@ -31,14 +31,14 @@ const DENTURE_KIND_OPTIONS = [
 export const DentureKindSelection = ({
     formConfig,
 }: DentureKindSelectionProps) => {
-    const { control } = formConfig;
-    // const patientName = watch("patientName") || "the patient";
+    const { control, watch } = formConfig;
+    const patientName = watch("patientName") || "the patient";
 
     return (
         <div className="bg-white p-6 md:p-8 space-y-6">
             <CommanHeading
                 caseName="Wrapping up Denture"
-                titleName="What kind of denture would you like?"
+                titleName={`What kind of denture does ${patientName} need?`}
             />
 
             <Controller
@@ -47,7 +47,8 @@ export const DentureKindSelection = ({
                 render={({ field: { value, onChange } }) => (
                     <div className="space-y-4 max-w-3xl mt-8">
                         {DENTURE_KIND_OPTIONS.map((option) => {
-                            const isSelected = value === option.value;
+                            // Match against both value and title for robustness
+                            const isSelected = value === option.value || value === option.title;
 
                             return (
                                 <div
