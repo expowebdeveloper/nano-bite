@@ -52,6 +52,7 @@ import { OverdentureImplantDetails } from "./components/Cases/Denture/Overdentur
 import { OverdentureRelineArchSelection } from "./components/Cases/Denture/OverdentureRelineArchSelection";
 import { OverdentureRelineAddedModal } from "./components/Cases/Denture/OverdentureRelineAddedModal";
 import { useParams } from "react-router-dom";
+import ScreenLoader from "../../components/common/ScreenLoader/ScreenLoader";
 // Import servicesData
 // const servicesData = [
 //   {
@@ -90,13 +91,13 @@ const Cases = () => {
   const [showOverdentureRelineAddedModal, setShowOverdentureRelineAddedModal] = useState(false);
   const { uploadFile, uploading } = useUploads();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { createCase ,updateCase} = useCases();
+  const lastPrefilledDataRef = useRef<string | null>(null);
+  const { createCase, updateCase, caseDetailsQuery } = useCases();
   const { profileQuery } = useUser();
   const navigate = useNavigate();
-  const {caseId}=useParams();
-  const isEditMode=Boolean(caseId);
-  const {caseDetailsQuery}=useCases();
-  const { data } = caseDetailsQuery(caseId);
+  const { caseId } = useParams();
+  const isEditMode = Boolean(caseId);
+  const { data, isFetching } = caseDetailsQuery(caseId);
 
 
  
@@ -115,62 +116,152 @@ const Cases = () => {
 
   const { handleSubmit, watch, reset, trigger } = formConfig;
 
+  // Reset form when moving to create mode
+  useEffect(() => {
+    if (!isEditMode) {
+      reset(CASE_FORM_DEFAULT_VALUES);
+      setAttachments([]);
+      setSelectedOption(null);
+      setCurrentStep(1);
+      lastPrefilledDataRef.current = null;
+    }
+  }, [isEditMode, reset]);
+
   // Pre-fill form in edit mode
   useEffect(() => {
-    if (isEditMode && data) {
-      // Create a clean copy for reset to avoid null issues
-      const formData = { ...data } as any;
-      if (formData.cloudFolderLink === null) delete formData.cloudFolderLink;
+    // We check updatedAt, id, and target caseId to ensure we only pre-fill once per unique case version
+    // and that the data actually matches the case we are trying to edit (preventing stale cache issues).
+    const dataKey = (data && data.caseId === caseId) ? `${data.id}-${data.updatedAt}` : null;
 
-      reset(formData);
-      // Mark this caseType as "already known" so the case-type-change effect
-      // below doesn't treat the prefill as a user-driven change and wipe the
-      // case-specific fields we just loaded.
-      prevCaseTypeRef.current = data.caseType || "";
-      if (data.attachments) {
-        setAttachments(data.attachments);
+    if (isEditMode && data && dataKey && lastPrefilledDataRef.current !== dataKey) {
+      const currentData = data;
+      // Strip Prisma/DB-only fields that don't belong in the form
+      const {
+        id: _id,
+        createdAt: _createdAt,
+        updatedAt: _updatedAt,
+        createdById: _createdById,
+        updatedById: _updatedById,
+        status: _status,
+        assignedToDesignerId: _assignedToDesignerId,
+        assignedToQcId: _assignedToQcId,
+        assignedById: _assignedById,
+        assignedAt: _assignedAt,
+        createdBy: _createdBy,
+        updatedBy: _updatedBy,
+        assignedToDesigner: _assignedToDesigner,
+        assignedToQc: _assignedToQc,
+        payments: _payments,
+        isPaid: _isPaid,
+        ...formFields
+      } = data as any;
+
+      // Convert ISO dueDate to YYYY-MM-DD for <input type="date">
+      if (formFields.dueDate) {
+        formFields.dueDate = formFields.dueDate.substring(0, 10);
       }
+
+      // Remove null values for optional string fields
+      const nullableStringFields: (keyof CaseFormValues)[] = ["cloudFolderLink", "dentureKind", "dentureArch", "dentureBaseShade", "dentureTissueShade", "dentureSmileStyle", "dentureFestooningLevel"];
+      nullableStringFields.forEach(field => {
+        if (formFields[field] === null) formFields[field] = "";
+      });
+
+      // Ensure array fields are never null
+      const arrayFieldKeys = [
+        "sex", "midline", "photos", "scans",
+        "restorationTypes", "materialOptions", "restorationPrep", "contacts", "occlusion", "requiredScans",
+        "ponticDesign", "ponticContacts", "bridgeMaterial", "bridgeRequiredScans",
+        "implantRestoration", "implantEmergence", "implantRequiredScans", "implantAbutment", "implantOcclusion", "implantAllowed",
+        "fullArchDesign", "fullArchFramework", "fullArchVdo", "fullArchOcc", "fullArchToothSize", "fullArchGingiva", "fullArchMidline", "fullArchRequiredScansTop", "fullArchRequiredScans",
+        "digitalType", "digitalArch", "digitalVdo", "digitalToothSetup", "digitalBase", "digitalCopy", "digitalRequiredScans",
+        "dentureAddOns", "dentureOtherDetails", "dentureReviewOptions", "dentureDesignPreviewAddOns",
+        "overdentureImplantLocations",
+        "partialType", "partialFramework", "partialAesthetics", "partialRequiredScans",
+        "attachments",
+      ];
+      arrayFieldKeys.forEach((key) => {
+        if (!Array.isArray(formFields[key])) {
+          if (typeof formFields[key] === "string" && formFields[key].length > 0) {
+            formFields[key] = [formFields[key]];
+          } else {
+            formFields[key] = [];
+          }
+        }
+      });
+
+      // Special handling for digitalType to map descriptive labels back to values if necessary
+      if (Array.isArray(formFields.digitalType) && formFields.digitalType.length > 0) {
+        const currentVal = formFields.digitalType[0];
+        if (currentVal === "New Denture") formFields.digitalType = ["Conventional"];
+        if (currentVal === "Immediate Denture") formFields.digitalType = ["Immediate"];
+        if (currentVal === "Denture Reline") formFields.digitalType = ["Reline"];
+      }
+
+      // Mapping for dentureKind descriptive labels
+      if (formFields.dentureKind === "Signature Acrylic Denture") {
+        // Already matches value
+      }
+
+      let newSelectedOption: string | null = null;
+      let newSelectedTeeth: number[] = [];
 
       // Determine selectedOption and selectedTeeth based on case data
-      if (data.caseType === "Single Crown / Onlay / Veneer") {
-        if (data.restorationTypes?.includes("Crown")) setSelectedOption("Crown");
-        else if (data.restorationTypes?.includes("Onlay")) setSelectedOption("Onlay");
-        else if (data.restorationTypes?.includes("Veneer")) setSelectedOption("Veneer");
-        else if (data.restorationTypes?.includes("Inlay")) setSelectedOption("Inlay");
-        else setSelectedOption("Crown");
+      if (currentData.caseType === "Single Crown / Onlay / Veneer") {
+        if (currentData.restorationTypes?.includes("Crown")) newSelectedOption = "Crown";
+        else if (currentData.restorationTypes?.includes("Onlay")) newSelectedOption = "Onlay";
+        else if (currentData.restorationTypes?.includes("Veneer")) newSelectedOption = "Veneer";
+        else if (currentData.restorationTypes?.includes("Inlay")) newSelectedOption = "Inlay";
+        else newSelectedOption = "Crown";
 
-        if (data.toothType) {
-          const teeth = data.toothType.split(",").map(item => parseInt(item.trim())).filter(n => !isNaN(n));
-          setSelectedTeeth(teeth);
+        if (currentData.toothType) {
+          const teeth = currentData.toothType.split(",").map((item: string) => parseInt(item.trim())).filter((n: number) => !isNaN(n));
+          newSelectedTeeth = teeth;
         }
-      } else if (data.caseType === "Short-span Bridge") {
-        setSelectedOption("Bridge");
-        if (data.ponticTeeth) {
-          const teeth = data.ponticTeeth.split(",").map(item => parseInt(item.trim())).filter(n => !isNaN(n));
-          setSelectedTeeth(teeth);
+      } else if (currentData.caseType === "Short-span Bridge") {
+        newSelectedOption = "Bridge";
+        if (currentData.ponticTeeth) {
+          const teeth = currentData.ponticTeeth.split(",").map((item: string) => parseInt(item.trim())).filter((n: number) => !isNaN(n));
+          newSelectedTeeth = teeth;
         }
-      } else if (data.caseType === "Implant Crown / Implant Bridge") {
-        if (data.implantRestoration?.some(r => r.includes("Crown"))) setSelectedOption("Implant Crown");
-        else if (data.implantRestoration?.some(r => r.includes("Bridge"))) setSelectedOption("Implant Bridge");
-        else setSelectedOption("Implant Crown");
+      } else if (currentData.caseType === "Implant Crown / Implant Bridge") {
+        if (currentData.implantRestoration?.some((r: string) => r.includes("Crown"))) newSelectedOption = "Implant Crown";
+        else if (currentData.implantRestoration?.some((r: string) => r.includes("Bridge"))) newSelectedOption = "Implant Bridge";
+        else newSelectedOption = "Implant Crown";
 
-        if (data.implantTooth) {
-          const teeth = data.implantTooth.split(",").map(item => parseInt(item.trim())).filter(n => !isNaN(n));
-          setSelectedTeeth(teeth);
+        if (currentData.implantTooth) {
+          const teeth = currentData.implantTooth.split(",").map((item: string) => parseInt(item.trim())).filter((n: number) => !isNaN(n));
+          newSelectedTeeth = teeth;
         }
-      } else if (data.caseType === "Digital Complete Denture") {
-        // Same case type covers Full Denture and Overdenture; distinguish via overdenture-specific fields.
+      } else if (currentData.caseType === "Digital Complete Denture") {
         const looksLikeOverdenture =
-          !!data.overdentureScanMethod ||
-          !!data.overdentureSupportType ||
-          !!data.overdentureRelineArch ||
-          (Array.isArray(data.overdentureImplantLocations) && data.overdentureImplantLocations.length > 0);
-        setSelectedOption(looksLikeOverdenture ? "Overdenture" : "Full Denture");
-      } else if (data.caseType === "Partial Denture") {
-        setSelectedOption("Partial Denture");
+          !!currentData.overdentureScanMethod ||
+          !!currentData.overdentureSupportType ||
+          !!currentData.overdentureRelineArch ||
+          currentData.isImplantSupported === true ||
+          (Array.isArray(currentData.overdentureImplantLocations) && currentData.overdentureImplantLocations.length > 0);
+        newSelectedOption = looksLikeOverdenture ? "Overdenture" : "Full Denture";
+      } else if (currentData.caseType === "Partial Denture") {
+        newSelectedOption = "Partial Denture";
       }
+
+      // 1. Update UI-specific states
+      setSelectedOption(newSelectedOption);
+      setSelectedTeeth(newSelectedTeeth);
+      if (Array.isArray(currentData.attachments) && currentData.attachments.length > 0) {
+        setAttachments(currentData.attachments);
+      }
+
+      // 2. Set the ref BEFORE calling reset() so the caseType-change watcher
+      // (which fires synchronously after reset) does NOT wipe the fields we are about to load.
+      prevCaseTypeRef.current = currentData.caseType || "";
+
+      // 3. Populate form values
+      reset(formFields);
+
+      lastPrefilledDataRef.current = dataKey;
     }
-  }, [isEditMode, data, reset]);
+  }, [isEditMode, data, caseId, reset]);
 
   // Map a wizard `selectedOption` back to the (serviceId, optionLabel) pair that
   // ServicesPage uses internally, so step 2 can show the correct selection in edit mode.
@@ -351,7 +442,15 @@ const Cases = () => {
       );
       return;
     }
-    const isValid = await trigger();
+
+    // Scope validation to only the fields on the current step to avoid
+    // false negatives from empty required fields on future steps.
+    const step1Fields: (keyof CaseFormValues)[] = [
+      "patientName", "age", "sex", "dueDate", "photos", "scans",
+    ];
+    const fieldsToValidate = currentStep === 1 ? step1Fields : undefined;
+    const isValid = await trigger(fieldsToValidate);
+
     if (isValid) {
       // If editing from review, return to the review step after one edit
       if (editingFromReview) {
@@ -535,6 +634,9 @@ const Cases = () => {
 
       if (isEditMode && caseId) {
         await updateCase.mutateAsync({ caseId, ...payload });
+        confirmationMessage("Case updated successfully", "success");
+        navigate("/cases");
+        return;
       } else {
         await createCase.mutateAsync(payload);
       }
@@ -569,6 +671,7 @@ const Cases = () => {
             onUploadClick={() => setShowUploadModal(true)}
             onNext={() => setCurrentStep(2)}
             showCloudFolderOption={showCloudFolderOption}
+            isEditMode={isEditMode}
           />
         );
       case 2: {
@@ -577,7 +680,16 @@ const Cases = () => {
           <>
             {/* <VerticalStepper activeStep={2} selectedTeeth={[]} /> */}
             <ServicesPage
-              onOptionSelect={(label) => setSelectedOption(label)}
+              onOptionSelect={(label) => {
+                setSelectedOption(label);
+                formConfig.setValue("caseType", getCaseTypeFromOption(label));
+                // Immediately set isImplantSupported to help identify Overdentures in subsequent edits
+                if (label === "Overdenture") {
+                  formConfig.setValue("isImplantSupported", true);
+                } else if (label === "Full Denture") {
+                  formConfig.setValue("isImplantSupported", false);
+                }
+              }}
               initialServiceId={preselect.serviceId}
               initialOptionLabel={preselect.optionLabel}
             />
@@ -593,7 +705,7 @@ const Cases = () => {
             selectedOption || ""
           )
         ) {
-          return <DentureTypeSelection formConfig={formConfig} />;
+          return <DentureTypeSelection key={data ? `type-${data.id}-${data.updatedAt}` : "type-new"} formConfig={formConfig} />;
         }
         return (
           <>
@@ -622,7 +734,7 @@ const Cases = () => {
           // digitalType is an array, but we are treating it as single select now
           const dentureType = watch("digitalType")?.[0];
           if (dentureType === "Conventional") {
-            return <ExistingDentureCheck formConfig={formConfig} />;
+            return <ExistingDentureCheck key={data ? `existing-${data.id}-${data.updatedAt}` : "existing-new"} formConfig={formConfig} />;
           }
           // For Overdenture + Immediate Denture, FIRST show scan/impression selection (Step 1)
           if (selectedOption === "Overdenture" && dentureType === "Immediate") {
@@ -644,10 +756,10 @@ const Cases = () => {
           }
           // If Reline for Full Denture, show Digital Complete Denture form
           if (selectedOption === "Full Denture" && dentureType === "Reline") {
-            return <DigitalCompleteDenture formConfig={formConfig} />;
+            return <DigitalCompleteDenture key={data ? `kind-${data.id}-${data.updatedAt}` : "kind-new"} formConfig={formConfig} />;
           }
           // Default: show Digital Complete Denture form for other cases
-          return <DigitalCompleteDenture formConfig={formConfig} />;
+          return <DigitalCompleteDenture key={data ? `kind-${data.id}-${data.updatedAt}` : "kind-new"} formConfig={formConfig} />;
         }
         if (["Partial Denture"].includes(selectedOption || "")) {
           // Shade step commented out - not required
@@ -671,7 +783,7 @@ const Cases = () => {
           const dentureType = watch("digitalType")?.[0];
           // If "New Denture" (Conventional) was selected, show Implant Support Check
           if (dentureType === "Conventional") {
-            return <ImplantSupportedCheck formConfig={formConfig} />;
+            return <ImplantSupportedCheck key={data ? `implant-${data.id}-${data.updatedAt}` : "implant-new"} formConfig={formConfig} />;
           }
           // For Overdenture + Immediate Denture, flow ends at step 4 (scan selection), so this step shouldn't be reached
           if (selectedOption === "Overdenture" && dentureType === "Immediate") {
@@ -713,7 +825,7 @@ const Cases = () => {
             }
           }
           // Continue with normal flow for other cases
-          return <DentureArchSelection formConfig={formConfig} onNext={handleNext} />;
+          return <DentureArchSelection key={data ? `arch-${data.id}-${data.updatedAt}` : "arch-new"} formConfig={formConfig} onNext={handleNext} />;
         }
         return (
           <>
@@ -747,7 +859,7 @@ const Cases = () => {
           // Shade step commented out - not required
           // return <DentureShadeSelection formConfig={formConfig} />;
           // Skip shade and go to Denture Type selection
-          return <DentureKindSelection formConfig={formConfig} />;
+          return <DentureKindSelection key={data ? `kind-${data.id}-${data.updatedAt}` : "kind-new"} formConfig={formConfig} />;
         }
         return (
           <>
@@ -1082,6 +1194,13 @@ const Cases = () => {
 
   return (
     <div className="min-h-screen bg-[#fff] p-6 space-y-6">
+      <ScreenLoader
+        isLoading={
+          (isEditMode && isFetching) ||
+          updateCase.isPending ||
+          createCase.isPending
+        }
+      />
       {/* <Button
         btnText="Back"
         backGround
@@ -1111,7 +1230,7 @@ const Cases = () => {
           totalSteps={TOTAL_STEPS}
           onPrevious={handleBack}
           onNext={handleNext}
-          isSubmitting={createCase.isPending}
+          isSubmitting={createCase.isPending || updateCase.isPending}
           isEditMode={isEditMode}
         />
       </form>

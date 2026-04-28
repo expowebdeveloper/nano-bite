@@ -95,9 +95,18 @@ const useCases = (params?: CasesListParams) => {
       const response = await request.put(`/cases/${caseId}`, data)
       return response.data;
     },
-     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cases"] });
-      confirmationMessage("Case updated successfully", "success");
+    onSuccess: (response, variables) => {
+      // Update the individual case cache immediately with the returned record
+      // The backend returns { success: true, data: record }
+      if (response?.data && variables.caseId) {
+        queryClient.setQueryData(["cases", variables.caseId], response.data);
+      }
+      
+      // Invalidate everything under the "cases" key to ensure list, stats, and calendar are fresh
+      queryClient.invalidateQueries({ 
+        queryKey: ["cases"],
+        refetchType: "all" 
+      });
     },
     onError: (error) => {
       confirmationMessage(

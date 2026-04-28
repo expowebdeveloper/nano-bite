@@ -20,12 +20,15 @@ interface PatientInformationProps {
   dateValue?: string;
   /** When true (dentist selected "Cloud Shared Folder" at signup), button label is "Upload files"; otherwise "Upload Link or Cloud Folder" */
   showCloudFolderOption?: boolean;
+  /** When true, relaxes due-date validation so existing cases with past dates can still be edited */
+  isEditMode?: boolean;
 }
 
 const PatientInformation = ({
   formConfig,
   onUploadClick,
   showCloudFolderOption = false,
+  isEditMode = false,
 }: PatientInformationProps) => {
   return (
     <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
@@ -104,6 +107,8 @@ const PatientInformation = ({
               required: "Due date is required",
               validate: (value: string) => {
                 if (!value) return "Due date is required";
+                // In edit mode, allow existing due dates even if they are in the past
+                if (isEditMode) return true;
                 const selected = new Date(value);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);

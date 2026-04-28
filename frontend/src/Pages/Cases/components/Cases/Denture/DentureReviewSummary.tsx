@@ -1,9 +1,10 @@
 import { UseFormReturn } from "react-hook-form";
 import { CaseFormValues } from "../../../../../Constants/Constants";
 import { CommanHeading } from "../../../CommanHeading";
-import { Edit, Plus, DollarSign } from "lucide-react";
+import { Plus, DollarSign } from "lucide-react";
 import { useState, useMemo } from "react";
 import { calculateDenturePrice, formValuesToPricingInput } from "../../../../../utils/denturePricing";
+import { DENTURE_OPTIONS } from "./DentureTypeSelection";
 
 interface DentureReviewSummaryProps {
     formConfig: UseFormReturn<CaseFormValues>;
@@ -48,11 +49,22 @@ export const DentureReviewSummary = ({
     const getSummaryItems = (): SummaryItem[] => {
         const items: SummaryItem[] = [];
 
-        // Type
+        // Category (Full Denture / Overdenture)
         if (selectedOption) {
             items.push({
-                label: "Type",
+                label: "Category",
                 value: selectedOption,
+                step: 2,
+            });
+        }
+
+        // Specific Type (New / Immediate / Reline)
+        if (formValues.digitalType && formValues.digitalType.length > 0) {
+            const typeValue = formValues.digitalType[0];
+            const typeLabel = DENTURE_OPTIONS.find((o: any) => o.value === typeValue)?.title || typeValue;
+            items.push({
+                label: "Specific Type",
+                value: typeLabel,
                 step: 3,
             });
         }
@@ -262,14 +274,14 @@ export const DentureReviewSummary = ({
                                             {formatValue(item.value)}
                                         </p>
                                     </div>
-                                    <button
+                                    {/* <button
                                         type="button"
                                         onClick={() => onEditStep(item.step)}
                                         className="flex-shrink-0 text-[#0B75C9] hover:text-[#0084c7] transition-colors"
                                         title="Edit"
                                     >
                                         <Edit className="w-4 h-4" />
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         ))}
@@ -290,14 +302,14 @@ export const DentureReviewSummary = ({
                                             {formatValue(item.value)}
                                         </p>
                                     </div>
-                                    <button
+                                    {/* <button
                                         type="button"
                                         onClick={() => onEditStep(item.step)}
                                         className="flex-shrink-0 text-[#0B75C9] hover:text-[#0084c7] transition-colors"
                                         title="Edit"
                                     >
                                         <Edit className="w-4 h-4" />
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                         ))}
