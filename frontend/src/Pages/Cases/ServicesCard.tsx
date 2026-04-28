@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, ArrowLeft } from "lucide-react";
 import { CommanHeading } from "./CommanHeading";
 
@@ -187,13 +187,39 @@ const OptionCard: React.FC<OptionCardProps> = ({
 interface ServicesPageProps {
   onServiceSelect?: (service: string) => void;
   onOptionSelect?: (optionLabel: string) => void;
+  initialServiceId?: string | null;
+  initialOptionLabel?: string | null;
 }
 
-const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onOptionSelect }) => {
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [selectedOptionLabel, setSelectedOptionLabel] = useState<string | null>(null);
-  console.log(selectedOptionLabel)
+// Map option label → option id for each service so we can pre-select on edit.
+const labelToOptionId = (serviceId: string, label: string): string | null => {
+  const stepData = serviceStepData[serviceId];
+  if (!stepData) return null;
+  const match = stepData.options.find((o) => o.label === label);
+  return match ? match.id : null;
+};
+
+const ServicesPage: React.FC<ServicesPageProps> = ({
+  onServiceSelect,
+  onOptionSelect,
+  initialServiceId = null,
+  initialOptionLabel = null,
+}) => {
+  const [selectedService, setSelectedService] = useState<string | null>(initialServiceId);
+  const [selectedOption, setSelectedOption] = useState<string | null>(
+    initialServiceId && initialOptionLabel
+      ? labelToOptionId(initialServiceId, initialOptionLabel)
+      : null
+  );
+
+  // Sync internal state when initial props arrive after first render (edit mode).
+  useEffect(() => {
+    if (initialServiceId) setSelectedService(initialServiceId);
+    if (initialServiceId && initialOptionLabel) {
+      const optId = labelToOptionId(initialServiceId, initialOptionLabel);
+      if (optId) setSelectedOption(optId);
+    }
+  }, [initialServiceId, initialOptionLabel]);
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId);
@@ -205,7 +231,6 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onOptionSe
 
   const handleOptionSelect = (optionId: string, optionLabel: string) => {
     setSelectedOption(optionId);
-    setSelectedOptionLabel(optionLabel);
     if (onOptionSelect) {
       onOptionSelect(optionLabel);
     }
@@ -214,7 +239,6 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ onServiceSelect, onOptionSe
   const handleBackToServices = () => {
     setSelectedService(null);
     setSelectedOption(null);
-    setSelectedOptionLabel(null);
   };
 
   // Show service options if a service is selected

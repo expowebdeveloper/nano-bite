@@ -3,7 +3,6 @@ import Input from "../../../components/common/Input/Input";
 import CheckboxGroup from "../../../components/common/CheckboxGroup/CheckboxGroup";
 import Textarea from "../../../components/common/Textarea/Textarea";
 import {
-  DIGITAL_DENTURE_TYPE,
   DIGITAL_DENTURE_ARCH,
   DIGITAL_DENTURE_VDO,
   DIGITAL_DENTURE_TOOTH_SETUP,
@@ -24,13 +23,7 @@ const DigitalCompleteDenture = ({
     <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 space-y-6">
       <h2 className="text-xl font-semibold text-gray-900">Digital Complete Denture</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <CheckboxGroup
-          label="Type"
-          fieldName="digitalType"
-          formConfig={formConfig}
-          options={DIGITAL_DENTURE_TYPE as unknown as string[]}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <CheckboxGroup
           label="Arch"
           fieldName="digitalArch"

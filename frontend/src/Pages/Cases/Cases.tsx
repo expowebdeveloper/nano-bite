@@ -121,8 +121,12 @@ const Cases = () => {
       // Create a clean copy for reset to avoid null issues
       const formData = { ...data } as any;
       if (formData.cloudFolderLink === null) delete formData.cloudFolderLink;
-      
+
       reset(formData);
+      // Mark this caseType as "already known" so the case-type-change effect
+      // below doesn't treat the prefill as a user-driven change and wipe the
+      // case-specific fields we just loaded.
+      prevCaseTypeRef.current = data.caseType || "";
       if (data.attachments) {
         setAttachments(data.attachments);
       }
@@ -155,12 +159,36 @@ const Cases = () => {
           setSelectedTeeth(teeth);
         }
       } else if (data.caseType === "Digital Complete Denture") {
-        setSelectedOption("Full Denture");
+        // Same case type covers Full Denture and Overdenture; distinguish via overdenture-specific fields.
+        const looksLikeOverdenture =
+          !!data.overdentureScanMethod ||
+          !!data.overdentureSupportType ||
+          !!data.overdentureRelineArch ||
+          (Array.isArray(data.overdentureImplantLocations) && data.overdentureImplantLocations.length > 0);
+        setSelectedOption(looksLikeOverdenture ? "Overdenture" : "Full Denture");
       } else if (data.caseType === "Partial Denture") {
         setSelectedOption("Partial Denture");
       }
     }
   }, [isEditMode, data, reset]);
+
+  // Map a wizard `selectedOption` back to the (serviceId, optionLabel) pair that
+  // ServicesPage uses internally, so step 2 can show the correct selection in edit mode.
+  const getServicePreselect = (
+    option: string | null
+  ): { serviceId: string | null; optionLabel: string | null } => {
+    if (!option) return { serviceId: null, optionLabel: null };
+    if (["Crown", "Inlay", "Onlay", "Veneer", "Bridge"].includes(option)) {
+      return { serviceId: "fixed-restoration", optionLabel: option };
+    }
+    if (["Implant Crown", "Implant Bridge", "Surgical Guide"].includes(option)) {
+      return { serviceId: "implants-solutions", optionLabel: option };
+    }
+    if (["Full Denture", "Partial Denture", "Overdenture"].includes(option)) {
+      return { serviceId: "dentures", optionLabel: option };
+    }
+    return { serviceId: null, optionLabel: null };
+  };
   const caseType = watch("caseType");
   const doctorSignature = watch("doctorSignature");
   const signatureDate = watch("date");
@@ -543,15 +571,19 @@ const Cases = () => {
             showCloudFolderOption={showCloudFolderOption}
           />
         );
-      case 2:
+      case 2: {
+        const preselect = getServicePreselect(selectedOption);
         return (
           <>
             {/* <VerticalStepper activeStep={2} selectedTeeth={[]} /> */}
             <ServicesPage
               onOptionSelect={(label) => setSelectedOption(label)}
+              initialServiceId={preselect.serviceId}
+              initialOptionLabel={preselect.optionLabel}
             />
           </>
         );
+      }
       case 3:
         if (["Partial Denture"].includes(selectedOption || "")) {
           return <PartialDentureMaterialSelection formConfig={formConfig} />;

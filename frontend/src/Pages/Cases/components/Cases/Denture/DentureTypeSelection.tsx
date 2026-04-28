@@ -47,9 +47,8 @@ export const DentureTypeSelection = ({
                 render={({ field: { value, onChange } }) => (
                     <div className="space-y-4 max-w-2xl mt-8">
                         {DENTURE_OPTIONS.map((option) => {
-                            // value is string[] in type definition, but we treat it as single selection here
-                            // Check if the array contains the value
-                            const isSelected = value?.includes(option.value);
+                            // Single-select semantics: only the first array value is the active choice.
+                            const isSelected = value?.[0] === option.value;
 
                             return (
                                 <div
