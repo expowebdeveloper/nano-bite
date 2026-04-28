@@ -621,6 +621,11 @@ const Cases = () => {
   };
 
   const onSubmit = async (values: CaseFormValues) => {
+    const hasImage = attachments.some(a => a.mime?.startsWith("image/") || a.type === "photo");
+    if (!hasImage) {
+      confirmationMessage("Please upload at least one image before submitting.", "error");
+      return;
+    }
     try {
       // Force caseType based on selectedOption ensures we are sending the correct type
       // regardless of form state which might be lagging or reset.
