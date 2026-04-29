@@ -66,17 +66,16 @@ const CasesList = () => {
     });
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string, dateOnly = false) => {
     if (!dateString) return "—";
     try {
-      return new Date(dateString).toLocaleDateString("en-US", {
+      const options: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "short",
         day: "numeric",
-        hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-      });
+        ...(dateOnly ? {} : { hour: "2-digit", minute: "2-digit", hour12: true }),
+      };
+      return new Date(dateString).toLocaleDateString("en-US", options);
     } catch {
       return "—";
     }
@@ -179,7 +178,7 @@ const CasesList = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
-                      {formatDate(caseItem.dueDate)}
+                      {formatDate(caseItem.dueDate, true)}
                     </td>
                     <td className="px-4 py-3 text-[15px] text-gray-800">
                       {caseItem.createdBy?.fullName || "—"}

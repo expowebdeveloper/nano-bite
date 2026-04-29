@@ -442,6 +442,12 @@ const Cases = () => {
       );
       return;
     }
+    // Block navigation to the final review/submit step if no file has been uploaded yet.
+    // This fires one step prior to submit so the dentist can upload a file before reviewing.
+    if (currentStep === TOTAL_STEPS - 1 && attachments.length === 0) {
+      confirmationMessage("Please upload at least one file (image or STL) before proceeding.", "error");
+      return;
+    }
 
     // Scope validation to only the fields on the current step to avoid
     // false negatives from empty required fields on future steps.
@@ -621,9 +627,9 @@ const Cases = () => {
   };
 
   const onSubmit = async (values: CaseFormValues) => {
-    const hasImage = attachments.some(a => a.mime?.startsWith("image/") || a.type === "photo");
-    if (!hasImage) {
-      confirmationMessage("Please upload at least one image before submitting.", "error");
+    // Accept any uploaded file (image, STL, etc.) — at least one attachment required.
+    if (attachments.length === 0) {
+      confirmationMessage("Please upload at least one file (image or STL) before submitting.", "error");
       return;
     }
     try {
